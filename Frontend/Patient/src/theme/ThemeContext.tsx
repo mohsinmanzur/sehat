@@ -1,29 +1,8 @@
 // src/theme/ThemeContext.tsx
-import React, {
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-  ReactNode,
-} from 'react';
+import React, { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
-type ThemeColors = {
-  primary: string;
-  background: string;
-  card: string;
-  text: string;
-  border: string;
-  muted: string;
-  danger: string;
-  warning: string;
-  success: string;
-};
-
-type AppTheme = {
-  dark: boolean;
-  colors: ThemeColors;
-};
+import { AppTheme, ThemeContextValue } from './types';
 
 const lightTheme: AppTheme = {
   dark: false,
@@ -53,12 +32,6 @@ const darkTheme: AppTheme = {
     warning: '#facc15',
     success: '#22c55e',
   },
-};
-
-type ThemeContextValue = {
-  theme: AppTheme;
-  isDark: boolean;
-  toggleTheme: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);

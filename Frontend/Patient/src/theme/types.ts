@@ -1,15 +1,22 @@
-export interface ThemeColors {
+export type ThemeColors = {
+  primary: string;
   background: string;
   card: string;
   text: string;
   border: string;
-  primary: string;
-  primarySoft: string;
-  danger: string;
   muted: string;
-}
+  danger: string;
+  warning: string;
+  success: string;
+};
 
-export interface Theme {
+export type AppTheme = {
   dark: boolean;
   colors: ThemeColors;
-}
+};
+
+export type ThemeContextValue = {
+  theme: AppTheme;
+  isDark: boolean;
+  toggleTheme: () => void;
+};

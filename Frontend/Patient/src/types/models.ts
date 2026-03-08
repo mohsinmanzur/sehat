@@ -10,7 +10,6 @@ export interface Report {
   imageUri?: string; // optional image URI for scanned/uploaded reports
 }
 
-
 export interface Alert {
   id: string;
   title: string;
