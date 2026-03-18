@@ -10,7 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import googleOauthConfig from './config/google-oauth.config';
 import { EmailService } from './services/email.service';
 import { OtpService } from './services/otp.service';
-import emailConfig from '../../config/email.config';
+import emailConfig from '../config/email.config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PatientModule } from '../patient/patient.module';
 import { GoogleAuthService } from './strategies/google-oauth.strategy';
