@@ -10,13 +10,12 @@ export interface VitalSummary {
     riskLevel: RiskLevel;
 }
 
-export interface PatientProfile {
-    id: string;
-    name: string;
+export interface PatientDTO {
     email: string;
-    condition: ConditionType;
-    yearsOfData: number; // 1–2
-    bpSummary?: VitalSummary;
-    sugarSummary?: VitalSummary;
-    heartSummary?: VitalSummary;
+    name: string;
+    date_of_birth: Date;
+    blood_group?: string;
+    emergency_contact?: string;
+    reward_points?: number;
+    is_research_opt_in?: boolean;
 }

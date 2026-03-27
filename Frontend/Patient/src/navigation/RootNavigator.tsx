@@ -13,7 +13,7 @@ import SplashScreen from '@screens/Splash/SplashScreen';
 export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
-  Otp: { patientId: string };
+  Otp: { patientEmail: string };
   MainTabs: undefined;
   Settings: undefined;
   Reports: undefined;

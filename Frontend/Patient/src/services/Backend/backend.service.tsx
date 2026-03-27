@@ -47,16 +47,13 @@ class Backend
     async verifycode(email: string, code: string)
     {
         const response = await this.request('/auth/verifycode', allowedMethods.POST, { email, code });
-        if (response.ok) {
-            const data = await response.json();
-            this.jwt = data.jwt;
-            this.refreshToken = data.refreshToken;
-        }
-        else {
+        if (!response.ok) {
             throw new Error(`Error in verifying code: ${response.status} ${response.statusText}`);
         }
-
-        return await response.json();
+        const data = await response.json();
+        this.jwt = data.jwt;
+        this.refreshToken = data.refreshToken;
+        return true;
     }
 
     async register(patientInfo: createPatientDTO)
@@ -128,3 +125,6 @@ class Backend
         return await response.json();
     }
 }
+
+const backend = new Backend();
+export default backend;

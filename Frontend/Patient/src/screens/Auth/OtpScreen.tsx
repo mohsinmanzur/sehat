@@ -1,46 +1,54 @@
 // src/screens/Auth/OtpScreen.tsx
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Pressable, ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@navigation/RootNavigator';
 import { patients } from '@mock/patients';
 import { useCurrentPatient } from '@context/UserContext';
 import { useTheme } from '@context/ThemeContext';
+import Ionicons from '@expo/vector-icons/build/Ionicons';
+import backend from 'src/services/Backend/backend.service';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Otp'>;
 
 const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
     const { setCurrentPatient } = useCurrentPatient();
     const [otp, setOtp] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { patientId } = route.params;
-    const patient = patients.find((p) => p.id === patientId);
+    const { patientEmail } = route.params;
     const { theme } = useTheme();
 
-    const handleVerify = () => {
-        // Dummy OTP – accept anything
-        if (patient) {
+    const handleVerify = async () => {
+        setIsLoading(true);
+        const bool = await backend.verifycode(patientEmail, otp);
+        if (bool)
+        {
+            const patient = await backend.getPatientByEmail(patientEmail);
             setCurrentPatient(patient);
             navigation.replace('MainTabs');
         }
+        setIsLoading(false);
     };
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
+
             <View style={styles.safeTop} />
 
+            <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={{ borderColor: theme.border, paddingTop: 10, paddingLeft: 10 }}
+            >
+                <Ionicons name="arrow-back" size={24} color={theme.text} />
+            </TouchableOpacity>
+            
             <View style={styles.content}>
                 <Text style={[styles.title, { color: theme.text }]}>
                     Verify OTP
                 </Text>
                 <Text style={[styles.subtitle, { color: theme.muted }]}>
-                    Enter any 6 digits to continue for {patient?.email}.
+                    Enter any 6 digits to continue for {patientEmail}.
                 </Text>
 
                 <TextInput
@@ -56,12 +64,17 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
                     maxLength={6}
                 />
 
-                <TouchableOpacity
+                <Pressable
                     style={[styles.button, { backgroundColor: theme.primary }]}
                     onPress={handleVerify}
+                    disabled={isLoading}
                 >
-                    <Text style={styles.buttonLabel}>Continue</Text>
-                </TouchableOpacity>
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text style={styles.buttonLabel}>Continue</Text>
+                    )}
+                </Pressable>
             </View>
 
             <View style={styles.safeBottom} />

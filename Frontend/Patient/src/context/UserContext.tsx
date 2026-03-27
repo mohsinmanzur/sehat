@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { PatientProfile } from '../types/patients';
+import type { PatientDTO } from '../types/patients';
 
 interface UserContextValue {
-    currentPatient: PatientProfile | null;
-    setCurrentPatient: (p: PatientProfile | null) => void;
+    currentPatient: PatientDTO | null;
+    setCurrentPatient: (p: PatientDTO | null) => void;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -11,7 +11,7 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
     children,
 }) => {
-    const [currentPatient, setCurrentPatient] = useState<PatientProfile | null>(
+    const [currentPatient, setCurrentPatient] = useState<PatientDTO | null>(
         null
     );
 

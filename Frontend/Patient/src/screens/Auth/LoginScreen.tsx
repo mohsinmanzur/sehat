@@ -5,13 +5,13 @@ import {
     Text,
     StyleSheet,
     TextInput,
-    FlatList,
-    TouchableOpacity,
+    ActivityIndicator,
+    Pressable,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@navigation/RootNavigator';
-import { patients } from '@mock/patients';
 import { useTheme } from '@context/ThemeContext';
+import backend from 'src/services/Backend/backend.service';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -19,34 +19,27 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const { theme } = useTheme();
 
     const [email, setEmail] = useState('');
-    const [filtered, setFiltered] = useState(patients.slice(0, 10));
+    const [loading, setLoading] = useState(false);
 
-    const onChange = (text: string) => {
-        setEmail(text);
-        const lower = text.toLowerCase();
-        const list = patients
-            .filter((p) => p.email.toLowerCase().includes(lower))
-            .slice(0, 10);
-        setFiltered(list);
-    };
-
-    const goToOtp = (patientId: string) => {
-        navigation.navigate('Otp', { patientId });
-    };
-
-    const handleContinue = () => {
-        const p = patients.find((pt) => pt.email === email.trim());
-        if (p) goToOtp(p.id);
+    const handlePress = async (patientEmail: string) => {
+        setLoading(true);
+        try {
+            await backend.requestcode(patientEmail);
+            navigation.navigate('Otp', { patientEmail });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.container, { backgroundColor: theme.background, flex: 1, justifyContent: 'center' }]}>
+
             <View style={styles.safeTop} />
 
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.text }]}>Login</Text>
                 <Text style={[styles.subtitle, { color: theme.muted }]}>
-                    Choose any dummy patient email to load 1–2 years of reports.
+                    Please enter your email.
                 </Text>
             </View>
 
@@ -59,18 +52,22 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     placeholder="patient.email@example.com"
                     placeholderTextColor={theme.muted}
                     value={email}
-                    onChangeText={onChange}
+                    onChangeText={setEmail}
                     autoCapitalize="none"
                     keyboardType="email-address"
                 />
-                <TouchableOpacity
-                    style={[styles.button, { backgroundColor: theme.primary }]}
-                    onPress={handleContinue}
+                <Pressable
+                    style={[styles.button, { backgroundColor: theme.primary, }]}
+                    onPress={() => handlePress(email)}
                 >
-                    <Text style={styles.buttonLabel}>Continue</Text>
-                </TouchableOpacity>
+                    {loading ? (
+                        <ActivityIndicator color = "#fff"/>
+                    ) : (
+                        <Text style={styles.buttonLabel}>Continue</Text>
+                    )}
+                </Pressable>
             </View>
-
+            {/*
             <View style={styles.listContainer}>
                 <Text style={[styles.listLabel, { color: theme.muted }]}>
                     Example dummy emails
@@ -84,7 +81,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                                 styles.emailItem,
                                 { borderColor: theme.border },
                             ]}
-                            onPress={() => goToOtp(item.id)}
+                            onPress={() => handlePress(item.email)}
                         >
                             <Text style={{ color: theme.text, fontSize: 14 }}>
                                 {item.email}
@@ -96,8 +93,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     )}
                 />
             </View>
-
+            
             <View style={styles.safeBottom} />
+            */}
         </View>
     );
 };
