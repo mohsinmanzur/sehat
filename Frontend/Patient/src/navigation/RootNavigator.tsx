@@ -11,6 +11,7 @@ import { useColorScheme } from 'react-native';
 
 export type RootStackParamList = {
   Landing: undefined;
+  Signup: { patientEmail: string };
   Login: undefined;
   Otp: { patientEmail: string };
   MainTabs: undefined;

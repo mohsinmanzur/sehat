@@ -28,7 +28,7 @@ const BottomTabs: React.FC = () => {
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
           backgroundColor: theme.card,
-          borderTopColor: theme.border,
+          borderTopColor: theme.primary,
           height: 70,
           paddingBottom: 10,
           paddingTop: 4,

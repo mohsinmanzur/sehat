@@ -5,6 +5,7 @@ export const Colors = {
   light: {
     primary: '#2A5CFF',
     primarySoft: '#DDE1FF',
+    primaryDark: '#2047c7',
     backgroundLight: '#F6F8FC',
     backgroundDark: '#EDF0F7',
     card: '#F3F3F4',
@@ -23,6 +24,7 @@ export const Colors = {
   dark: {
     primary: '#96A9FF',
     primarySoft: '#262831',
+    primaryDark: '#6c7ab8',
     backgroundLight: '#1A1A1A',
     backgroundDark: '#121215',
     card: '#20201F',

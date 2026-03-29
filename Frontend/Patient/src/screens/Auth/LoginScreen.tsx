@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View} from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@navigation/RootNavigator';
 import { useTheme } from '@context/ThemeContext';
@@ -13,15 +13,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const { theme } = useTheme();
 
     const [email, setEmail] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handlePress = async (patientEmail: string) => {
-        setLoading(true);
-        try {
+        setIsLoading(true);
+        try
+        {
             await backend.requestcode(patientEmail);
             navigation.navigate('Otp', { patientEmail });
-        } finally {
-            setLoading(false);
+        }
+        finally
+        {
+            setIsLoading(false);
         }
     };
 
@@ -35,7 +38,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             >
             <Spacer height = {100} />
             <Text style = {{ padding: 20, paddingBottom: 0, alignItems: 'center', textAlign: 'center' }}>
-                <ThemedText type = {'title'} style = {{ letterSpacing: -1 }}>Welcome to </ThemedText>
+                <ThemedText type = {'title'} style = {{ letterSpacing: -1 }}>👋 to </ThemedText>
                 <ThemedText type = {'title'} style = {{ color: theme.primary, letterSpacing: -1 }}>Sehat{'\u00A0'}Scan</ThemedText>
             </Text>
 
@@ -45,7 +48,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
             <Spacer height = {50} />
 
-            <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%' }}>
+            <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 7, shadowColor: theme.textVeryLight }}>
                 <ThemedText type = {'default'} style = {{ color: theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>
                     Email or Phone Number
                 </ThemedText>
@@ -70,12 +73,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                 />
 
                 <ThemedButton
-                    style = {styles.continueButton}
+                    style = {[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
                     onPress={() => handlePress(email)}
-                    >
-                    <ThemedText style = {{ color: theme.backgroundLight, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue</ThemedText>
-
-                    <Ionicons name="arrow-forward" size={19} color={theme.backgroundLight} />
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color = {theme.backgroundLight} style = {{ padding: 6.5 }}/> 
+                    ) : (
+                        <>
+                            <ThemedText style = {{ color: theme.backgroundLight, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue</ThemedText>
+                            <Ionicons name="arrow-forward" size={19} color={theme.backgroundLight} /> 
+                        </>
+                    )}
                 </ThemedButton>
 
                 <View style = {{ flexDirection: 'row', alignItems: 'center', marginTop: 15, justifyContent: 'center', gap: 10 }}>
@@ -86,6 +95,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
                 <ThemedButton
                     style = {[styles.googleButton, { backgroundColor: theme.card }]}
+                    disabled={isLoading}
                     >
 
                     <Ionicons name="logo-google" size={19} color={theme.textGray} />
@@ -128,7 +138,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderRadius: 15,
         marginTop: 20,
-        flexDirection: 'row'
+        flexDirection: 'row',
+        // iOS Shadow
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2, // Keeps the shadow soft
+        shadowRadius: 6,
+        
+        // Android Shadow (shadowColor tint requires Android 9+)
+        elevation: 6,
     },
     googleButton: {
         alignItems: 'center',
