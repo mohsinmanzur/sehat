@@ -10,7 +10,4 @@ export class Measurement_Unit {
 
     @Column()
     symbol: string;
-
-    @Column('float', { array: true, nullable: true })
-    reference_range: number[];
 }

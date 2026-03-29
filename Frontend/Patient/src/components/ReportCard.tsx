@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Report } from '../types/models';
+import { Report } from '../types/dto';
 import { useTheme } from '@context/ThemeContext';
 
 interface Props {

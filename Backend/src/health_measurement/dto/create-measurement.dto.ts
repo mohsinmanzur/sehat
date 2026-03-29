@@ -1,17 +1,29 @@
-import { IsNumber, IsOptional, IsUUID } from "class-validator";
+import { IsDate, IsNumber, IsOptional, IsUUID } from "class-validator";
 
 export class CreateMeasurementDto
 {
     @IsUUID()
-    patient_id: string;
+    @IsOptional()
+    id?: string;
 
     @IsUUID()
     @IsOptional()
-    record_id: string;
+    document_id?: string;
+
+    @IsUUID()
+    patient_id: string;
 
     @IsUUID()
     unit_id: string;
 
     @IsNumber()
     numeric_value: number;
+
+    @IsDate()
+    @IsOptional()
+    created_at?: Date;
+
+    @IsDate()
+    @IsOptional()
+    updated_at?: Date;
 }

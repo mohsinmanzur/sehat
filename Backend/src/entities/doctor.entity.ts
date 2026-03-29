@@ -6,12 +6,15 @@ export class Doctor {
     id: string;
 
     @Column()
+    name: string;
+
+    @Column()
     email: string;
 
     @Column()
-    name: string;
+    phone: string;
 
-    @Column({ nullable: true })
+    @Column()
     license_number: string;
 
     @Column({ nullable: true })

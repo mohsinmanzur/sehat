@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { HealthMeasurementService } from './health_measurement.service';
-import { CreateUnitDto } from './dto/create-unit.dto';
+import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from 'src/entities/health_measurement.entity';
@@ -34,7 +34,7 @@ export class HealthMeasurementController {
 
 
   @Post('unit')
-  async createUnit(@Body() unit: CreateUnitDto) : Promise<Measurement_Unit>
+  async createUnit(@Body() unit: CreateMeasurementUnitDto) : Promise<Measurement_Unit>
   {
     return await this.healthMeasurementService.createUnit(unit);
   }

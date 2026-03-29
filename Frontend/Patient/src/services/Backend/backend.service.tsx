@@ -1,4 +1,4 @@
-import { HealthMeasurementDTO, MeasurementUnitDTO } from "../../types/models";
+import { HealthMeasurementDTO, MeasurementUnitDTO } from "../../types/dto";
 import { PatientDTO } from "../../types/patients";
 
 enum allowedMethods

@@ -1,14 +1,14 @@
-import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn } from "typeorm";
-import { Medical_Record } from "./medical_record.entity";
+import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Medical_Document } from "./medical_document.entity";
 
 @Entity()
 export class AI_Analysis {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ForeignKey(() => Medical_Record)
+    @ForeignKey(() => Medical_Document)
     @Column('uuid')
-    record_id: string;
+    document_id: string;
 
     @Column({ default: false })
     anomaly_detected: boolean;
@@ -21,4 +21,7 @@ export class AI_Analysis {
 
     @CreateDateColumn()
     created_at: Date;
+
+    @UpdateDateColumn()
+    updated_at: Date;
 }

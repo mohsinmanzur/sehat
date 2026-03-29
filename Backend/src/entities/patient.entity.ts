@@ -6,10 +6,13 @@ export class Patient {
     id: string;
 
     @Column()
+    name: string;    
+
+    @Column()
     email: string;
 
     @Column()
-    name: string;
+    phone: string;
 
     @Column()
     date_of_birth: Date;
@@ -17,13 +20,13 @@ export class Patient {
     @Column({ nullable: true })
     blood_group: string;
 
-    @Column({ nullable: true })
-    emergency_contact: string;
+    @Column({ type: 'jsonb', nullable: true })
+    emergency_contacts: Record<string, string>[];
 
-    @Column({ nullable: true })
+    @Column({ default: 0 })
     reward_points: number;
 
-    @Column({ nullable: true })
+    @Column({ default: false })
     is_research_opt_in: boolean;
 
     @CreateDateColumn()

@@ -1,15 +1,14 @@
-import { Type } from "class-transformer";
-import { IsArray, IsString } from "class-validator";
+import { IsOptional, IsString, IsUUID } from "class-validator";
 
-export class CreateUnitDto
+export class CreateMeasurementUnitDto
 {
+    @IsUUID()
+    @IsOptional()
+    id?: string;
+
     @IsString()
     unit_name: string;
 
     @IsString()
     symbol: string;
-
-    @IsArray()
-    @Type(() => Number)
-    reference_range: number[];
 }

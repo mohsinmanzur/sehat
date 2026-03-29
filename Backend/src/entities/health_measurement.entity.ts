@@ -1,5 +1,5 @@
-import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn } from "typeorm";
-import { Medical_Record } from "./medical_record.entity";
+import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Medical_Document } from "./medical_document.entity";
 import { Measurement_Unit } from "./measurement_unit.entity";
 import { Patient } from "./patient.entity";
 
@@ -8,13 +8,13 @@ export class Health_Measurement {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @ForeignKey(() => Medical_Document)
+    @Column('uuid', { nullable: true })
+    document_id: string;
+
     @ForeignKey(() => Patient)
     @Column('uuid')
     patient_id: string;
-
-    @ForeignKey(() => Medical_Record)
-    @Column('uuid', { nullable: true })
-    record_id: string;
 
     @ForeignKey(() => Measurement_Unit)
     @Column('uuid')
@@ -25,4 +25,7 @@ export class Health_Measurement {
 
     @CreateDateColumn()
     created_at: Date;
+
+    @UpdateDateColumn()
+    updated_at: Date;
 }

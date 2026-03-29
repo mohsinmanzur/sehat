@@ -1,8 +1,8 @@
-import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Patient } from "./patient.entity";
 
 @Entity()
-export class Medical_Record {
+export class Medical_Document {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -31,4 +31,7 @@ export class Medical_Record {
     
     @CreateDateColumn()
     created_at: Date;
+
+    @UpdateDateColumn()
+    updated_at: Date;
 }

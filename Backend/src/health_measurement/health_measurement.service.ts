@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
-import { CreateUnitDto } from './dto/create-unit.dto';
+import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from 'src/entities/health_measurement.entity';
 import { Repository } from 'typeorm';
@@ -31,19 +31,11 @@ export class HealthMeasurementService
 
     async createHealthMeasurement(measurement: CreateMeasurementDto) : Promise<Health_Measurement>
     {
-        const record = await this.healthMeasurementRepo.findOneBy({ id: measurement.record_id });
-        if (!record)
-        {
-            const { record_id, ...measurementInfo } = measurement;
-            const createdRecord = this.healthMeasurementRepo.create(measurementInfo);
-            return await this.healthMeasurementRepo.save(createdRecord);
-        }
-
         const createdRecord = this.healthMeasurementRepo.create(measurement);
         return await this.healthMeasurementRepo.save(createdRecord);
     }
 
-    async createUnit(unit: CreateUnitDto) : Promise<Measurement_Unit>
+    async createUnit(unit: CreateMeasurementUnitDto) : Promise<Measurement_Unit>
     {
         const newUnit = this.measurementUnitRepo.create(unit);
         return await this.measurementUnitRepo.save(newUnit);

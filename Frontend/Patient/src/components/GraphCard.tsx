@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { InsightSeries } from '../types/models';
+import { InsightSeries } from '../types/dto';
 import { useTheme } from '@context/ThemeContext';
 
 interface Props {

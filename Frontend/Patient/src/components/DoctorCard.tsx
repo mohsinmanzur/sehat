@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Doctor } from '../types/models';
+import { Doctor } from '../types/dto';
 import { useTheme } from '@context/ThemeContext';
 
 interface Props {
