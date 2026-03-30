@@ -18,7 +18,7 @@ export class Patient {
     date_of_birth: Date;
 
     @Column({ nullable: true })
-    blood_group: string;
+    blood_group?: string;
 
     @Column({ type: 'jsonb', nullable: true })
     emergency_contacts: Record<string, string>[];

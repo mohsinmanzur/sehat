@@ -89,6 +89,12 @@ class Backend
         this.jwtToken = (await response.json()).jwtToken;
     }
 
+    logout()
+    {
+        this.jwtToken = null;
+        this.refreshToken = null;
+    }
+
     // =========================
     // Patients
     // =========================

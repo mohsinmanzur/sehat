@@ -14,6 +14,7 @@ import Toast from 'react-native-toast-message';
 import { useCurrentPatient } from '@context/UserContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
+const date = new Date();
 
 const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
     const { patientEmail } = route.params;
@@ -22,13 +23,29 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
     const { setCurrentPatient } = useCurrentPatient();
 
     const [name, setName] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState(new Date());
-    const [bloodGroup, setBloodGroup] = useState('A+');
+    const [dateOfBirth, setDateOfBirth] = useState(date);
+    const [bloodGroup, setBloodGroup] = useState('');
     const [betaOptIn, setBetaOptIn] = useState(false);
 
+    const [showNameError, setShowNameError] = useState(false);
+    const [showDobError, setShowDobError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handlePress = async () => {
+
+        if (!name.trim())
+        {
+            if (dateOfBirth === date) setShowDobError(true);
+            setShowNameError(true);
+            return;
+        }
+
+        if (dateOfBirth === date)
+        {
+            setShowDobError(true);
+            return;
+        }
+
         setIsLoading(true);
 
         try
@@ -37,9 +54,8 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
                 name: name,
                 email: patientEmail,
                 date_of_birth: dateOfBirth,
-                blood_group: bloodGroup,
-                is_research_opt_in: betaOptIn,
-                phone: '+923001234567'
+                blood_group: bloodGroup || null,
+                is_research_opt_in: betaOptIn
             });
             console.log(patient);
             setCurrentPatient(patient);
@@ -78,24 +94,25 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
             
                 <Spacer height={20} />
 
-                <ThemedText type={'h2'}>What should we call you?</ThemedText>
+                <ThemedText type={'h2'}>🙍 What should we call you?</ThemedText>
                 <ThemedTextInput 
                     placeholder=" Enter your name"
                     value={name}
-                    onChangeText={setName}
-                    style={{ width: '100%', paddingVertical: 16, marginTop: 10 }}
+                    onChangeText={(text) => { setName(text); setShowNameError(false); }}
+                    style={{ width: '100%', paddingVertical: 16, marginTop: 10, borderColor: showNameError ? theme.danger : theme.card, borderWidth: 1, borderRadius: 10 }}
                 />
 
-                <ThemedText type={'h2'} style={{ marginTop: 30 }}>Date of Birth</ThemedText>
+                <ThemedText type={'h2'} style={{ marginTop: 30 }}>🗓️ Date of Birth</ThemedText>
                 <DatePicker
                     mode='date'
                     date={dateOfBirth}
-                    onDateChange={setDateOfBirth}
+                    onDateChange={(date) => { setDateOfBirth(date); setShowDobError(false); }}
                     maximumDate={new Date()}
                     locale={'en-GB'}
+                    dividerColor={showDobError ? theme.danger : theme.text}
                 />
 
-                <ThemedText type={'h2'} style={{ marginTop: 20 }}>Blood Group</ThemedText>
+                <ThemedText type={'h2'} style={{ marginTop: 20 }}>🩸 Blood Group</ThemedText>
                 <Dropdown
                     data={bloodGroups}
                     value={bloodGroup}
@@ -105,8 +122,10 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
                     placeholder="Select Blood Group"
                     style={{ backgroundColor: theme.card, paddingVertical: 16, paddingHorizontal: 15, marginTop: 10, borderRadius: 10 }}
                     placeholderStyle={{ color: theme.textVeryLight, fontFamily: 'PublicSans_600SemiBold', fontSize: 15 }}
-                    containerStyle={{ backgroundColor: theme.backgroundLight, paddingHorizontal: 5, borderRadius: 8 }}
+                    containerStyle={{ backgroundColor: theme.backgroundLight, paddingHorizontal: 5, borderRadius: 8, borderColor: theme.textVeryLight, height: 300 }}
                     selectedTextStyle={{ fontFamily: 'PublicSans_600SemiBold', fontSize: 15, color: theme.textGray }}
+                    itemTextStyle={{ fontFamily: 'PublicSans_600SemiBold', fontSize: 15, color: theme.textGray }}
+                    //itemContainerStyle={{ backgroundColor: theme.card, borderBottomWidth: 5, borderBottomColor: theme.backgroundLight }}
                     activeColor={theme.backgroundLight}
                 />
                 

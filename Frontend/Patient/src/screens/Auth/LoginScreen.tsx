@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-native';
+import React, { useRef, useState } from 'react';
+import { ActivityIndicator, Animated, ScrollView, StyleSheet, Text, View} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@navigation/RootNavigator';
 import { useTheme } from '@context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import { Divider, Spacer, ThemedButton, ThemedText, ThemedTextInput, ThemedView } from 'src/components';
 import { Ionicons } from '@expo/vector-icons';
+import { errorShakeAnimation } from 'src/animations/animations';
+import { emailRegex, phoneRegex } from '../../constants/regex';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -14,8 +16,18 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showError, setShowError] = useState(false);
+    
+    const shakeAnimation = useRef(new Animated.Value(0)).current;
 
     const handlePress = async () => {
+        if (!emailRegex.test(email.trim()) && !phoneRegex.test(email.trim())) {
+            setShowError(true);
+            errorShakeAnimation(shakeAnimation);
+            return;
+        }
+        setShowError(false);
+
         setIsLoading(true);
         try
         {
@@ -53,24 +65,26 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     Email or Phone Number
                 </ThemedText>
 
-                <ThemedTextInput style = {{
-                    backgroundColor: theme.card,
-                    borderColor: theme.card,
-                    width: '100%',
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    marginTop: 8,
-                    color: theme.textGray
-                }}
-                value={email}
-                onChangeText={setEmail}
-                placeholder = " name@example.com"
-                placeholderTextColor={theme.textVeryLight}
-                cursorColor={theme.primary}
-                selectionColor={theme.primarySoft}
-                keyboardType='email-address'
-                autoCapitalize='none'
-                />
+                <Animated.View style={{ transform: [{ translateX: shakeAnimation }] }}>
+                    <ThemedTextInput style = {{
+                        backgroundColor: theme.card,
+                        borderColor: showError ? theme.danger : theme.card,
+                        width: '100%',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        marginTop: 8,
+                        color: theme.textGray
+                    }}
+                    value={email}
+                    onChangeText={(text) => { setEmail(text); setShowError(false); }}
+                    placeholder = " name@example.com"
+                    placeholderTextColor={theme.textVeryLight}
+                    cursorColor={theme.primary}
+                    selectionColor={theme.primarySoft}
+                    keyboardType='email-address'
+                    autoCapitalize='none'
+                    />
+                </Animated.View>
 
                 <ThemedButton
                     style = {[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}

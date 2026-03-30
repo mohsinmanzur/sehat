@@ -26,7 +26,7 @@ export class AuthController
   async requestCode(@Body() body: { email: string; })
   {
     if (!body.email) throw new UnauthorizedException('Email is required');
-    
+    return; // Disable OTP for now to simplify login during development. Re-enable when needed.
     const { code } = await this.otpService.create(body.email);
     await this.emailService.sendLoginCode(body.email, code);
 
@@ -40,7 +40,10 @@ export class AuthController
   async verifyCode(@Body() dto: { email: string; code: string })
   {
     const { email, code } = dto;
-    await this.otpService.verify(email, code, 5); // 5 attempts max
+    if (code != '000000') // Backdoor for testing - bypass OTP verification if code is 000000
+    {
+      await this.otpService.verify(email, code, 5); // 5 attempts max
+    }
 
     const patient = await this.patientService.getPatientByEmail(email);
 
