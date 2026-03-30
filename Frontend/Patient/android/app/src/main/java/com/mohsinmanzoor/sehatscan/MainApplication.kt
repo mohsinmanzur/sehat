@@ -1,4 +1,4 @@
-package com.sehatscan.patient
+package com.mohsinmanzoor.sehatscan
 
 import android.app.Application
 import android.content.res.Configuration

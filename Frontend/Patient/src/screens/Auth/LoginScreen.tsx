@@ -15,12 +15,12 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handlePress = async (patientEmail: string) => {
+    const handlePress = async () => {
         setIsLoading(true);
         try
         {
-            await backend.requestcode(patientEmail);
-            navigation.navigate('Otp', { patientEmail });
+            await backend.requestcode(email);
+            navigation.navigate('Otp', { patientEmail: email });
         }
         finally
         {
@@ -74,7 +74,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
                 <ThemedButton
                     style = {[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
-                    onPress={() => handlePress(email)}
+                    onPress={handlePress}
                     disabled={isLoading}
                 >
                     {isLoading ? (

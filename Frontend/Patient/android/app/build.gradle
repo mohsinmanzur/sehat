@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.sehatscan.patient'
+    namespace 'com.mohsinmanzoor.sehatscan'
     defaultConfig {
-        applicationId 'com.sehatscan.patient'
+        applicationId 'com.mohsinmanzoor.sehatscan'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

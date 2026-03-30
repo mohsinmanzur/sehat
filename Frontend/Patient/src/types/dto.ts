@@ -2,7 +2,7 @@ export type PatientDTO = {
     id?: string;
     name: string;
     email: string;
-    phone: string;
+    phone?: string;
     date_of_birth: Date;
     blood_group?: string;
     emergency_contacts?: Record<string, string>[];

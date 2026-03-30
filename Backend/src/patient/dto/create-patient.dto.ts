@@ -16,7 +16,8 @@ export class CreatePatientDto
     email: string;
 
     @IsPhoneNumber()
-    phone: string;
+    @IsOptional()
+    phone?: string;
 
     @IsDate()
     @Type(() => Date)

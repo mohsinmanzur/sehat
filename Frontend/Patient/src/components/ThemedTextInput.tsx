@@ -9,17 +9,19 @@ export const ThemedTextInput = ({ style, ...props }: TextInputProps) => {
 
   return (
     <TextInput
-    placeholderTextColor={theme.textLight}
-        style = {[{
-            backgroundColor: theme.backgroundLight,
-            color: theme.text,
-            borderRadius: 6,
-            paddingHorizontal: 15,
-            paddingVertical: 12,
-            width: '80%'
-        },
-        style]}
-        {...props}
+      placeholderTextColor={theme.textVeryLight}
+      style = {[{
+        backgroundColor: theme.card,
+        color: theme.textGray,
+        borderRadius: 6,
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        width: '80%',
+        fontFamily: 'PublicSans_600SemiBold',
+        fontSize: 15
+      },
+      style]}
+      {...props}
     />
   )
 }

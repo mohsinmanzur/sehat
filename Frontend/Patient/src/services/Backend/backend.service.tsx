@@ -1,5 +1,5 @@
 import { HealthMeasurementDTO, MeasurementUnitDTO } from "../../types/dto";
-import { PatientDTO } from "../../types/patients";
+import { PatientDTO } from "../../types/dto";
 
 enum allowedMethods
 {
@@ -50,7 +50,7 @@ class Backend
         if (!email || !code) throw new Error('Email and code are required for verification');
 
         const response = await this.request('/auth/verifycode', allowedMethods.POST, { email, code });
-
+        
         if (response.status === 404) {
             return { needsRegistration: true };
         }
@@ -94,7 +94,7 @@ class Backend
     // =========================
     async getPatients()
     {
-        const response = await this.request('/patients', allowedMethods.GET);
+        const response = await this.request('/patient', allowedMethods.GET);
 
         if (!response.ok) {
             throw new Error(`Error in fetching patients: ${response.status} ${response.statusText}`);
@@ -105,7 +105,7 @@ class Backend
 
     async getPatientById(id: string)
     {
-        const response = await this.request(`/patients/?id=${id}`, allowedMethods.GET);
+        const response = await this.request(`/patient/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
             throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
@@ -116,7 +116,7 @@ class Backend
 
     async getPatientByEmail(email: string)
     {
-        const response = await this.request(`/patients/?email=${email}`, allowedMethods.GET);
+        const response = await this.request(`/patient/?email=${email}`, allowedMethods.GET);
 
         if (!response.ok) {
             throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
@@ -127,10 +127,20 @@ class Backend
 
     async getPatientByName(name: string)
     {
-        const response = await this.request(`/patients/?name=${name}`, allowedMethods.GET);
+        const response = await this.request(`/patient/?name=${name}`, allowedMethods.GET);
 
         if (!response.ok) {
             throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
+    async createPatient(patientInfo: PatientDTO)
+    {
+        const response = await this.request('/patient', allowedMethods.POST, patientInfo);
+        if (!response.ok) {
+            throw new Error(`Error in creating patient: ${response.status} ${await response.text()}`);
         }
 
         return await response.json();
@@ -144,7 +154,7 @@ class Backend
         const response = await this.request(`/health-measurement/?patient_id=${patientId}`, allowedMethods.GET);
 
         if (!response.ok) {
-            throw new Error(`Error in fetching health measurements: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in fetching health measurements: ${response.status} ${await response.text()}`);
         }
 
         return await response.json();

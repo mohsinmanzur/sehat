@@ -6,7 +6,7 @@ import { useCurrentPatient } from '@context/UserContext';
 import { useTheme } from '@context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import Toast from 'react-native-toast-message';
-import {  Spacer, ThemedButton, ThemedText, ThemedView } from 'src/components';
+import { Spacer, ThemedButton, ThemedText, ThemedView } from 'src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { OtpInput } from "react-native-otp-entry";
 
@@ -21,14 +21,28 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
     const { patientEmail } = route.params;
     const { theme } = useTheme();
 
-    const handleVerify = async () => {
-
-        setIsLoading(true);
-        let verifyresponse;
+    const handleVerify = async (otpCode?: string) => {
 
         try
         {
-            verifyresponse = await backend.verifycode(patientEmail, otp);
+            setIsLoading(true);
+            const verifyresponse = await backend.verifycode(patientEmail, otpCode || otp);
+
+            if (verifyresponse.needsRegistration)
+            {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Signup', params: { patientEmail } }],
+                });
+                setIsLoading(false);
+                return;
+            }
+
+            const patient = await backend.getPatientByEmail(patientEmail);
+            setCurrentPatient(patient);
+            navigation.replace('MainTabs');
+
+            setIsLoading(false);
         }
         catch (error)
         {
@@ -42,18 +56,6 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
             setIsLoading(false);
             return;
         }
-
-        if (verifyresponse.needsRegistration)
-        {
-            navigation.navigate('Signup', { patientEmail });
-            setIsLoading(false);
-        }
-
-        const patient = await backend.getPatientByEmail(patientEmail);
-        setCurrentPatient(patient);
-        navigation.replace('MainTabs');
-
-        setIsLoading(false);
     };
 
     return (
@@ -79,7 +81,7 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
                         numberOfDigits={6}
                         type="numeric"
                         onTextChange={setOtp}
-                        onFilled={handleVerify}
+                        onFilled={(otpCode) => handleVerify(otpCode)}
                         disabled={isLoading}
                         focusStickBlinkingDuration={500}
                         autoFocus={false}
@@ -93,7 +95,7 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
 
                     <ThemedButton
                         style = {[styles.verifyButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
-                        onPress={handleVerify}
+                        onPress={() => handleVerify()}
                         disabled={isLoading}
                     >
                         {isLoading ? (

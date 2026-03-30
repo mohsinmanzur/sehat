@@ -8,6 +8,7 @@ import SettingsScreen from '@screens/Settings/SettingsScreen';
 import SplashScreen from '@screens/Splash/SplashScreen';
 import { Colors } from '../constants/colors';
 import { useColorScheme } from 'react-native';
+import SignupScreen from '@screens/Auth/Signup';
 
 export type RootStackParamList = {
   Landing: undefined;
@@ -34,6 +35,7 @@ const RootNavigator: React.FC = () => {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="Otp" component={OtpScreen} />
       <Stack.Screen name="MainTabs" component={BottomTabs} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
