@@ -12,7 +12,7 @@ enum allowedMethods
 class Backend
 {
     private baseUrl: string;
-    private jwt: string | null = null;
+    private jwtToken: string | null = null;
     private refreshToken: string | null = null;
 
     constructor() {
@@ -27,7 +27,7 @@ class Backend
             method: allowedMethods[method],
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': this.jwt ? `Bearer ${this.jwt}` : undefined
+                'Authorization': this.jwtToken ? `Bearer ${this.jwtToken}` : undefined
             },
             body: JSON.stringify(body)
         });
@@ -61,7 +61,7 @@ class Backend
         }
 
         const data = await response.json();
-        this.jwt = data.jwt;
+        this.jwtToken = data.jwtToken;
         this.refreshToken = data.refreshToken;
 
         return data;
@@ -86,7 +86,7 @@ class Backend
             throw new Error(`Error in refreshing token: ${response.status} ${response.statusText}`);
         }
         
-        this.jwt = (await response.json()).jwt;
+        this.jwtToken = (await response.json()).jwtToken;
     }
 
     // =========================
@@ -121,8 +121,9 @@ class Backend
         if (!response.ok) {
             throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
         }
-
-        return await response.json();
+        const data = await response.json();
+        console.log('Fetched patient by email: ', data);
+        return data;
     }
 
     async getPatientByName(name: string)

@@ -48,7 +48,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
             <Spacer height = {50} />
 
-            <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 7, shadowColor: theme.textVeryLight }}>
+            <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 5, shadowColor: theme.shadow }}>
                 <ThemedText type = {'default'} style = {{ color: theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>
                     Email or Phone Number
                 </ThemedText>

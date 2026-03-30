@@ -67,7 +67,7 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
                 showsVerticalScrollIndicator={false}
             >
                 <Spacer height = {50} />
-                <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 7, shadowColor: theme.textVeryLight }}>
+                <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 5, shadowColor: theme.shadow }}>
                     <ThemedText type = {'h2'} style = {{ alignSelf: 'center', fontFamily: 'Lexend_700Bold' }}>
                         Verify Your Account
                     </ThemedText>

@@ -11,12 +11,15 @@ import { Ionicons } from '@expo/vector-icons';
 import SwitchToggle from 'react-native-switch-toggle';
 import backend from '../../services/Backend/backend.service';
 import Toast from 'react-native-toast-message';
+import { useCurrentPatient } from '@context/UserContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
     const { patientEmail } = route.params;
     const { theme } = useTheme();
+
+    const { setCurrentPatient } = useCurrentPatient();
 
     const [name, setName] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState(new Date());
@@ -30,7 +33,7 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
 
         try
         {
-            await backend.createPatient({
+            const patient = await backend.createPatient({
                 name: name,
                 email: patientEmail,
                 date_of_birth: dateOfBirth,
@@ -38,6 +41,8 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
                 is_research_opt_in: betaOptIn,
                 phone: '+923001234567'
             });
+            console.log(patient);
+            setCurrentPatient(patient);
 
             navigation.replace('MainTabs');
         }

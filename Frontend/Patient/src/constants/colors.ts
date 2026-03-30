@@ -20,6 +20,7 @@ export const Colors = {
     warningLight: '#FEFCE8',
     success: '#4CAF50',
     successLight: '#F0FDF4',
+    shadow: '#000000'
   },
   dark: {
     primary: '#96A9FF',
@@ -39,5 +40,6 @@ export const Colors = {
     warningLight: '#facc15',
     success: '#22c55e',
     successLight: '#22c55e',
+    shadow: '#000000'
   }
 };

@@ -56,11 +56,7 @@ const BottomTabs: React.FC = () => {
     >
       <Tab.Screen name="Home" component={DashboardScreen} />
       <Tab.Screen name="Scan" component={ScanScreen} />
-      <Tab.Screen
-        name="ShareAccess"
-        component={ShareAccessScreen}
-        options={{ title: 'Share' }}
-      />
+      <Tab.Screen name="ShareAccess" component={ShareAccessScreen} options={{ title: 'Share' }} />
     </Tab.Navigator>
   );
 };

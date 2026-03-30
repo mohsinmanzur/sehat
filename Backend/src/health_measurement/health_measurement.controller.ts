@@ -11,8 +11,8 @@ export class HealthMeasurementController {
 
   @Get()
   async getHealthMeasurements(
-    @Query() patient_id?: string,
-    @Query() id?: string
+    @Query('patient_id') patient_id?: string,
+    @Query('id') id?: string
   ) : Promise<Health_Measurement[] | Promise<Health_Measurement> | null>
   {
     if (patient_id)
