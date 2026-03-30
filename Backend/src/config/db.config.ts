@@ -12,6 +12,7 @@ export default (configService: ConfigService): PostgresConnectionOptions => {
         database: configService.get<string>('PGDATABASE'),
         ssl: configService.get<string>('PGSSLMODE') === 'require' ? { rejectUnauthorized: false } : false,
         entities: [__dirname + '/../**/*.entity.{ts,js}'],
+        schema: 'public',
         synchronize: true,
     }
 }

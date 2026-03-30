@@ -11,7 +11,7 @@ export class Patient {
     @Column()
     email: string;
 
-    @Column({nullable: true})
+    @Column({ nullable: true, default: '000-000-0000' })
     phone: string;
 
     @Column()
