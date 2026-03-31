@@ -17,7 +17,7 @@ export const ThemedView = ({ safe = false, keyboardAvoid = false, style, ...prop
   const Component = keyboardAvoid ? KeyboardAvoidingView : View;
   const keyboardProps = keyboardAvoid 
     ? {
-      behavior: Platform.OS === 'ios' ? 'padding' as const : 'height' as const,
+      behavior: Platform.OS === 'ios' ? 'padding' as const : 'padding' as const,
       keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 12,
     } 
     : {};
@@ -27,7 +27,8 @@ export const ThemedView = ({ safe = false, keyboardAvoid = false, style, ...prop
       style={[
         { 
           backgroundColor: theme.backgroundDark,
-          flex: 1 
+          flex: 1,
+          width: '100%',
         },
         safe && {
           paddingTop: insets.top,
