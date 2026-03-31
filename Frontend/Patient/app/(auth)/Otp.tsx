@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, ScrollView, Text } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@navigation/RootNavigator';
-import { useCurrentPatient } from '@context/UserContext';
-import { useTheme } from '@context/ThemeContext';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useCurrentPatient } from '@context/PatientContext';
+import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import Toast from 'react-native-toast-message';
 import { Spacer, ThemedButton, ThemedText, ThemedView } from 'src/components';
@@ -11,15 +10,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { OtpInput } from "react-native-otp-entry";
 import { storeObject } from 'src/services/Storage/storage.service';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Otp'>;
 
-const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
+const OtpScreen: React.FC = () => {
+    const router = useRouter();
+    const params = useLocalSearchParams<{ patientEmail: string }>();
+    const patientEmail = params.patientEmail;
+
     const { setCurrentPatient } = useCurrentPatient();
     const [isLoading, setIsLoading] = useState(false);
 
     const [otp, setOtp] = useState('')
 
-    const { patientEmail } = route.params;
     const { theme } = useTheme();
 
     const handleVerify = async (otpCode?: string) => {
@@ -31,18 +32,15 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
 
             if (verifyresponse.needsRegistration)
             {
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Signup', params: { patientEmail } }],
-                });
+                router.replace({ pathname: '/Signup', params: { patientEmail } });
                 setIsLoading(false);
                 return;
             }
 
             const patient = await backend.getPatientByEmail(patientEmail);
-            await storeObject('currentPatient', patient);
             setCurrentPatient(patient);
-            navigation.replace('MainTabs');
+            await storeObject('currentPatient', patient);
+            router.replace('/(tabs)/Dashboard');
 
             setIsLoading(false);
         }

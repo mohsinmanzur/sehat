@@ -1,13 +1,13 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { useCurrentPatient } from '@context/UserContext';
-import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '@context/ThemeContext';
+import { useCurrentPatient } from '@context/PatientContext';
+import { useRouter } from 'expo-router';
+import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import { ThemedButton, ThemedText, ThemedView } from 'src/components';
 
 const DashboardScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const router = useRouter();
   const { theme } = useTheme();
 
   const { currentPatient, setCurrentPatient } = useCurrentPatient();
@@ -24,10 +24,7 @@ const DashboardScreen: React.FC = () => {
   const handleLogout = () => {
     backend.logout();
     setCurrentPatient(null);
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+    router.replace('/Login');
   };
   
   return (

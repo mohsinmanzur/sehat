@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
-import RootNavigator from '@navigation/RootNavigator';
+import RootNavigator from 'src/navigation/RootNavigator';
 import { ThemeProvider } from 'src/context/ThemeContext';
-import { UserProvider } from '@context/UserContext';
+import { UserProvider } from '@context/PatientContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as SplashScreen from 'expo-splash-screen';

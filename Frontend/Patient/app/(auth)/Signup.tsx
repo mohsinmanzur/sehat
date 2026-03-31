@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@navigation/RootNavigator';
-import { useTheme } from '@context/ThemeContext';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTheme } from 'src/context/ThemeContext';
 import { Spacer, ThemedButton, ThemedText, ThemedTextInput, ThemedView } from 'src/components';
 import DatePicker from 'react-native-date-picker'
 import { Dropdown } from 'react-native-element-dropdown';
-import { bloodGroups } from '../../types/others';
 import { Ionicons } from '@expo/vector-icons';
 import SwitchToggle from 'react-native-switch-toggle';
-import backend from '../../services/Backend/backend.service';
 import Toast from 'react-native-toast-message';
-import { useCurrentPatient } from '@context/UserContext';
+import { useCurrentPatient } from '@context/PatientContext';
 import { storeObject } from 'src/services/Storage/storage.service';
+import backend from 'src/services/Backend/backend.service';
+import { bloodGroups } from '../../src/types/others';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 const date = new Date();
 
-const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
-    const { patientEmail } = route.params;
+const SignupScreen: React.FC = () => {
+    const params = useLocalSearchParams<{ patientEmail: string }>();
+    const patientEmail = params.patientEmail;
+    const router = useRouter();
     const { theme } = useTheme();
 
     const { setCurrentPatient } = useCurrentPatient();
@@ -62,7 +62,7 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
             setCurrentPatient(patient);
             await storeObject('currentPatient', patient);
 
-            navigation.replace('MainTabs');
+            router.replace('/(tabs)/Dashboard');
         }
         catch (error)
         {

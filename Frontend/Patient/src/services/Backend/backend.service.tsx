@@ -13,7 +13,7 @@ enum allowedMethods
 class Backend
 {
     private baseUrl: string;
-    private jwtToken: string | null = null;
+    public jwtToken: string | null = null;
     private refreshToken: string | null = null;
 
     constructor() {
@@ -181,7 +181,6 @@ class Backend
             throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('Fetched patient by email: ', data);
         return data;
     }
 

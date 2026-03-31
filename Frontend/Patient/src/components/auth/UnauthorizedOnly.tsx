@@ -1,20 +1,20 @@
 import { router } from "expo-router";
-import { useUser } from "../../hooks/useUser";
 import { useEffect } from "react";
 import LoadingScreen from "../LoadingScreen";
+import { useCurrentPatient } from "@context/PatientContext";
 
 export const UnauthorizedOnly = ({ children }: { children: React.ReactNode }) =>
 {
-    const { user, isInitialized } = useUser();
+    const { currentPatient, isInitialized } = useCurrentPatient();
     
     useEffect(() =>{
-        if (isInitialized && user)
+        if (isInitialized && currentPatient)
         {
             router.replace("/profile");
         }
-    }, [user, isInitialized]);
+    }, [currentPatient, isInitialized]);
 
-    if (!isInitialized || user)
+    if (!isInitialized || currentPatient)
     {
         return <LoadingScreen />;
     }

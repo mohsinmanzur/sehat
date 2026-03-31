@@ -1,17 +1,16 @@
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Animated, ScrollView, StyleSheet, Text, View} from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@navigation/RootNavigator';
-import { useTheme } from '@context/ThemeContext';
+import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import { Divider, Spacer, ThemedButton, ThemedText, ThemedTextInput, ThemedView } from 'src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { errorShakeAnimation } from 'src/animations/animations';
-import { emailRegex, phoneRegex } from '../../constants/regex';
+import { useCurrentPatient } from '@context/PatientContext';
+import { phoneRegex, emailRegex } from '../../src/constants/regex';
+import { useRouter } from 'expo-router';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
-
-const LoginScreen: React.FC<Props> = ({ navigation }) => {
+const LoginScreen: React.FC = () => {
+    const router = useRouter();
     const { theme } = useTheme();
 
     const [email, setEmail] = useState('');
@@ -31,10 +30,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         setIsLoading(true);
         try
         {
-            console.log('Requesting code for:', email);
             await backend.requestcode(email);
-            console.log('Code requested successfully for:', email);
-            navigation.navigate('Otp', { patientEmail: email });
+            router.push({ pathname: '/Otp', params: { patientEmail: email } });
         }
         catch (error)
         {

@@ -5,6 +5,7 @@ import { getObject } from 'src/services/Storage/storage.service';
 interface UserContextValue {
     currentPatient: PatientDTO | null;
     setCurrentPatient: (p: PatientDTO | null) => void;
+    isInitialized: boolean;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -12,32 +13,32 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 export const UserProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     
     const [currentPatient, setCurrentPatient] = useState<PatientDTO | null>(null);
-    const [isInitializing, setIsInitializing] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const loadCurrentPatient = async () => {
-        try
-        {
-            const patient = await getObject<PatientDTO | null>('currentPatient');
-            if (patient) {
-                setCurrentPatient(patient);
+            setIsInitialized(false);
+            try
+            {
+                const patient = await getObject<PatientDTO | null>('currentPatient');
+                if (patient) {
+                    setCurrentPatient(patient);
+                }
             }
-        }
-        catch (error)
-        {
-            console.error('Failed to load patient from storage:', error);
-        }
-        finally
-        {
-            setIsInitializing(false);
-        }
-    };
-
+            catch (error)
+            {
+                console.error('Failed to load patient from storage:', error);
+            }
+            finally
+            {
+                setIsInitialized(true);
+            }
+        };
     loadCurrentPatient();
     }, []);
 
     return (
-        <UserContext.Provider value={{ currentPatient, setCurrentPatient }}>
+        <UserContext.Provider value={{ currentPatient, setCurrentPatient, isInitialized }}>
             {children}
         </UserContext.Provider>
     );
