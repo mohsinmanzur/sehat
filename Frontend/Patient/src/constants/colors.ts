@@ -1,6 +1,3 @@
-import { useColorScheme } from "react-native";
-
-
 export const Colors = {
   light: {
     primary: '#2A5CFF',

@@ -3,9 +3,7 @@ import { PatientService } from './patient.service';
 import { Patient } from '../entities/patient.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { Public } from '../auth/decorators/public.decorator';
 
-@Public()
 @Controller('patient')
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}

@@ -5,8 +5,10 @@ import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { EmailService } from './services/email.service';
 import { OtpService } from './services/otp.service';
 import { GoogleAuthService } from './strategies/google-oauth.strategy';
-import { PatientService } from 'src/patient/patient.service';
-import { CreatePatientDto } from 'src/patient/dto/create-patient.dto';
+import { PatientService } from '../patient/patient.service';
+import { CreatePatientDto } from '../patient/dto/create-patient.dto';
+import { DoctorService } from '../doctor/doctor.service';
+import { CreateDoctorDTO } from '../doctor/dto/create-doctor.dto';
 
 @Public()
 @Controller('auth')
@@ -17,6 +19,7 @@ export class AuthController
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
     private readonly patientService: PatientService,
+    private readonly doctorService: DoctorService,
     private readonly otpService: OtpService,
     private readonly googleAuthService: GoogleAuthService
   ) {}
@@ -50,6 +53,46 @@ export class AuthController
     if (!patient) throw new NotFoundException('Please register this patient first at /auth/register');
 
     return await this.authService.signTokens(patient.id);
+  }
+
+  @Post('doctor/verifycode')
+  @HttpCode(202)
+  async verifyDoctorCode(@Body() dto: { email: string; code: string })
+  {
+    const { email, code } = dto;
+    if (code != '000000') // Backdoor for testing - bypass OTP verification if code is 000000
+    {
+      await this.otpService.verify(email, code, 5); // 5 attempts max
+    }
+
+    const doctor = await this.doctorService.getDoctorByEmail(email);
+
+    if (!doctor) throw new NotFoundException('Please register this doctor first at /auth/doctor/register');
+
+    return await this.authService.signTokens(doctor.id);
+  }
+
+  @Post('doctor/register')
+  @HttpCode(201)
+  async registerDoctor(@Body() doctorInfo: CreateDoctorDTO)
+  {
+    const existingDoctor = await this.doctorService.getDoctorByEmail(doctorInfo.email);
+    if (existingDoctor) throw new UnauthorizedException('Email already registered. Please login instead.');
+
+    const createdDoctor = await this.doctorService.createDoctor(doctorInfo);
+    return this.authService.signTokens(createdDoctor.id);
+  }
+
+  @Post('doctor/verifyaccount')
+  async verifyDoctorAccount(@Body() body: { email: string; })
+  {
+    if (!body.email) throw new UnauthorizedException('Email is required');
+    const doctor = await this.doctorService.getDoctorByEmail(body.email);
+    if (!doctor) throw new NotFoundException('Doctor not found');
+    await this.doctorService.verifyDoctorEmail(body.email);
+    return {
+      status: 'Doctor account verified'
+    };
   }
 
   @Post('register')

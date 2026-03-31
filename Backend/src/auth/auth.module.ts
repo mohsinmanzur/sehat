@@ -14,6 +14,7 @@ import emailConfig from '../config/email.config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PatientModule } from '../patient/patient.module';
 import { GoogleAuthService } from './strategies/google-oauth.strategy';
+import { DoctorModule } from '../doctor/doctor.module';
 
 @Module({
   controllers: [AuthController],
@@ -28,6 +29,7 @@ import { GoogleAuthService } from './strategies/google-oauth.strategy';
     ], 
 
   imports: [
+    DoctorModule,
     PatientModule,
     CacheModule.register(),
     JwtModule.registerAsync(jwtConfig.asProvider()),

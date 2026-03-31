@@ -10,6 +10,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { MedicalDocumentModule } from './medical_document/medical_document.module';
 import { HealthMeasurementModule } from './health_measurement/health_measurement.module';
+import { DoctorModule } from './doctor/doctor.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { HealthMeasurementModule } from './health_measurement/health_measurement
     }),
     MedicalDocumentModule,
     HealthMeasurementModule,
+    DoctorModule,
   ],
   controllers: [AppController],
   providers: [
