@@ -56,6 +56,7 @@ flowchart TD
 
 ## Live Links & Resources
 - Backend API Base URL: https://sehatscan-abgtfbb6cmgmgugr.uaenorth-01.azurewebsites.net/
+- [Backend API Documentation](https://docs.google.com/document/d/1RpLVSMbAwcEmOf2SUU0pHqs8VX4OnvtQZP-_bC84c7A/edit?usp=sharing)
 
 ## Tech Stack
 - **Frontend:** React Native
