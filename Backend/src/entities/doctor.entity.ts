@@ -11,7 +11,7 @@ export class Doctor {
     @Column()
     email: string;
 
-    @Column()
+    @Column({ default: '' })
     phone: string;
 
     @Column()
