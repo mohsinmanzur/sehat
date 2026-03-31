@@ -10,7 +10,7 @@ export const UserOnly = ({ children }: { children: React.ReactNode }) =>
     useEffect(() =>{
         if (isInitialized && !currentPatient)
         {
-            router.replace("/login");
+            router.replace("/Login");
         }
     }, [currentPatient, isInitialized]);
 

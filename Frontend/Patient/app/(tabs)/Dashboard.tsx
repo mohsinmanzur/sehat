@@ -4,6 +4,7 @@ import { useCurrentPatient } from '@context/PatientContext';
 import { useRouter } from 'expo-router';
 import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
+import { removeValue } from 'src/services/Storage/storage.service';
 import { ThemedButton, ThemedText, ThemedView } from 'src/components';
 
 const DashboardScreen: React.FC = () => {
@@ -21,10 +22,10 @@ const DashboardScreen: React.FC = () => {
     }
   }, [currentPatient?.id]);
 
-  const handleLogout = () => {
-    backend.logout();
+  const handleLogout = async () => {
+    await backend.logout();
+    await removeValue('currentPatient');
     setCurrentPatient(null);
-    router.replace('/Login');
   };
   
   return (

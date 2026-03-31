@@ -10,7 +10,7 @@ export const UnauthorizedOnly = ({ children }: { children: React.ReactNode }) =>
     useEffect(() =>{
         if (isInitialized && currentPatient)
         {
-            router.replace("/profile");
+            router.replace("/Dashboard");
         }
     }, [currentPatient, isInitialized]);
 

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { Redirect, Stack } from 'expo-router';
-import { ThemeProvider } from '../src/context/ThemeContext';
-import { UserProvider } from '@context/PatientContext';
+import { Stack } from 'expo-router';
+import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
+import { useCurrentPatient, UserProvider } from '@context/PatientContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as SplashScreen from 'expo-splash-screen';
@@ -20,10 +20,15 @@ import {
   PublicSans_700Bold, 
   PublicSans_800ExtraBold 
 } from '@expo-google-fonts/public-sans';
+import { ThemedView } from 'src/components';
+import { View } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayoutNav() {
+  const { theme } = useTheme();
+  const { isInitialized } = useCurrentPatient();
+
   const [fontsLoaded, fontError] = useFonts({
     Lexend_400Regular,
     Lexend_700Bold,
@@ -42,22 +47,38 @@ export default function RootLayout() {
   }, [fontError]);
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded && isInitialized) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, isInitialized]);
 
   if (!fontsLoaded) {
     return null;
   }
 
   return (
+    <>
+      <Stack 
+        screenOptions={{ 
+          headerShown: false,  
+          contentStyle: { backgroundColor: theme.backgroundDark } 
+        }} 
+      >
+        <Stack.Screen name="(auth)" options={{ animation: 'none' }} />
+        <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+      </Stack>
+      <Toast />
+    </>
+  );
+}
+
+export default function RootLayout() {
+
+  return (
     <SafeAreaProvider>
       <ThemeProvider>
         <UserProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-          <Toast />
-
+          <RootLayoutNav />
         </UserProvider>
       </ThemeProvider>
     </SafeAreaProvider>

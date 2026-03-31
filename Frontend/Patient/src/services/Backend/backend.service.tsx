@@ -142,10 +142,12 @@ class Backend
         return await response.json();
     }
 
-    logout()
+    async logout()
     {
         this.jwtToken = null;
         this.refreshToken = null;
+        await SecureStore.deleteItemAsync('jwtToken');
+        await SecureStore.deleteItemAsync('refreshToken');
     }
 
     // =========================

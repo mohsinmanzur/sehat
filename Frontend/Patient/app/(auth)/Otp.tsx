@@ -40,7 +40,6 @@ const OtpScreen: React.FC = () => {
             const patient = await backend.getPatientByEmail(patientEmail);
             setCurrentPatient(patient);
             await storeObject('currentPatient', patient);
-            router.replace('/(tabs)/Dashboard');
 
             setIsLoading(false);
         }
