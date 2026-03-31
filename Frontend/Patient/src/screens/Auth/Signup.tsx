@@ -12,6 +12,7 @@ import SwitchToggle from 'react-native-switch-toggle';
 import backend from '../../services/Backend/backend.service';
 import Toast from 'react-native-toast-message';
 import { useCurrentPatient } from '@context/UserContext';
+import { storeObject } from 'src/services/Storage/storage.service';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 const date = new Date();
@@ -59,6 +60,7 @@ const SignupScreen: React.FC<Props> = ({ route, navigation }) => {
             });
             console.log(patient);
             setCurrentPatient(patient);
+            await storeObject('currentPatient', patient);
 
             navigation.replace('MainTabs');
         }

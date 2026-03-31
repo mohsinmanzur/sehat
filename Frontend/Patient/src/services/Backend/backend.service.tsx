@@ -1,4 +1,5 @@
 import { HealthMeasurementDTO, MeasurementUnitDTO } from "../../types/dto";
+import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
 
 enum allowedMethods
@@ -20,26 +21,88 @@ class Backend
     }
 
     // =========================
-    // Authentication
+    // Miscellaneous
     // =========================
-    private async request(endpoint: string, method: allowedMethods, body?: any) {
-        return await fetch(`${this.baseUrl}${endpoint}`, {
-            method: allowedMethods[method],
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': this.jwtToken ? `Bearer ${this.jwtToken}` : undefined
-            },
-            body: JSON.stringify(body)
-        });
+    private async readTokensFromStorage()
+    {
+        const storedJwt = await SecureStore.getItemAsync('jwtToken');
+        const storedRefresh = await SecureStore.getItemAsync('refreshToken');
+
+        if (storedJwt && storedRefresh)
+        {
+            this.jwtToken = storedJwt;
+            this.refreshToken = storedRefresh;
+        }
     }
 
+    async refreshJWT()
+    {
+        if (!this.refreshToken) throw new Error('No refresh token available');
+
+        const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+            method: allowedMethods[allowedMethods.POST],
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.refreshToken}`,
+            }
+        });
+
+        if (!response.ok) throw new Error(`Error in refreshing token: ${response.status} ${await response.text()}`);
+        
+        const data = await response.json();
+        this.jwtToken = data.jwt;
+        await SecureStore.setItemAsync('jwtToken', data.jwt);
+        
+        return true;
+    }
+
+    private async request(endpoint: string, method: allowedMethods, body?: any, _isRetry = false)
+    {
+        if (!this.jwtToken || !this.refreshToken)
+        {
+            await this.readTokensFromStorage();
+        }
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+
+        if (this.jwtToken) {
+            headers['Authorization'] = `Bearer ${this.jwtToken}`;
+        }
+
+        const options: RequestInit = {
+            method: allowedMethods[method], 
+            headers,
+        };
+
+        if (body && options.method !== 'GET' && options.method !== 'HEAD') {
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+
+        if (response.status === 401 && this.refreshToken && !_isRetry)
+        {
+            const refreshed = await this.refreshJWT();
+            if (refreshed) { 
+                return await this.request(endpoint, method, body, true);
+            }
+        }
+
+        return response;
+    }
+
+    // =========================
+    // Authentication
+    // =========================
     async requestcode(email: string)
     {
         const response = await this.request('/auth/requestcode', allowedMethods.POST, { email });
 
         if (!response.ok)
         {
-            throw new Error(`Error in requesting code: ${response.status} ${response.statusText}`);
+            console.log(`Error in requesting code: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
@@ -56,13 +119,15 @@ class Backend
         }
 
         if (!response.ok) {
-            console.log(`Error in verifying code: ${response.status} ${response.statusText}: ${await response.text()}`)
             throw new Error(`Error in verifying code: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         const data = await response.json();
         this.jwtToken = data.jwtToken;
         this.refreshToken = data.refreshToken;
+
+        await SecureStore.setItemAsync('jwtToken', data.jwtToken);
+        await SecureStore.setItemAsync('refreshToken', data.refreshToken);
 
         return data;
     }
@@ -75,18 +140,6 @@ class Backend
         }
 
         return await response.json();
-    }
-
-    async refresh()
-    {
-        if (!this.refreshToken) throw new Error('No refresh token available');
-
-        const response = await this.request('/auth/refresh', allowedMethods.POST);
-        if (!response.ok) {
-            throw new Error(`Error in refreshing token: ${response.status} ${response.statusText}`);
-        }
-        
-        this.jwtToken = (await response.json()).jwtToken;
     }
 
     logout()

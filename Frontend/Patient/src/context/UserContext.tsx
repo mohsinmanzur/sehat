@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { PatientDTO } from '../types/patients';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import type { PatientDTO } from '../types/dto';
+import { getObject } from 'src/services/Storage/storage.service';
 
 interface UserContextValue {
     currentPatient: PatientDTO | null;
@@ -11,6 +12,29 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 export const UserProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     
     const [currentPatient, setCurrentPatient] = useState<PatientDTO | null>(null);
+    const [isInitializing, setIsInitializing] = useState(true);
+
+    useEffect(() => {
+        const loadCurrentPatient = async () => {
+        try
+        {
+            const patient = await getObject<PatientDTO | null>('currentPatient');
+            if (patient) {
+                setCurrentPatient(patient);
+            }
+        }
+        catch (error)
+        {
+            console.error('Failed to load patient from storage:', error);
+        }
+        finally
+        {
+            setIsInitializing(false);
+        }
+    };
+
+    loadCurrentPatient();
+    }, []);
 
     return (
         <UserContext.Provider value={{ currentPatient, setCurrentPatient }}>

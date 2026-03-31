@@ -9,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import { Spacer, ThemedButton, ThemedText, ThemedView } from 'src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { OtpInput } from "react-native-otp-entry";
+import { storeObject } from 'src/services/Storage/storage.service';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Otp'>;
 
@@ -39,6 +40,7 @@ const OtpScreen: React.FC<Props> = ({ route, navigation }) => {
             }
 
             const patient = await backend.getPatientByEmail(patientEmail);
+            await storeObject('currentPatient', patient);
             setCurrentPatient(patient);
             navigation.replace('MainTabs');
 

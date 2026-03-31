@@ -31,8 +31,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         setIsLoading(true);
         try
         {
+            console.log('Requesting code for:', email);
             await backend.requestcode(email);
+            console.log('Code requested successfully for:', email);
             navigation.navigate('Otp', { patientEmail: email });
+        }
+        catch (error)
+        {
+            console.log('Error requesting code:', error.message);
         }
         finally
         {
