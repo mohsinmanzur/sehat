@@ -11,6 +11,9 @@ export class Doctor {
     @Column()
     email: string;
 
+    @Column({ enum: ['male', 'female', 'other'], default: 'male' })
+    gender: string;
+
     @Column()
     phone: string;
 
@@ -25,7 +28,7 @@ export class Doctor {
 
     @Column({ default: false })
     is_verified: boolean;
-    
+
     @CreateDateColumn()
     created_at: Date;
 

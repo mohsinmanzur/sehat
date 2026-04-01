@@ -6,10 +6,13 @@ export class Patient {
     id: string;
 
     @Column()
-    name: string;    
+    name: string;
 
     @Column()
     email: string;
+
+    @Column({ enum: ['male', 'female', 'other'], default: 'male' })
+    gender: string;
 
     @Column({ nullable: true, default: '000-000-0000' })
     phone: string;
