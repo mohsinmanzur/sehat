@@ -32,11 +32,11 @@ export const Colors = {
     textVeryLight: '#767575',
     muted: '#8E8F8F',
     danger: '#f97373',
-    dangerLight: '#f97373',
+    dangerLight: '#312224',
     warning: '#facc15',
-    warningLight: '#facc15',
+    warningLight: '#302718',
     success: '#22c55e',
-    successLight: '#22c55e',
+    successLight: '#192A24',
     shadow: '#000000'
   }
 };

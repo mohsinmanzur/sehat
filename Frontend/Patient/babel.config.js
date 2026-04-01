@@ -18,7 +18,8 @@ module.exports = function (api) {
             '@types': './src/types'
           }
         }
-      ]
+      ],
+      'react-native-reanimated/plugin'
     ]
   };
 };

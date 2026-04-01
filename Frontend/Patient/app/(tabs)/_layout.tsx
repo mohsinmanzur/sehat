@@ -5,7 +5,8 @@ export default function TabsLayout() {
     return (
         <UserOnly>
             <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Dashboard" options={{ animation: 'none' }} />
+                <Stack.Screen name="Dashboard" />
+                <Stack.Screen name="[id]" />
             </Stack>
         </UserOnly>
     )
