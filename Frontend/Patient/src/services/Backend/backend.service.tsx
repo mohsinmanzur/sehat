@@ -2,16 +2,14 @@ import { HealthMeasurementDTO, MeasurementUnitDTO } from "../../types/dto";
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
 
-enum allowedMethods
-{
+enum allowedMethods {
     GET,
     POST,
     PUT,
     DELETE
 }
 
-class Backend
-{
+class Backend {
     private baseUrl: string;
     public jwtToken: string | null = null;
     private refreshToken: string | null = null;
@@ -23,20 +21,17 @@ class Backend
     // =========================
     // Miscellaneous
     // =========================
-    private async readTokensFromStorage()
-    {
+    private async readTokensFromStorage() {
         const storedJwt = await SecureStore.getItemAsync('jwtToken');
         const storedRefresh = await SecureStore.getItemAsync('refreshToken');
 
-        if (storedJwt && storedRefresh)
-        {
+        if (storedJwt && storedRefresh) {
             this.jwtToken = storedJwt;
             this.refreshToken = storedRefresh;
         }
     }
 
-    async refreshJWT()
-    {
+    async refreshJWT() {
         if (!this.refreshToken) throw new Error('No refresh token available');
 
         const response = await fetch(`${this.baseUrl}/auth/refresh`, {
@@ -48,18 +43,16 @@ class Backend
         });
 
         if (!response.ok) throw new Error(`Error in refreshing token: ${response.status} ${await response.text()}`);
-        
+
         const data = await response.json();
         this.jwtToken = data.jwt;
         await SecureStore.setItemAsync('jwtToken', data.jwt);
-        
+
         return true;
     }
 
-    private async request(endpoint: string, method: allowedMethods, body?: any, _isRetry = false)
-    {
-        if (!this.jwtToken || !this.refreshToken)
-        {
+    private async request(endpoint: string, method: allowedMethods, body?: any, _isRetry = false) {
+        if (!this.jwtToken || !this.refreshToken) {
             await this.readTokensFromStorage();
         }
 
@@ -72,7 +65,7 @@ class Backend
         }
 
         const options: RequestInit = {
-            method: allowedMethods[method], 
+            method: allowedMethods[method],
             headers,
         };
 
@@ -82,10 +75,9 @@ class Backend
 
         const response = await fetch(`${this.baseUrl}${endpoint}`, options);
 
-        if (response.status === 401 && this.refreshToken && !_isRetry)
-        {
+        if (response.status === 401 && this.refreshToken && !_isRetry) {
             const refreshed = await this.refreshJWT();
-            if (refreshed) { 
+            if (refreshed) {
                 return await this.request(endpoint, method, body, true);
             }
         }
@@ -96,24 +88,21 @@ class Backend
     // =========================
     // Authentication
     // =========================
-    async requestcode(email: string)
-    {
+    async requestcode(email: string) {
         const response = await this.request('/auth/requestcode', allowedMethods.POST, { email });
 
-        if (!response.ok)
-        {
+        if (!response.ok) {
             console.log(`Error in requesting code: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
     }
 
-    async verifycode(email: string, code: string) : Promise<Record<string, any>>
-    {
+    async verifycode(email: string, code: string): Promise<Record<string, any>> {
         if (!email || !code) throw new Error('Email and code are required for verification');
 
         const response = await this.request('/auth/verifycode', allowedMethods.POST, { email, code });
-        
+
         if (response.status === 404) {
             return { needsRegistration: true };
         }
@@ -132,8 +121,7 @@ class Backend
         return data;
     }
 
-    async register(patientInfo: PatientDTO)
-    {
+    async register(patientInfo: PatientDTO) {
         const response = await this.request('/auth/register', allowedMethods.POST, patientInfo);
         if (!response.ok) {
             throw new Error(`Error in registering patient: ${response.status} ${response.statusText}`);
@@ -142,8 +130,7 @@ class Backend
         return await response.json();
     }
 
-    async logout()
-    {
+    async logout() {
         this.jwtToken = null;
         this.refreshToken = null;
         await SecureStore.deleteItemAsync('jwtToken');
@@ -153,8 +140,7 @@ class Backend
     // =========================
     // Patients
     // =========================
-    async getPatients()
-    {
+    async getPatients() {
         const response = await this.request('/patient', allowedMethods.GET);
 
         if (!response.ok) {
@@ -164,8 +150,7 @@ class Backend
         return await response.json();
     }
 
-    async getPatientById(id: string)
-    {
+    async getPatientById(id: string) {
         const response = await this.request(`/patient/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -175,8 +160,7 @@ class Backend
         return await response.json();
     }
 
-    async getPatientByEmail(email: string)
-    {
+    async getPatientByEmail(email: string) {
         const response = await this.request(`/patient/?email=${email}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -186,8 +170,7 @@ class Backend
         return data;
     }
 
-    async getPatientByName(name: string)
-    {
+    async getPatientByName(name: string) {
         const response = await this.request(`/patient/?name=${name}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -197,8 +180,7 @@ class Backend
         return await response.json();
     }
 
-    async createPatient(patientInfo: PatientDTO)
-    {
+    async createPatient(patientInfo: PatientDTO) {
         const response = await this.request('/patient', allowedMethods.POST, patientInfo);
         if (!response.ok) {
             throw new Error(`Error in creating patient: ${response.status} ${await response.text()}`);
@@ -210,8 +192,7 @@ class Backend
     // =========================
     // Health Measurements
     // =========================
-    async getMeasurementsByPatient(patientId: string)
-    {
+    async getMeasurementsByPatient(patientId: string) {
         const response = await this.request(`/health-measurement/?patient_id=${patientId}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -221,8 +202,7 @@ class Backend
         return await response.json();
     }
 
-    async getMeasurementById(id: string)
-    {
+    async getMeasurementById(id: string) {
         const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -232,20 +212,26 @@ class Backend
         return await response.json();
     }
 
-    async createHealthMeasurement(measurement: HealthMeasurementDTO)
-    {
+    async createHealthMeasurement(measurement: HealthMeasurementDTO) {
         const response = await this.request('/health-measurement', allowedMethods.POST, measurement);
         if (!response.ok) {
-            throw new Error(`Error in creating health measurement: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in creating health measurement ${response.status} ${response.statusText}: ${await response.text()}`);
         }
         return await response.json();
     }
 
-    async createMeasurementUnit(unit: MeasurementUnitDTO)
-    {
+    async createMeasurementUnit(unit: MeasurementUnitDTO) {
         const response = await this.request('/health-measurement/unit', allowedMethods.POST, unit);
         if (!response.ok) {
-            throw new Error(`Error in creating measurement unit: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in creating measurement unit ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async getMeasurementUnits(): Promise<MeasurementUnitDTO[]> {
+        const response = await this.request('/health-measurement/unit', allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching measurement units ${response.status} ${response.statusText}: ${await response.text()}`);
         }
         return await response.json();
     }

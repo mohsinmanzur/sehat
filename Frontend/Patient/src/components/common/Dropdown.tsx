@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@context/ThemeContext';
+
+interface DropdownProps {
+    /** Optional label shown above the dropdown */
+    label?: string;
+    /** List of string options to display */
+    options: string[];
+    /** Currently selected value */
+    value: string;
+    /** Called when the user picks a new option */
+    onChange: (value: string) => void;
+    /** Placeholder text when no value is selected */
+    placeholder?: string;
+}
+
+export function Dropdown({ label, options, value, onChange, placeholder = 'Select...' }: DropdownProps) {
+    const { theme } = useTheme();
+    const [open, setOpen] = useState(false);
+    const s = styles(theme);
+
+    return (
+        <View>
+            {label && <Text style={s.label}>{label}</Text>}
+
+            <TouchableOpacity
+                style={s.trigger}
+                onPress={() => setOpen(o => !o)}
+                activeOpacity={0.8}
+            >
+                <Text style={[s.triggerText, !value && { color: theme.textLight }]}>
+                    {value || placeholder}
+                </Text>
+                <Ionicons
+                    name={open ? 'chevron-up' : 'chevron-down'}
+                    size={18}
+                    color={theme.textGray}
+                />
+            </TouchableOpacity>
+
+            {open && (
+                <View style={s.list}>
+                    {options.map(opt => (
+                        <TouchableOpacity
+                            key={opt}
+                            style={[s.item, opt === value && s.itemActive]}
+                            onPress={() => { onChange(opt); setOpen(false); }}
+                        >
+                            <Text style={[s.itemText, opt === value && { color: theme.primary }]}>
+                                {opt}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            )}
+        </View>
+    );
+}
+
+const styles = (theme: any) => StyleSheet.create({
+    label: {
+        fontSize: 11,
+        fontFamily: 'Lexend_700Bold',
+        color: theme.textLight,
+        letterSpacing: 0.8,
+        marginBottom: 8,
+        marginTop: 18,
+    },
+    trigger: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: theme.card,
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    triggerText: {
+        fontSize: 15,
+        fontFamily: 'Lexend_600SemiBold',
+        color: theme.text,
+    },
+    list: {
+        backgroundColor: theme.card,
+        borderRadius: 14,
+        marginTop: 4,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: theme.primarySoft,
+    },
+    item: {
+        paddingHorizontal: 16,
+        paddingVertical: 13,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: theme.backgroundDark,
+    },
+    itemActive: {
+        backgroundColor: theme.primarySoft,
+    },
+    itemText: {
+        fontSize: 14,
+        fontFamily: 'Lexend_600SemiBold',
+        color: theme.text,
+    },
+});

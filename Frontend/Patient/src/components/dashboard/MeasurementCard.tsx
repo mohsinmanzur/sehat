@@ -3,7 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
 import { StatusTag } from './DocumentCard';
-import Animated from 'react-native-reanimated';
+import Animated, { SharedTransition, withTiming } from 'react-native-reanimated';
+
+const fastTransition = SharedTransition.springify().duration(250);
+
+const AnimatedIcon = Animated.createAnimatedComponent(FontAwesome5);
 
 interface MeasurementCardProps {
   id: string;
@@ -54,22 +58,26 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, typ
       <View style={styles.cardContent}>
         {/* Leading Icon Box */}
         <Animated.View
-          sharedTransitionTag={`icon-${id}`}
+          sharedTransitionTag={`icon-bg-${id}`}
+          sharedTransitionStyle={fastTransition}
           style={[styles.iconBox, { backgroundColor: lightThemeColor }]}
+          collapsable={false}
         >
-          <FontAwesome5 name={iconName} size={20} color={themeColor} />
+          <AnimatedIcon
+            sharedTransitionTag={`icon-glyph-${id}`}
+            sharedTransitionStyle={fastTransition}
+            name={iconName}
+            size={20}
+            color={themeColor}
+          />
         </Animated.View>
 
         {/* Title and Badge Columns */}
         <View style={styles.textColumn}>
 
-          <Animated.Text
-            sharedTransitionTag={`title-${id}`}
-            style={[styles.titleText, { color: theme.text }]}
-          //numberOfLines={1}
-          >
+          <Text style={[styles.titleText, { color: theme.text }]} >
             {title}
-          </Animated.Text>
+          </Text>
 
           <View style={styles.tagsRow}>
             <Text style={[styles.valueText, { color: theme.textLight }]}>{value}</Text>
@@ -99,7 +107,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
-    elevation: 2,
+    elevation: 1,
   },
   leftBorderIndicator: {
     width: 6,

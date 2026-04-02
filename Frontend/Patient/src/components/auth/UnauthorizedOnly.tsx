@@ -3,19 +3,16 @@ import { useEffect } from "react";
 import LoadingScreen from "../LoadingScreen";
 import { useCurrentPatient } from "@context/PatientContext";
 
-export const UnauthorizedOnly = ({ children }: { children: React.ReactNode }) =>
-{
+export const UnauthorizedOnly = ({ children }: { children: React.ReactNode }) => {
     const { currentPatient, isInitialized } = useCurrentPatient();
-    
-    useEffect(() =>{
-        if (isInitialized && currentPatient)
-        {
-            router.replace("/Dashboard");
+
+    useEffect(() => {
+        if (isInitialized && currentPatient) {
+            router.replace("/(tabs)/Dashboard");
         }
     }, [currentPatient, isInitialized]);
 
-    if (!isInitialized || currentPatient)
-    {
+    if (!isInitialized || currentPatient) {
         return <LoadingScreen />;
     }
 

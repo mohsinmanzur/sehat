@@ -11,21 +11,21 @@ export interface SafeViewProps extends ViewProps {
 export const ThemedView = ({ safe = false, keyboardAvoid = false, style, ...props }: SafeViewProps) => {
   const colorScheme = useColorScheme() ?? 'dark';
   const theme = Colors[colorScheme];
-  
+
   const insets = useSafeAreaInsets();
 
   const Component = keyboardAvoid ? KeyboardAvoidingView : View;
-  const keyboardProps = keyboardAvoid 
+  const keyboardProps = keyboardAvoid
     ? {
-      behavior: Platform.OS === 'ios' ? 'padding' as const : 'padding' as const,
+      behavior: 'padding' as const,
       keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 12,
-    } 
+    }
     : {};
 
   return (
-    <Component 
+    <Component
       style={[
-        { 
+        {
           backgroundColor: theme.backgroundDark,
           flex: 1,
           width: '100%',
@@ -37,9 +37,9 @@ export const ThemedView = ({ safe = false, keyboardAvoid = false, style, ...prop
           paddingRight: insets.right
         },
         style
-      ]} 
+      ]}
       {...keyboardProps}
-      {...props} 
+      {...props}
     />
   )
 }

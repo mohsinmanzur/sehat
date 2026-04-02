@@ -1,38 +1,37 @@
 import React from "react";
-import { Animated, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
 
 // A smooth "weight" bouncy button that shrinks organically when pressed
 export const ScalePressable = React.forwardRef<View, any>((props, ref) => {
-    const scale = React.useRef(new Animated.Value(1)).current;
+    const scale = useSharedValue(1);
 
     const handlePressIn = (e: any) => {
-        Animated.timing(scale, {
-            toValue: 0.95,
-            duration: 100, // Quick 100ms snap down
-            useNativeDriver: true,
-        }).start();
+        scale.value = withTiming(0.95, { duration: 100 });
         if (props.onPressIn) props.onPressIn(e);
     };
 
     const handlePressOut = (e: any) => {
-        Animated.spring(scale, {
-            toValue: 1,
-            friction: 5,     // Adds a tiny bit more dampening
-            tension: 120,    // High tension for a very quick snap-back
-            useNativeDriver: true,
-        }).start();
+        scale.value = withTiming(1, { duration: 100 });
+        //scale.value = withSpring(1, { damping: 10, stiffness: 200 });
         if (props.onPressOut) props.onPressOut(e);
     };
 
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }]
+    }));
+
+    const { style, children, onPressIn: _opi, onPressOut: _opo, ...rest } = props;
+
     return (
         <Pressable
-            {...props}
+            {...rest}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             ref={ref as any}
         >
-            <Animated.View style={[props.style, { transform: [{ scale }] }]}>
-                {props.children}
+            <Animated.View style={[style, animatedStyle]}>
+                {children}
             </Animated.View>
         </Pressable>
     );

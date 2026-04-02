@@ -1,13 +1,10 @@
-import { Stack } from "expo-router";
 import { UserOnly } from "src/components/auth/UserOnly";
+import MainTabLayout from "src/components/tabBar/tabBar";
 
 export default function TabsLayout() {
     return (
         <UserOnly>
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Dashboard" />
-                <Stack.Screen name="[id]" />
-            </Stack>
+            <MainTabLayout />
         </UserOnly>
-    )
+    );
 }

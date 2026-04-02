@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StyleSheet, ScrollView, View, Text, TouchableOpacity, RefreshControl, Pressable } from 'react-native';
 import { useCurrentPatient } from 'src/context/PatientContext';
 import { useTheme } from 'src/context/ThemeContext';
 import { Header, MeasurementCard, FloatingActionButton, StatusTag } from 'src/components/dashboard';
-import { Link } from 'expo-router';
 import { ThemedView } from 'src/components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DashboardMeasurement } from 'src/types/others';
 import backend from 'src/services/Backend/backend.service';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { ScalePressable } from 'src/components/ScalePressable';
-import Animated from 'react-native-reanimated';
+import { useFocusEffect } from 'expo-router';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
   const { currentPatient } = useCurrentPatient();
+  const insets = useSafeAreaInsets();
   const patientName = currentPatient?.name?.split(' ')[0] || 'Arjun';
 
   const [isLoading, setIsLoading] = useState(true);
@@ -33,10 +34,11 @@ const DashboardScreen: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    setIsLoading(true);
-    fetchMeasurements().finally(() => setIsLoading(false));
-  }, [currentPatient?.id]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMeasurements().finally(() => setIsLoading(false));
+    }, [currentPatient?.id])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -47,7 +49,7 @@ const DashboardScreen: React.FC = () => {
   return (
     isLoading ? <LoadingScreen /> : (
 
-      <ThemedView safe style={[styles.safeArea, { backgroundColor: theme.backgroundLight }]} >
+      <ThemedView style={[styles.safeArea, { backgroundColor: theme.backgroundLight, paddingTop: insets.top }]} >
         <View style={styles.mainContainer}>
           {/* Header */}
           <Header name={patientName} />
@@ -100,26 +102,28 @@ const DashboardScreen: React.FC = () => {
               };
 
               return (
-                <Link
-                  href={{
-                    pathname: `/(tabs)/${meas.id}`,
-                    params: { data: JSON.stringify(payload) }
-                  }}
-                  asChild
+                <ScalePressable
                   key={meas.id}
+                  style={styles.cardWrapper}
+                  onPress={() => {
+                    import('expo-router').then(({ router }) => {
+                      router.push({
+                        pathname: `/health_measurements/${meas.id}`,
+                        params: { data: JSON.stringify(payload) }
+                      });
+                    });
+                  }}
                 >
-                  <ScalePressable style={styles.cardWrapper}>
-                    <MeasurementCard
-                      id={meas.id}
-                      title={meas.unit.unit_name}
-                      type={meas.special_condition}
-                      value={displayValue}
-                      status={computedStatus}
-                      dateStr={displayDate}
-                      iconName={computedIconName}
-                    />
-                  </ScalePressable>
-                </Link>
+                  <MeasurementCard
+                    id={meas.id}
+                    title={meas.unit.unit_name}
+                    type={meas.special_condition}
+                    value={displayValue}
+                    status={computedStatus}
+                    dateStr={displayDate}
+                    iconName={computedIconName}
+                  />
+                </ScalePressable>
               );
             })}
 
@@ -151,7 +155,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   titleSection: {
     paddingHorizontal: 20,
@@ -183,7 +187,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   cardWrapper: {
-    marginBottom: 5,
+    marginBottom: 4,
     marginHorizontal: 6,
   },
 });

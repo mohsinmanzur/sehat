@@ -1,9 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Animated from 'react-native-reanimated';
+import Animated, { SharedTransition } from 'react-native-reanimated';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+
+const fastTransition = SharedTransition.springify().duration(250);
+
+const AnimatedIcon = Animated.createAnimatedComponent(FontAwesome5);
 import { useTheme } from 'src/context/ThemeContext';
+import { ThemedView } from 'src/components';
 
 export default function HealthMeasurementDetailScreen() {
   const { id, data } = useLocalSearchParams<{ id: string, data?: string }>();
@@ -63,30 +68,33 @@ export default function HealthMeasurementDetailScreen() {
   const displayValue = `${measurement.numeric_value} ${measurement.unit.symbol}`;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundLight }]}>
+    <ThemedView safe style={[styles.container, { backgroundColor: theme.backgroundLight }]}>
 
       <View style={styles.headerTop}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <Ionicons name="close" size={28} color={theme.text} />
+          <Ionicons name="arrow-back" size={28} color={theme.text} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.heroContent}>
-        {/* ts-expect-error sharedTransitionTag is valid in Reanimated 3+ */}
         <Animated.View
-          sharedTransitionTag={`icon-${id}`}
+          sharedTransitionTag={`icon-bg-${id}`}
+          sharedTransitionStyle={fastTransition}
           style={[styles.iconBox, { backgroundColor: lightThemeColor }]}
+          collapsable={false}
         >
-          <FontAwesome5 name={measurement.iconName} size={40} color={themeColor} />
+          <AnimatedIcon
+            sharedTransitionTag={`icon-glyph-${id}`}
+            sharedTransitionStyle={fastTransition}
+            name={measurement.iconName}
+            size={20}
+            color={themeColor}
+          />
         </Animated.View>
 
-        {/* ts-expect-error */}
-        <Animated.Text
-          sharedTransitionTag={`title-${id}`}
-          style={[styles.heroTitle, { color: theme.text }]}
-        >
+        <Text style={[styles.heroTitle, { color: theme.text }]}>
           {measurement.unit.unit_name}
-        </Animated.Text>
+        </Text>
 
         <View style={[styles.statusBadge, { backgroundColor: lightThemeColor }]}>
           <Text style={[styles.statusText, { color: themeColor }]}>{measurement.status}</Text>
@@ -114,7 +122,7 @@ export default function HealthMeasurementDetailScreen() {
           <Text style={[styles.detailDescription, { color: theme.text }]}>{measurement.ai_insight}</Text>
         </View>
       </ScrollView>
-    </View>
+    </ThemedView>
   );
 }
 
@@ -149,15 +157,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   closeButton: {
-    padding: 4,
+    paddingTop: 15,
   },
   heroContent: {
     alignItems: 'center',
   },
   iconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
+    width: 55,
+    height: 55,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
