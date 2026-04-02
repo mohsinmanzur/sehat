@@ -34,4 +34,9 @@ export class HealthMeasurementController {
   async createUnit(@Body() unit: CreateMeasurementUnitDto): Promise<Measurement_Unit> {
     return await this.healthMeasurementService.createUnit(unit);
   }
+
+  @Get('unit')
+  async getUnits(): Promise<Measurement_Unit[]> {
+    return await this.healthMeasurementService.getUnits();
+  }
 }

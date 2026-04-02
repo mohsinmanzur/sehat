@@ -75,4 +75,8 @@ export class HealthMeasurementService {
         const newUnit = this.measurementUnitRepo.create(unit);
         return await this.measurementUnitRepo.save(newUnit);
     }
+
+    async getUnits(): Promise<Measurement_Unit[]> {
+        return await this.measurementUnitRepo.find();
+    }
 }
