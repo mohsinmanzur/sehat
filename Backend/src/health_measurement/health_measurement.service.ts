@@ -39,6 +39,7 @@ export class HealthMeasurementService {
                 'ai.anomaly_detected AS anomaly_detected'
             ])
             .where('hm.patient_id = :patient_id', { patient_id })
+            .orderBy('hm.created_at', 'DESC')
             .getRawMany();
 
         return rawResults.map(raw => {
