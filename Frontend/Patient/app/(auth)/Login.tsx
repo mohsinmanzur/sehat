@@ -1,11 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Animated, ScrollView, StyleSheet, Text, View} from 'react-native';
+import { ActivityIndicator, Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import { Divider, Spacer, ThemedButton, ThemedText, ThemedTextInput, ThemedView } from 'src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { errorShakeAnimation } from 'src/animations/animations';
-import { useCurrentPatient } from '@context/PatientContext';
 import { phoneRegex, emailRegex } from '../../src/constants/regex';
 import { useRouter } from 'expo-router';
 
@@ -16,7 +15,7 @@ const LoginScreen: React.FC = () => {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showError, setShowError] = useState(false);
-    
+
     const shakeAnimation = useRef(new Animated.Value(0)).current;
 
     const handlePress = async () => {
@@ -28,113 +27,110 @@ const LoginScreen: React.FC = () => {
         setShowError(false);
 
         setIsLoading(true);
-        try
-        {
+        try {
             await backend.requestcode(email);
             router.push({ pathname: '/Otp', params: { patientEmail: email } });
         }
-        catch (error)
-        {
+        catch (error) {
             console.log('Error requesting code:', error.message);
         }
-        finally
-        {
+        finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <ThemedView style = {{ flex: 1 }} keyboardAvoid>
-            <ScrollView 
-                style = {{ flex: 1, width: '100%' }}
+        <ThemedView style={{ flex: 1 }} keyboardAvoid>
+            <ScrollView
+                style={{ flex: 1, width: '100%' }}
                 contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-            <Spacer height = {100} />
-            <Text style = {{ padding: 20, paddingBottom: 0, alignItems: 'center', textAlign: 'center' }}>
-                <ThemedText type = {'title'} style = {{ letterSpacing: -1 }}>👋 to </ThemedText>
-                <ThemedText type = {'title'} style = {{ color: theme.primary, letterSpacing: -1 }}>Sehat{'\u00A0'}Scan</ThemedText>
-            </Text>
+                <Spacer height={100} />
+                <Text style={{ padding: 20, paddingBottom: 0, alignItems: 'center', textAlign: 'center' }}>
+                    <ThemedText type={'title'} style={{ letterSpacing: -1 }}>👋 to </ThemedText>
+                    <ThemedText type={'title'} style={{ color: theme.primary, letterSpacing: -1 }}>Sehat{'\u00A0'}Scan</ThemedText>
+                </Text>
 
-            <ThemedText type = {'default'} style = {[styles.tagline, { color: theme.textLight }]}>
-                Medical documents management and AI-powered health insights, all in one app.
-            </ThemedText>
-
-            <Spacer height = {50} />
-
-            <View style = {{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 5, shadowColor: theme.shadow }}>
-                <ThemedText type = {'default'} style = {{ color: theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>
-                    Email or Phone Number
+                <ThemedText type={'default'} style={[styles.tagline, { color: theme.textLight }]}>
+                    Medical documents management and AI-powered health insights, all in one app.
                 </ThemedText>
 
-                <Animated.View style={{ transform: [{ translateX: shakeAnimation }] }}>
-                    <ThemedTextInput style = {{
-                        backgroundColor: theme.card,
-                        borderColor: showError ? theme.danger : theme.card,
-                        width: '100%',
-                        borderWidth: 1,
-                        borderRadius: 8,
-                        marginTop: 8,
-                        color: theme.textGray
-                    }}
-                    value={email}
-                    onChangeText={(text) => { setEmail(text); setShowError(false); }}
-                    placeholder = " name@example.com"
-                    placeholderTextColor={theme.textVeryLight}
-                    cursorColor={theme.primary}
-                    selectionColor={theme.primarySoft}
-                    keyboardType='email-address'
-                    autoCapitalize='none'
-                    />
-                </Animated.View>
+                <Spacer height={50} />
 
-                <ThemedButton
-                    style = {[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
-                    onPress={handlePress}
-                    disabled={isLoading}
-                >
-                    {isLoading ? (
-                        <ActivityIndicator color = {theme.backgroundLight} style = {{ padding: 6.5 }}/> 
-                    ) : (
-                        <>
-                            <ThemedText style = {{ color: theme.backgroundLight, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue</ThemedText>
-                            <Ionicons name="arrow-forward" size={19} color={theme.backgroundLight} /> 
-                        </>
-                    )}
-                </ThemedButton>
+                <View style={{ backgroundColor: theme.backgroundLight, borderRadius: 20, padding: 30, width: '90%', elevation: 5, shadowColor: theme.shadow }}>
+                    <ThemedText type={'default'} style={{ color: theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>
+                        Email or Phone Number
+                    </ThemedText>
 
-                <View style = {{ flexDirection: 'row', alignItems: 'center', marginTop: 15, justifyContent: 'center', gap: 10 }}>
-                    <Divider width = '40%' height = {1} color = {theme.muted} />
-                    <Text style = {{ fontSize: 13, fontFamily: 'PublicSans_600SemiBold', color: theme.muted }}>OR</Text>
-                    <Divider width = '40%' height = {1} color = {theme.muted} />
-                </View>
+                    <Animated.View style={{ transform: [{ translateX: shakeAnimation }] }}>
+                        <ThemedTextInput style={{
+                            backgroundColor: theme.card,
+                            borderColor: showError ? theme.danger : theme.card,
+                            width: '100%',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            marginTop: 8,
+                            color: theme.textGray
+                        }}
+                            value={email}
+                            onChangeText={(text) => { setEmail(text); setShowError(false); }}
+                            placeholder=" name@example.com"
+                            placeholderTextColor={theme.textVeryLight}
+                            cursorColor={theme.primary}
+                            selectionColor={theme.primarySoft}
+                            keyboardType='email-address'
+                            autoCapitalize='none'
+                        />
+                    </Animated.View>
 
-                <ThemedButton
-                    style = {[styles.googleButton, { backgroundColor: theme.card }]}
-                    disabled={isLoading}
+                    <ThemedButton
+                        style={[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
+                        onPress={handlePress}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <ActivityIndicator color={theme.backgroundLight} style={{ padding: 6.5 }} />
+                        ) : (
+                            <>
+                                <ThemedText style={{ color: theme.backgroundLight, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue</ThemedText>
+                                <Ionicons name="arrow-forward" size={19} color={theme.backgroundLight} />
+                            </>
+                        )}
+                    </ThemedButton>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 15, justifyContent: 'center', gap: 10 }}>
+                        <Divider width='40%' height={1} color={theme.muted} />
+                        <Text style={{ fontSize: 13, fontFamily: 'PublicSans_600SemiBold', color: theme.muted }}>OR</Text>
+                        <Divider width='40%' height={1} color={theme.muted} />
+                    </View>
+
+                    <ThemedButton
+                        style={[styles.googleButton, { backgroundColor: theme.card }]}
+                        disabled={isLoading}
                     >
 
-                    <Ionicons name="logo-google" size={19} color={theme.textGray} />
-                    <ThemedText style = {{ color: theme.textGray, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue with Google</ThemedText>
-                </ThemedButton>
-            </View>
+                        <Ionicons name="logo-google" size={19} color={theme.textGray} />
+                        <ThemedText style={{ color: theme.textGray, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue with Google</ThemedText>
+                    </ThemedButton>
+                </View>
 
-            <Text style = {{ textAlign: 'center', padding: 40, paddingTop: 50 }}>
-                <ThemedText type = {'default'} style = {{ color: theme.textGray, fontSize: 12, paddingTop: 15 }}>
-                    By continuing, you agree to our{' '}
-                </ThemedText>
-                <ThemedText type = {'default'} style = {{ color: theme.primary, fontSize: 12 }}>
-                    Terms{'\u00A0'}of{'\u00A0'}Service
-                </ThemedText>
-                <ThemedText type = {'default'} style = {{ color: theme.textGray, fontSize: 12 }}>
-                    {' '}and{' '}
-                </ThemedText>
-                <ThemedText type = {'default'} style = {{ color: theme.primary, fontSize: 12 }}>
-                    Privacy{'\u00A0'}Policy
-                </ThemedText>
-                .
-            </Text>
+                <Text style={{ textAlign: 'center', padding: 40, paddingTop: 50 }}>
+                    <ThemedText type={'default'} style={{ color: theme.textGray, fontSize: 12, paddingTop: 15 }}>
+                        By continuing, you agree to our{' '}
+                    </ThemedText>
+                    <ThemedText type={'default'} style={{ color: theme.primary, fontSize: 12 }}>
+                        Terms{'\u00A0'}of{'\u00A0'}Service
+                    </ThemedText>
+                    <ThemedText type={'default'} style={{ color: theme.textGray, fontSize: 12 }}>
+                        {' '}and{' '}
+                    </ThemedText>
+                    <ThemedText type={'default'} style={{ color: theme.primary, fontSize: 12 }}>
+                        Privacy{'\u00A0'}Policy
+                    </ThemedText>
+                    .
+                </Text>
             </ScrollView>
         </ThemedView>
     )
@@ -146,8 +142,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 30,
         lineHeight: 20,
         alignContent:
-        'center', textAlign:
-        'center'
+            'center', textAlign:
+            'center'
     },
     continueButton: {
         alignItems: 'center',
@@ -160,7 +156,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2, // Keeps the shadow soft
         shadowRadius: 6,
-        
+
         // Android Shadow (shadowColor tint requires Android 9+)
         elevation: 6,
     },

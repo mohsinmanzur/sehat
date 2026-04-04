@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Pressable } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Pressable, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@context/ThemeContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { MeasurementUnitDTO } from '../../src/types/dto';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
+import { errorShakeAnimation } from 'src/animations/animations';
 
 export default function AddNewMeasurement() {
     const { theme } = useTheme();
@@ -20,9 +21,17 @@ export default function AddNewMeasurement() {
     const [selectedUnit, setSelectedUnit] = useState<MeasurementUnitDTO | null>(null);
     const [value, setValue] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date());
+
+    const [showSelectedUnitError, setShowSelectedUnitError] = useState(false);
+    const [showValueError, setShowValueError] = useState(false);
+
+    const [isLoading, setisLoading] = useState(true);
+
     const [pickerOpen, setPickerOpen] = useState<'date' | 'time' | null>(null);
     const [units, setUnits] = useState<MeasurementUnitDTO[]>([]);
-    const [isLoading, setisLoading] = useState(true);
+
+    const valueShakeAnimation = useRef(new Animated.Value(0)).current;
+    const dropdownShakeAnimation = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         backend.getMeasurementUnits().then((units) => {
@@ -32,10 +41,28 @@ export default function AddNewMeasurement() {
     }, []);
 
     const handleSave = async () => {
+        if (!selectedUnit) {
+            if (!value) {
+                setShowValueError(true);
+                errorShakeAnimation(valueShakeAnimation);
+            }
+            setShowSelectedUnitError(true);
+            errorShakeAnimation(dropdownShakeAnimation);
+            return;
+        }
+        if (!value) {
+            setShowValueError(true);
+            errorShakeAnimation(valueShakeAnimation);
+            return;
+        }
+        setShowSelectedUnitError(false);
+        setShowValueError(false);
+        console.log('Date', selectedDate);
         await backend.createHealthMeasurement({
             patient_id: currentPatient?.id,
             unit_id: selectedUnit?.id,
             numeric_value: parseFloat(value),
+            created_at: selectedDate,
         })
         router.back();
     };
@@ -68,25 +95,27 @@ export default function AddNewMeasurement() {
                     label="MEASUREMENT TYPE"
                     options={units.map((unit) => unit.unit_name)}
                     value={selectedUnit?.unit_name}
-                    onChange={(value) => setSelectedUnit(units.find((unit) => unit.unit_name === value) || null)}
+                    onChange={(value) => { setSelectedUnit(units.find((unit) => unit.unit_name === value) || null); setShowSelectedUnitError(false); }}
+                    error={showSelectedUnitError}
+                    remainingStyles={{ transform: [{ translateX: dropdownShakeAnimation }] }}
                 />
 
                 {/* ── Value & Unit ── */}
                 <View style={s.row}>
                     <View style={s.col2}>
                         <Text style={s.label}>VALUE</Text>
-                        <View style={s.valueBox}>
+                        <Animated.View style={[s.valueBox, { borderColor: showValueError ? theme.danger : theme.card, transform: [{ translateX: valueShakeAnimation }] }]}>
                             <TextInput
                                 style={s.valueInput}
                                 value={value}
-                                onChangeText={setValue}
+                                onChangeText={(text) => { setValue(text); setShowValueError(false); }}
                                 keyboardType="numeric"
                                 placeholderTextColor={theme.textVeryLight}
                                 placeholder='0.00'
                                 maxLength={6}
                                 cursorColor={theme.primary}
                             />
-                        </View>
+                        </Animated.View>
                     </View>
 
                     <ThemedText style={s.unitText} type={'subtitle'}>{selectedUnit?.symbol}</ThemedText>
@@ -244,6 +273,7 @@ const styles = (theme: any) => StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 14,
         justifyContent: 'center',
+        borderWidth: 1
     },
     valueInput: {
         fontSize: 36,

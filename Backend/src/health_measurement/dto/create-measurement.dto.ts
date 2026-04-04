@@ -1,3 +1,4 @@
+import { Type } from "class-transformer";
 import { IsDate, IsNumber, IsOptional, IsUUID } from "class-validator";
 
 export class CreateMeasurementDto
@@ -19,10 +20,12 @@ export class CreateMeasurementDto
     @IsNumber()
     numeric_value: number;
 
+    @Type(() => Date)
     @IsDate()
     @IsOptional()
     created_at?: Date;
 
+    @Type(() => Date)
     @IsDate()
     @IsOptional()
     updated_at?: Date;

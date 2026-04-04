@@ -4,29 +4,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@context/ThemeContext';
 
 interface DropdownProps {
-    /** Optional label shown above the dropdown */
     label?: string;
-    /** List of string options to display */
     options: string[];
-    /** Currently selected value */
     value: string;
-    /** Called when the user picks a new option */
     onChange: (value: string) => void;
-    /** Placeholder text when no value is selected */
     placeholder?: string;
+    error?: boolean;
+    remainingStyles?: any;
 }
 
-export function Dropdown({ label, options, value, onChange, placeholder = 'Select...' }: DropdownProps) {
+export function Dropdown({ label, options, value, onChange, placeholder = 'Select...', error, remainingStyles }: DropdownProps) {
     const { theme } = useTheme();
     const [open, setOpen] = useState(false);
     const s = styles(theme);
+
 
     return (
         <View>
             {label && <Text style={s.label}>{label}</Text>}
 
             <TouchableOpacity
-                style={s.trigger}
+                style={[s.trigger, { borderColor: error ? theme.danger : theme.card }, remainingStyles]}
                 onPress={() => setOpen(o => !o)}
                 activeOpacity={0.8}
             >
@@ -76,6 +74,7 @@ const styles = (theme: any) => StyleSheet.create({
         borderRadius: 14,
         paddingHorizontal: 16,
         paddingVertical: 14,
+        borderWidth: 1
     },
     triggerText: {
         fontSize: 15,
