@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
-import { StatusTag } from './DocumentCard';
 import Animated, { SharedTransition, withTiming } from 'react-native-reanimated';
+import { InsightCard } from './InsightCard';
 
 const fastTransition = SharedTransition.springify().duration(250);
 
@@ -12,43 +12,20 @@ const AnimatedIcon = Animated.createAnimatedComponent(FontAwesome5);
 interface MeasurementCardProps {
   id: string;
   title: string;
-  type: string;
   value: string;
-  status: StatusTag;
+  unit: string;
   dateStr: string;
   iconName: string;
+  color: string;
+  colorSecondary: string;
 }
 
-export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, type, value, status, dateStr, iconName }) => {
+export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, value, unit, dateStr, iconName, color, colorSecondary }) => {
   const { theme } = useTheme();
 
   // Determine colors based on status
-  let themeColor = theme.primary;
-  let lightThemeColor = theme.primarySoft;
-
-  switch (status) {
-    case 'Requires Review':
-    case 'Elevated':
-      themeColor = theme.warning;
-      lightThemeColor = theme.warningLight;
-      break;
-    case 'Normal':
-    case 'Completed':
-      themeColor = theme.success;
-      lightThemeColor = theme.successLight;
-      break;
-    default:
-      if (status === 'Requires Review' || status as string === 'High') {
-        themeColor = theme.danger;
-        lightThemeColor = theme.dangerLight;
-      }
-      break;
-  }
-  // Hard override just in case 'Requires Review' needs red:
-  if (status === 'Requires Review') {
-    themeColor = theme.danger;
-    lightThemeColor = theme.dangerLight;
-  }
+  let themeColor = value === '--' ? theme.textLight : color;
+  let lightThemeColor = value === '--' ? theme.card : colorSecondary;
 
   return (
     <View style={[styles.cardContainer, { backgroundColor: theme.card === '#20201F' ? '#2A2A29' : '#FFFFFF' }]}>
@@ -67,7 +44,7 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, typ
             sharedTransitionTag={`icon-glyph-${id}`}
             sharedTransitionStyle={fastTransition}
             name={iconName}
-            size={20}
+            size={22}
             color={themeColor}
           />
         </Animated.View>
@@ -80,15 +57,17 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, typ
           </Text>
 
           <View style={styles.tagsRow}>
-            <Text style={[styles.valueText, { color: theme.textLight }]}>{value}</Text>
+            <Text style={[styles.valueText, { color: theme.text }]}>{value}</Text>
+            <Text style={[styles.unitText, { color: theme.textLight }]}>{unit}</Text>
           </View>
         </View>
 
         {/* Right Status Badge and Chevron */}
         <View style={styles.rightColumn}>
           <View style={styles.dateRow}>
-            <Ionicons name="calendar-outline" size={12} color={theme.textLight} />
-            <Text style={[styles.dateText, { color: theme.textLight }]}>{dateStr}</Text>
+            {/*<Ionicons name="calendar-outline" size={12} color={theme.textLight} />
+            <Text style={[styles.dateText, { color: theme.textLight }]}>{dateStr}</Text> */}
+            <Ionicons name="chevron-forward" size={18} color={theme.textLight} />
           </View>
         </View>
       </View>
@@ -117,12 +96,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
   },
   iconBox: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
@@ -138,8 +117,8 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   titleText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Lexend_700Bold',
+    fontSize: 17,
     marginBottom: 2,
   },
   tagsRow: {
@@ -158,8 +137,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   valueText: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'PublicSans_800ExtraBold',
+    fontSize: 16,
+  },
+  unitText: {
+    fontFamily: 'Lexend_500Bold',
+    fontSize: 12,
+    marginLeft: 5,
   },
   dateRow: {
     flexDirection: 'row',

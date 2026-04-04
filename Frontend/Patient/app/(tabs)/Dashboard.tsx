@@ -9,7 +9,8 @@ import { DashboardMeasurement } from 'src/types/others';
 import backend from 'src/services/Backend/backend.service';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { ScalePressable } from 'src/components/ScalePressable';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { formatDate } from 'src/utils/date';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -58,7 +59,7 @@ const DashboardScreen: React.FC = () => {
           <View style={[styles.sectionHeader, { marginTop: 20, marginHorizontal: 7 }]}>
             <Text style={[styles.sectionTitle, { color: theme.textGray }]}>HEALTH MEASUREMENTS</Text>
             <TouchableOpacity>
-              <Text style={[styles.viewAllText, { color: theme.primary }]}>View All</Text>
+              {/*<Text style={[styles.viewAllText, { color: theme.primary }]}>View All</Text>*/}
             </TouchableOpacity>
           </View>
 
@@ -76,56 +77,87 @@ const DashboardScreen: React.FC = () => {
               />
             }
           >
-
-            {/* Documents List */}
-            {measurements.map((meas) => {
-              // Reformat the date for display
-              const dateObj = new Date(meas.created_at);
-              const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-              const displayValue = `${meas.numeric_value} ${meas.unit.symbol}`;
-
-              let computedStatus: StatusTag = 'Normal';
-              if (meas.anomaly_detected || meas.severity_score > 7) computedStatus = 'Requires Review';
-              else if (meas.severity_score > 4 || Number(meas.numeric_value) > Number(meas.max_value) || Number(meas.numeric_value) < Number(meas.min_value)) computedStatus = 'Elevated';
-              else if (!meas.numeric_value && !meas.id) computedStatus = 'Completed';
-
-              let computedIconName = 'file-medical-alt';
-              if (meas.unit.unit_name?.toLowerCase().includes('blood')) computedIconName = 'tint';
-              if (meas.unit.unit_name?.toLowerCase().includes('pressure')) computedIconName = 'heartbeat';
-              if (meas.unit.unit_name?.toLowerCase().includes('heart')) computedIconName = 'stethoscope';
-              if (meas.unit.unit_name?.toLowerCase().includes('weight')) computedIconName = 'weight';
-
-              const payload = {
-                ...meas,
-                status: computedStatus,
-                iconName: computedIconName
+            {(() => {
+              const getLatest = (keywords: string[]) => {
+                return measurements
+                  .filter(m => keywords.some(k => m.unit.unit_name.toLowerCase().includes(k)))
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
               };
 
+              const bs = getLatest(['sugar']);
+              const bp = getLatest(['pressure']);
+              const wt = getLatest(['weight']);
+              const hr = getLatest(['heart', 'pulse']);
+
+
               return (
-                <ScalePressable
-                  key={meas.id}
-                  style={styles.cardWrapper}
-                  onPress={() => {
-                    import('expo-router').then(({ router }) => {
-                      router.push({
-                        pathname: `/health_measurements/${meas.id}`,
-                        params: { data: JSON.stringify(payload) }
-                      });
-                    });
-                  }}
-                >
-                  <MeasurementCard
-                    id={meas.id}
-                    title={meas.unit.unit_name}
-                    type={meas.special_condition}
-                    value={displayValue}
-                    status={computedStatus}
-                    dateStr={displayDate}
-                    iconName={computedIconName}
-                  />
-                </ScalePressable>
+                <View style={styles.cardWrapper}>
+                  <ScalePressable
+                    disabled={!bs}
+                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(bs) } })}
+                  >
+                    <MeasurementCard
+                      id={bs?.id || 'blood_sugar'}
+                      title={'Blood Sugar'}
+                      value={bs?.numeric_value?.toString() || '--'}
+                      unit={bs?.unit?.symbol || 'mg/dL'}
+                      dateStr={formatDate(bs?.created_at)}
+                      iconName={'tint'}
+                      color={theme.danger}
+                      colorSecondary={theme.dangerLight}
+                    />
+                  </ScalePressable>
+
+                  <ScalePressable
+                    disabled={!bp}
+                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(bp) } })}
+                  >
+                    <MeasurementCard
+                      id={bp?.id || 'blood_pressure'}
+                      title={'Blood Pressure'}
+                      value={bp?.numeric_value?.toString() || '--'}
+                      unit={bp?.unit?.symbol || 'mmHg'}
+                      dateStr={formatDate(bp?.created_at)}
+                      iconName={'heartbeat'}
+                      color={theme.primary}
+                      colorSecondary={theme.primarySoft}
+                    />
+                  </ScalePressable>
+
+                  <ScalePressable
+                    disabled={!wt}
+                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(wt) } })}
+                  >
+                    <MeasurementCard
+                      id={wt?.id || 'weight'}
+                      title={'Weight'}
+                      value={wt?.numeric_value?.toString() || '--'}
+                      unit={wt?.unit?.symbol || 'kg'}
+                      dateStr={formatDate(wt?.created_at)}
+                      iconName={'weight'}
+                      color={theme.warning}
+                      colorSecondary={theme.warningLight}
+                    />
+                  </ScalePressable>
+
+                  <ScalePressable
+                    disabled={!hr}
+                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(hr) } })}
+                  >
+                    <MeasurementCard
+                      id={hr?.id || 'heart_rate'}
+                      title={'Heart Rate'}
+                      value={hr?.numeric_value?.toString() || '--'}
+                      unit={hr?.unit?.symbol || 'bpm'}
+                      dateStr={formatDate(hr?.created_at)}
+                      iconName={'heartbeat'}
+                      color={theme.success}
+                      colorSecondary={theme.successLight}
+                    />
+                  </ScalePressable>
+                </View>
               );
-            })}
+            })()}
 
             {/* Smart Insight Card */}
             {/*<InsightCard />*/}
@@ -189,6 +221,7 @@ const styles = StyleSheet.create({
   cardWrapper: {
     marginBottom: 4,
     marginHorizontal: 6,
+    gap: 5,
   },
 });
 

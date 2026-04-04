@@ -9,6 +9,7 @@ const fastTransition = SharedTransition.springify().duration(250);
 const AnimatedIcon = Animated.createAnimatedComponent(FontAwesome5);
 import { useTheme } from 'src/context/ThemeContext';
 import { ThemedView } from 'src/components';
+import { formatDate } from 'src/utils/date';
 
 export default function HealthMeasurementDetailScreen() {
   const { id, data } = useLocalSearchParams<{ id: string, data?: string }>();
@@ -63,8 +64,7 @@ export default function HealthMeasurementDetailScreen() {
     lightThemeColor = theme.dangerLight;
   }
 
-  const dateObj = new Date(measurement.created_at);
-  const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const displayDate = formatDate(measurement.created_at);
   const displayValue = `${measurement.numeric_value} ${measurement.unit.symbol}`;
 
   return (

@@ -10,6 +10,7 @@ import backend from 'src/services/Backend/backend.service';
 import { MeasurementUnitDTO } from '../../src/types/dto';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { useCurrentPatient } from '@context/PatientContext';
+import { formatOrdinalDate, formatTime } from 'src/utils/date';
 
 export default function AddNewMeasurement() {
     const { theme } = useTheme();
@@ -39,13 +40,8 @@ export default function AddNewMeasurement() {
         router.back();
     };
 
-    const ordinal = (n: number) => {
-        const s = ['th', 'st', 'nd', 'rd'];
-        const v = n % 100;
-        return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]);
-    };
-    const displayDate = `${ordinal(selectedDate.getDate())} ${selectedDate.toLocaleDateString('en-US', { month: 'short' })}, ${selectedDate.getFullYear()}`;
-    const displayTime = selectedDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const displayDate = formatOrdinalDate(selectedDate);
+    const displayTime = formatTime(selectedDate);
 
     const s = styles(theme);
 
@@ -54,9 +50,9 @@ export default function AddNewMeasurement() {
             {/* ── Custom Header ── */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.headerIcon}>
-                    <Ionicons name="arrow-back" size={22} color={theme.primary} />
+                    <Ionicons name="arrow-back" size={22} color={theme.textGray} />
                 </TouchableOpacity>
-                <Text style={s.headerTitle}>Add Measurement</Text>
+                <ThemedText style={s.headerTitle}>Add Measurement</ThemedText>
                 <Pressable style={[s.headerIcon, { opacity: 0 }]}>
                     <Ionicons name="ellipsis-vertical" size={20} color={theme.textGray} />
                 </Pressable>
@@ -172,9 +168,9 @@ const styles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
     },
     headerTitle: {
-        fontSize: 18,
-        fontFamily: 'Lexend_800ExtraBold',
-        color: theme.primary,
+        color: theme.text,
+        fontSize: 17,
+        fontFamily: 'Lexend_700Bold',
     },
     scroll: {
         paddingHorizontal: 20,
