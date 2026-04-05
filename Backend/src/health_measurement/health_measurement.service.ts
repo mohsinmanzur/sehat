@@ -8,6 +8,7 @@ import { Reference_Range } from 'src/entities/reference_range.entity';
 import { AI_Analysis } from 'src/entities/ai_analysis.entity';
 import { Repository } from 'typeorm';
 import { DashboardMeasurement } from './dto/get-measurements.dto';
+import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 
 @Injectable()
 export class HealthMeasurementService {
@@ -70,6 +71,19 @@ export class HealthMeasurementService {
     async createHealthMeasurement(measurement: CreateMeasurementDto): Promise<Health_Measurement> {
         const createdRecord = this.healthMeasurementRepo.create(measurement);
         return await this.healthMeasurementRepo.save(createdRecord);
+    }
+
+    async updateHealthMeasurement(measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
+        const existingRecord = await this.healthMeasurementRepo.findOneBy({ id: measurement.id });
+        if (!existingRecord) {
+            throw new Error('Health measurement not found');
+        }
+        Object.assign(existingRecord, measurement);
+        return await this.healthMeasurementRepo.save(existingRecord);
+    }
+
+    async deleteHealthMeasurement(id: string): Promise<void> {
+        await this.healthMeasurementRepo.delete(id);
     }
 
     async createUnit(unit: CreateMeasurementUnitDto): Promise<Measurement_Unit> {
