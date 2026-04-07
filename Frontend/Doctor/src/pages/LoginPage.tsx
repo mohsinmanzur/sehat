@@ -1,7 +1,7 @@
 import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthShell from '../components/AuthShell';
+import AuthShell from '../components/AppShell';
 import { useAuth } from '../context/AuthContext';
 import { requestCode } from '../services/authService';
 
@@ -13,7 +13,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-const submit = async (e) => {
+const submit = async (e: any) => {
   e.preventDefault();
 
   try {
@@ -23,7 +23,7 @@ const submit = async (e) => {
     await requestCode(email);
     login(email);
     navigate('/verify');
-  } catch (err) {
+  } catch (err: any) {
     console.error("OTP request error:", err);
 
     if (err.response) {

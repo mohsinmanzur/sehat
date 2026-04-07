@@ -14,25 +14,25 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const refs = useRef([]);
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     const t = setInterval(() => setTimer((v) => Math.max(0, v - 1)), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const update = (index, value) => {
+  const update = (index: number, value: string) => {
     const clean = value.replace(/\D/g, '').slice(-1);
     const next = [...otp];
     next[index] = clean;
     setOtp(next);
 
     if (clean && refs.current[index + 1]) {
-      refs.current[index + 1].focus();
+      refs.current[index + 1]?.focus();
     }
   };
 
-  const submit = async (e) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const code = otp.join('');
@@ -109,13 +109,13 @@ export default function VerifyPage() {
               {otp.map((digit, index) => (
                 <input
                   key={index}
-                  ref={(el) => (refs.current[index] = el)}
+                  ref={(el) => {(refs.current[index] = el)}}
                   className="input"
                   value={digit}
                   onChange={(e) => update(index, e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Backspace' && !otp[index] && refs.current[index - 1]) {
-                      refs.current[index - 1].focus();
+                      refs.current[index - 1]?.focus();
                     }
                   }}
                   style={{

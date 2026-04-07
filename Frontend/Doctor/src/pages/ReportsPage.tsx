@@ -54,7 +54,7 @@ export default function ReportsPage() {
 
     if (!term) return reports;
 
-    return reports.filter((report) => {
+    return reports.filter((report: any) => {
       const title = report?.title || report?.name || report?.document_name || '';
       const type = report?.type || report?.category || '';
       return title.toLowerCase().includes(term) || type.toLowerCase().includes(term);
@@ -118,7 +118,7 @@ export default function ReportsPage() {
                 No reports found for this patient.
               </div>
             ) : (
-              filteredReports.map((report, index) => {
+              filteredReports.map((report: any, index: number) => {
                 const reportId = report?.id || report?._id || index;
                 const title = report?.title || report?.name || report?.document_name || 'Untitled Report';
                 const type = report?.type || report?.category || 'Report';

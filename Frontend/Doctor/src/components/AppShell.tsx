@@ -15,7 +15,7 @@ const navItems = [
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function AppShell({ children }) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
   const { darkMode, toggleTheme } = useTheme();
   const { doctorName, logout } = useAuth();
   const navigate = useNavigate();

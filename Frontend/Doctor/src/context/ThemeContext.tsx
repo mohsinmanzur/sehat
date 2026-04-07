@@ -1,8 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-const ThemeContext = createContext(null);
+interface ThemeContextType
+{
+    darkMode: boolean;
+    toggleTheme: () => void;
+}
 
-export function ThemeProvider({ children }) {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('sehatscan-theme') === 'dark');
 
   useEffect(() => {
@@ -14,4 +18,12 @@ export function ThemeProvider({ children }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export const useTheme = () => useContext(ThemeContext);
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

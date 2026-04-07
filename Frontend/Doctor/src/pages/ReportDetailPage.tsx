@@ -4,8 +4,9 @@ import { useParams } from 'react-router-dom';
 import { reportDetails } from '../data/mockData';
 
 export default function ReportDetailPage() {
-  const { id } = useParams();
-  const detail = useMemo(() => reportDetails[id] || reportDetails.cbc, [id]);
+  let { id } = useParams<{ id: string }>();
+  const detail = useMemo(() => reportDetails[(id as keyof typeof reportDetails) || 'cbc'] || reportDetails.cbc, [id]);
+
   return (
     <div className="grid" style={{ gridTemplateColumns: '1.2fr .8fr' }}>
       <section className="card" style={{ padding: 24 }}>

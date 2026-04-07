@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { getHealthMeasurements } from '../services/measurementService';
 import { getPatientRecords } from '../services/recordService';
 
-const getBadgeClass = (value) => {
+const getBadgeClass = (value: any) => {
   const text = String(value || '').toLowerCase();
 
   if (text.includes('high') || text.includes('danger') || text.includes('critical')) return 'danger';
@@ -159,7 +159,7 @@ export default function OverviewPage() {
                   No health measurements found.
                 </div>
               ) : (
-                measurements.map((item, index) => {
+                measurements.map((item: any, index: number) => {
                   const title =
                     item?.title ||
                     item?.name ||
@@ -221,7 +221,7 @@ export default function OverviewPage() {
                 No recent reports found.
               </div>
             ) : (
-              reports.map((report, index) => {
+              reports.map((report: any, index: number) => {
                 const reportId = report?.id || report?._id || index;
                 const title = report?.title || report?.name || report?.document_name || 'Untitled Report';
                 const type = report?.type || report?.category || 'Report';

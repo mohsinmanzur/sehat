@@ -2,7 +2,7 @@ import { Moon, Sun } from 'lucide-react';
 import Logo from './Logo';
 import { useTheme } from '../context/ThemeContext';
 
-export default function AuthShell({ children, footer = true }) {
+export default function AuthShell({ children, footer = true }: { children: React.ReactNode; footer?: boolean }) {
   const { darkMode, toggleTheme } = useTheme();
   return (
     <div className="app-bg" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

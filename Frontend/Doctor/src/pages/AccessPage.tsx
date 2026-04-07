@@ -47,14 +47,14 @@ export default function AccessPage() {
 
     if (!term) return patients;
 
-    return patients.filter((patient) => {
+    return patients.filter((patient: any) => {
       const name = patient?.name || patient?.fullName || '';
       const email = patient?.email || '';
       return name.toLowerCase().includes(term) || email.toLowerCase().includes(term);
     });
   }, [patients, search]);
 
-  const selectPatient = (patient) => {
+  const selectPatient = (patient: any) => {
     const patientId = patient?.id || patient?._id || patient?.patient_id;
     const patientName = patient?.name || patient?.fullName || patient?.email || 'Patient';
 
@@ -186,7 +186,7 @@ export default function AccessPage() {
                   No patients found.
                 </div>
               ) : (
-                filteredPatients.map((patient, index) => {
+                filteredPatients.map((patient: any, index) => {
                   const patientId = patient?.id || patient?._id || patient?.patient_id || index;
                   const patientName = patient?.name || patient?.fullName || patient?.email || 'Unnamed Patient';
                   const patientEmail = patient?.email || 'No email available';
