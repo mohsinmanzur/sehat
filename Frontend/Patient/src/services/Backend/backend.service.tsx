@@ -1,4 +1,4 @@
-import { HealthMeasurementDTO, MeasurementUnitDTO } from "../../types/dto";
+import { HealthMeasurementDTO, MeasurementUnitDTO, UpdateHealthMeasurementDTO } from "../../types/dto";
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
 
@@ -219,6 +219,22 @@ class Backend {
         }
         return await response.json();
     }
+
+    async updateHealthMeasurement(id: string, measurement: UpdateHealthMeasurementDTO) {
+        const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.PUT, measurement);
+        if (!response.ok) {
+            throw new Error(`Error in updating health measurement ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async deleteHealthMeasurement(id: string) {
+        const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.DELETE);
+        if (!response.ok) {
+            throw new Error(`Error in deleting health measurement ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+    }
+
 
     async createMeasurementUnit(unit: MeasurementUnitDTO) {
         const response = await this.request('/health-measurement/unit', allowedMethods.POST, unit);

@@ -17,6 +17,7 @@ import { ThemedText, ThemedView } from 'src/components';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
 import { formatFullDateTime, getRelativeTimeRange } from 'src/utils/date';
+import { ScalePressable } from 'src/components/ScalePressable';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -121,8 +122,8 @@ const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
             <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
                 <Defs>
                     <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor={theme.primary} stopOpacity="0.18" />
-                        <Stop offset="1" stopColor={theme.primary} stopOpacity="0.01" />
+                        <Stop offset="0" stopColor={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} stopOpacity="0.18" />
+                        <Stop offset="1" stopColor={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} stopOpacity="0.01" />
                     </LinearGradient>
                 </Defs>
                 {/* Area fill */}
@@ -131,7 +132,7 @@ const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
                 <Path
                     d={linePath}
                     fill="none"
-                    stroke={theme.primary}
+                    stroke={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary}
                     strokeWidth={2.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -143,13 +144,13 @@ const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
                         // End dot with halo
                         return (
                             <React.Fragment key={i}>
-                                <Circle cx={pt.x} cy={pt.y} r={8} fill={theme.primary} opacity={0.15} />
-                                <Circle cx={pt.x} cy={pt.y} r={4.5} fill={theme.primary} />
+                                <Circle cx={pt.x} cy={pt.y} r={8} fill={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} opacity={0.15} />
+                                <Circle cx={pt.x} cy={pt.y} r={4.5} fill={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} />
                                 <Circle cx={pt.x} cy={pt.y} r={2} fill="#fff" />
                             </React.Fragment>
                         );
                     }
-                    return <Circle key={i} cx={pt.x} cy={pt.y} r={3.5} fill={theme.primary} />;
+                    return <Circle key={i} cx={pt.x} cy={pt.y} r={3.5} fill={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} />;
                 })}
             </Svg>
 
@@ -160,20 +161,20 @@ const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
                         key={`${label}-${x}`}
                         style={[
                             styles.chartXLabel,
-                            { color: theme.textVeryLight, position: 'absolute', transform: [{ translateX: -24 }], left: x },
-                            isToday && { color: theme.primary, fontWeight: '700' },
+                            { color: measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary, position: 'absolute', transform: [{ translateX: -24 }], left: x },
+                            isToday && { color: measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary, fontWeight: '700' },
                         ]}
                     >
                         {label}
                     </Text>
                 ))}
             </View>
-        </View>
+        </View >
     );
 };
 
 // ─── Delta Badge ──────────────────────────────────────────────────────────────
-const DeltaBadge: React.FC<{ delta?: number, unit: string }> = ({ delta, unit }) => {
+const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: DashboardMeasurement[] }> = ({ delta, unit, measurements }) => {
     const { theme } = useTheme();
     if (delta === undefined) return null;
     const isDown = delta < 0;
@@ -186,7 +187,7 @@ const DeltaBadge: React.FC<{ delta?: number, unit: string }> = ({ delta, unit })
         ]}>
             <Text style={[
                 styles.deltaBadgeText,
-                { color: theme.primary }
+                { color: measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }
             ]}>
                 {isNeutral ? '•' : (isDown ? '↓' : '↑')} {Math.abs(delta).toFixed(1)} {unit}
             </Text>
@@ -195,7 +196,7 @@ const DeltaBadge: React.FC<{ delta?: number, unit: string }> = ({ delta, unit })
 };
 
 // ─── Log Row ──────────────────────────────────────────────────────────────────
-const LogRow: React.FC<{ item: DashboardMeasurement; isLast: boolean; delta?: number }> = ({ item, isLast, delta }) => {
+const LogRow: React.FC<{ item: DashboardMeasurement; isLast: boolean; delta?: number, measurements: DashboardMeasurement[] }> = ({ item, isLast, delta, measurements }) => {
     const { theme } = useTheme();
     return (
         <View style={[
@@ -206,7 +207,7 @@ const LogRow: React.FC<{ item: DashboardMeasurement; isLast: boolean; delta?: nu
                 <Text style={[styles.logWeight, { color: theme.text }]}>{item.numeric_value.toFixed(1)} {item.unit.symbol}</Text>
                 <Text style={[styles.logDate, { color: theme.textLight }]}>{formatFullDateTime(item.created_at)}</Text>
             </View>
-            <DeltaBadge delta={delta} unit={item.unit.symbol} />
+            <DeltaBadge delta={delta} unit={item.unit.symbol} measurements={measurements} />
         </View>
     );
 };
@@ -304,13 +305,13 @@ export default function WeightHistoryScreen() {
                 <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
                     <Text style={[styles.currentLabel, { color: theme.textLight }]}>CURRENT {measurement?.unit.unit_name.toUpperCase()}</Text>
                     <View style={styles.currentRow}>
-                        <Text style={[styles.currentValue, { color: theme.primaryDark }]}>{measurement?.numeric_value}</Text>
-                        <Text style={[styles.currentUnit, { color: theme.primaryDark }]}>{measurement?.unit.symbol}</Text>
+                        <Text style={[styles.currentValue, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>{measurement?.numeric_value}</Text>
+                        <Text style={[styles.currentUnit, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>{measurement?.unit.symbol}</Text>
                     </View>
 
                     {stats && (
                         <View style={[styles.statsPill, { backgroundColor: theme.card }]}>
-                            <Text style={[styles.statsPillIcon, { color: theme.primary }]}>
+                            <Text style={[styles.statsPillIcon, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>
                                 {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
                             </Text>
                             <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.unit.symbol}</Text>
@@ -350,12 +351,18 @@ export default function WeightHistoryScreen() {
                             const delta = nextItem ? item.numeric_value - nextItem.numeric_value : undefined;
                             const isLast = idx === allMeasurements.length - 1;
                             return (
-                                <LogRow
+                                <ScalePressable
+                                    onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item) } }) }}
                                     key={item.id}
-                                    item={item}
-                                    isLast={isLast}
-                                    delta={delta}
-                                />
+                                >
+                                    <LogRow
+                                        key={item.id}
+                                        item={item}
+                                        isLast={isLast}
+                                        delta={delta}
+                                        measurements={allMeasurements}
+                                    />
+                                </ScalePressable>
                             );
                         })}
                     </View>

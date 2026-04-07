@@ -13,12 +13,11 @@ import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
 
-export default function AddNewMeasurement() {
+export default function EditMeasurement() {
     const { theme } = useTheme();
     const { currentPatient } = useCurrentPatient()
     const router = useRouter();
 
-    const [selectedUnit, setSelectedUnit] = useState<MeasurementUnitDTO | null>(null);
     const [value, setValue] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -41,15 +40,6 @@ export default function AddNewMeasurement() {
     }, []);
 
     const handleSave = async () => {
-        if (!selectedUnit) {
-            if (!value) {
-                setShowValueError(true);
-                errorShakeAnimation(valueShakeAnimation);
-            }
-            setShowSelectedUnitError(true);
-            errorShakeAnimation(dropdownShakeAnimation);
-            return;
-        }
         if (!value) {
             setShowValueError(true);
             errorShakeAnimation(valueShakeAnimation);
@@ -57,9 +47,7 @@ export default function AddNewMeasurement() {
         }
         setShowSelectedUnitError(false);
         setShowValueError(false);
-        await backend.createHealthMeasurement({
-            patient_id: currentPatient?.id,
-            unit_id: selectedUnit?.id,
+        await backend.updateHealthMeasurement(currentPatient?.id, {
             numeric_value: parseFloat(value),
             created_at: selectedDate,
         })
@@ -78,7 +66,7 @@ export default function AddNewMeasurement() {
                 <TouchableOpacity onPress={() => router.back()} style={s.headerIcon}>
                     <Ionicons name="arrow-back" size={22} color={theme.textGray} />
                 </TouchableOpacity>
-                <ThemedText style={s.headerTitle}>Add Measurement</ThemedText>
+                <ThemedText style={s.headerTitle}>Edit Measurement</ThemedText>
                 <Pressable style={[s.headerIcon, { opacity: 0 }]}>
                     <Ionicons name="ellipsis-vertical" size={20} color={theme.textGray} />
                 </Pressable>
@@ -89,16 +77,6 @@ export default function AddNewMeasurement() {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-                {/* ── Measurement Type ── */}
-                <Dropdown
-                    label="MEASUREMENT TYPE"
-                    options={units.map((unit) => unit.unit_name)}
-                    value={selectedUnit?.unit_name}
-                    onChange={(value) => { setSelectedUnit(units.find((unit) => unit.unit_name === value) || null); setShowSelectedUnitError(false); }}
-                    error={showSelectedUnitError}
-                    remainingStyles={{ transform: [{ translateX: dropdownShakeAnimation }] }}
-                />
-
                 {/* ── Value & Unit ── */}
                 <View style={s.row}>
                     <View style={s.col2}>
@@ -117,7 +95,7 @@ export default function AddNewMeasurement() {
                         </Animated.View>
                     </View>
 
-                    <ThemedText style={s.unitText} type={'subtitle'}>{selectedUnit?.symbol}</ThemedText>
+                    
                 </View>
 
                 {/* ── Date & Time ── */}

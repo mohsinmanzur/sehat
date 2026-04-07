@@ -34,9 +34,7 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, val
 
       <View style={styles.cardContent}>
         {/* Leading Icon Box */}
-        <Animated.View
-          sharedTransitionTag={`icon-bg-${id}`}
-          sharedTransitionStyle={fastTransition}
+        <View
           style={[styles.iconBox, { backgroundColor: lightThemeColor }]}
           collapsable={false}
         >
@@ -47,7 +45,7 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, val
             size={22}
             color={themeColor}
           />
-        </Animated.View>
+        </View>
 
         {/* Title and Badge Columns */}
         <View style={styles.textColumn}>
@@ -56,10 +54,10 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, val
             {title}
           </Text>
 
-          <View style={styles.tagsRow}>
+          {value !== '--' && <View style={styles.tagsRow}>
             <Text style={[styles.valueText, { color: theme.text }]}>{value}</Text>
             <Text style={[styles.unitText, { color: theme.textLight }]}>{unit}</Text>
-          </View>
+          </View>}
         </View>
 
         {/* Right Status Badge and Chevron */}

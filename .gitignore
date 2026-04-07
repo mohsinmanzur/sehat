@@ -3,6 +3,16 @@
 /Backend/node_modules
 /Backend/build
 
+/Frontend/Patient/node_modules
+/Frontend/Patient/.expo
+/Frontend/Patient/dist
+/Frontend/Patient/build
+
+/Frontend/Doctor/node_modules
+/Frontend/Doctor/.expo
+/Frontend/Doctor/dist
+/Frontend/Doctor/build
+
 # Logs
 /Backend/logs
 *.log

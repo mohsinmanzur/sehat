@@ -47,6 +47,11 @@ export type HealthMeasurementDTO = {
     updated_at?: Date;
 };
 
+export type UpdateHealthMeasurementDTO = {
+    numeric_value?: number;
+    created_at?: Date;
+};
+
 export type MeasurementUnitDTO = {
     id?: string;
     unit_name: string;
