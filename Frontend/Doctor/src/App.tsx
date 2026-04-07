@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import LoginPage from './pages/LoginPage';
+import RegisterDoctorPage from './pages/RegisterDoctorPage';
 import VerifyPage from './pages/VerifyPage';
 import DashboardPage from './pages/DashboardPage';
 import AccessPage from './pages/AccessPage';
@@ -39,17 +40,20 @@ export default function App() {
       {location.pathname === '/login' && <SplashOverlay />}
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/register-doctor" element={<RegisterDoctorPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify" element={<VerifyPage />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <AppShell>{shell.dashboard}</AppShell>
-            </ProtectedRoute>
-          }
-        />
+<Route
+  path="/dashboard"
+  element={
+    <ProtectedRoute>
+      <AppShell>
+        <DashboardPage />
+      </AppShell>
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/access"

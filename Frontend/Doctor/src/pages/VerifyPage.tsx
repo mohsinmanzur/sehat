@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthShell from '../components/AuthShell';
 import { useAuth } from '../context/AuthContext';
-import { requestCode, verifyCode } from '../services/authService';
+import { requestCode, verifyDoctorCode } from '../services/authService';
 
 export default function VerifyPage() {
   const { email, verify, setDoctorName } = useAuth();
@@ -41,7 +41,7 @@ export default function VerifyPage() {
       setLoading(true);
       setError('');
 
-      const data = await verifyCode(email, code);
+      const data = await verifyDoctorCode(email, code);
       console.log('Verify response:', data);
 
       const token = data?.accessToken || data?.token || data?.jwt;

@@ -1,9 +1,10 @@
 import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AuthShell from '../components/AppShell';
+import { Link, useNavigate } from 'react-router-dom';
+import AuthShell from '../components/AuthShell';
 import { useAuth } from '../context/AuthContext';
 import { requestCode } from '../services/authService';
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState(localStorage.getItem('doctorEmail') || 'syed.aadil3011@gmail.com');
@@ -122,6 +123,15 @@ export default function LoginPage() {
             Google Workspace
           </button>
         </section>
+
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+        <span className="muted" style={{ fontSize: 14 }}>
+           Don’t have a doctor account?{' '}
+         </span>
+        <Link to="/register-doctor" style={{ color: 'var(--primary)', fontWeight: 700 }}>
+           Register here
+        </Link>
+        </div>
 
         <section className="panel" style={{ padding: 18, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           <div
