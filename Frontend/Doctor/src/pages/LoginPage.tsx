@@ -13,33 +13,34 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-const submit = async (e: any) => {
-  e.preventDefault();
+  const submit = async (e: any) => {
+    e.preventDefault();
 
-  try {
-    setLoading(true);
-    setError('');
+    try {
+      setLoading(true);
+      setError('');
 
-    await requestCode(email);
-    login(email);
-    navigate('/verify');
-  } catch (err: any) {
-    console.error("OTP request error:", err);
+      const response = await requestCode(email);
+      console.log(response);
+      login(email);
+      navigate('/verify');
+    } catch (err: any) {
+      console.error("OTP request error:", err);
 
-    if (err.response) {
-      console.error("Backend response:", err.response.data);
-      setError(`Backend error: ${err.response.status}`);
-    } else if (err.request) {
-      console.error("No response received:", err.request);
-      setError("No response from backend. This is usually a CORS or server issue.");
-    } else {
-      console.error("Request setup error:", err.message);
-      setError(`Error: ${err.message}`);
+      if (err.response) {
+        console.error("Backend response:", err.response.data);
+        setError(`Backend error: ${err.response.status}`);
+      } else if (err.request) {
+        console.error("No response received:", err.request);
+        setError("No response from backend. This is usually a CORS or server issue.");
+      } else {
+        console.error("Request setup error:", err.message);
+        setError(`Error: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <AuthShell>
