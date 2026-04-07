@@ -2,20 +2,27 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
-async function bootstrap()
-{
+async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.enableCors({
+    origin: [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,   // strips extra properties
-      forbidNonWhitelisted: true, // error if unknown property
-      transform: true,   // transforms string -> number, etc.
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     })
   );
 
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
-
-// https://sehatscan-abgtfbb6cmgmgugr.uaenorth-01.azurewebsites.net/

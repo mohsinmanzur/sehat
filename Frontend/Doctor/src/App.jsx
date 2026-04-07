@@ -20,7 +20,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const location = useLocation();
-  const isAuthRoute = ['/login', '/verify'].includes(location.pathname);
+
   const shell = useMemo(
     () => ({
       dashboard: <DashboardPage />,
@@ -41,33 +41,68 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify" element={<VerifyPage />} />
+
         <Route
           path="/dashboard"
-          element={<ProtectedRoute><AppShell>{shell.dashboard}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.dashboard}</AppShell>
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/access"
-          element={<ProtectedRoute><AppShell>{shell.access}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.access}</AppShell>
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/overview"
-          element={<ProtectedRoute><AppShell>{shell.overview}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.overview}</AppShell>
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/reports"
-          element={<ProtectedRoute><AppShell>{shell.reports}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.reports}</AppShell>
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/reports/:id"
-          element={<ProtectedRoute><AppShell>{shell.reportDetail}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.reportDetail}</AppShell>
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/sessions"
-          element={<ProtectedRoute><AppShell>{shell.sessions}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.sessions}</AppShell>
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/settings"
-          element={<ProtectedRoute><AppShell>{shell.settings}</AppShell></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.settings}</AppShell>
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </>

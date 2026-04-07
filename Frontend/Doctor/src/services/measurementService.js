@@ -1,0 +1,6 @@
+import api from "./api";
+
+export const getHealthMeasurements = async (patientId) => {
+  const res = await api.get(`/health-measurement?patient_id=${patientId}`);
+  return res.data;
+};

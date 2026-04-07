@@ -1,7 +1,5 @@
 # SehatScan Doctor Portal
 
-React + Vite frontend built from the UX Pilot doctor portal designs.
-
 ## Run
 
 ```bash
