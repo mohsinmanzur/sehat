@@ -1,64 +1,125 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 
-const getDoctorDisplayName = (firstName?: string) => {
-  if (!firstName) return 'Doctor';
+type StoredDoctorProfile = {
+  fullName: string;
+  email: string;
+  hospital: string;
+};
 
-  const parts = firstName.trim().split(/\s+/);
+type AuthContextType = {
+  email: string;
+  isVerified: boolean;
+  doctorName: string;
+  doctorFullName: string;
+  doctorEmail: string;
+  doctorHospital: string;
+  login: (nextEmail: string) => void;
+  verify: () => void;
+  logout: () => void;
+  setDoctorProfile: (profile: {
+    fullName?: string;
+    email?: string;
+    hospital?: string;
+  }) => void;
+  updateDoctorProfileLocal: (profile: {
+    email?: string;
+    hospital?: string;
+  }) => void;
+  loadDoctorProfileByEmail: (targetEmail: string) => void;
+};
 
-  if (parts.length >= 2) {
+const AuthContext = createContext<AuthContextType | null>(null);
+
+const normalizeEmail = (value?: string) => (value || '').trim().toLowerCase();
+
+const buildDoctorShortName = (fullName?: string) => {
+  const clean = (fullName || '').trim();
+  if (!clean) return 'Doctor';
+
+  const parts = clean.split(/\s+/).filter(Boolean);
+
+  if (parts.length >= 3) {
     return `Doctor ${parts[1]}`;
   }
 
   return `Doctor ${parts[0]}`;
 };
 
-type AuthContextType = {
-  email: string;
-  doctorName: string;
-  doctorFullName: string;
-  doctorFirstName: string;
-  doctorLastName: string;
-  isVerified: boolean;
-  login: (nextEmail: string) => void;
-  verify: () => void;
-  logout: () => void;
-  setDoctorProfile: (profile: {
-    firstName?: string;
-    lastName?: string;
-    fullName?: string;
-  }) => void;
+const getProfilesMap = (): Record<string, StoredDoctorProfile> => {
+  try {
+    const raw = localStorage.getItem('doctorProfilesByEmail');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const saveProfilesMap = (map: Record<string, StoredDoctorProfile>) => {
+  localStorage.setItem('doctorProfilesByEmail', JSON.stringify(map));
+};
+
+const saveProfileForEmail = (profile: StoredDoctorProfile) => {
+  const key = normalizeEmail(profile.email);
+  if (!key) return;
+
+  const map = getProfilesMap();
+  map[key] = {
+    fullName: (profile.fullName || '').trim(),
+    email: (profile.email || '').trim(),
+    hospital: (profile.hospital || '').trim(),
+  };
+  saveProfilesMap(map);
+};
+
+const getProfileForEmail = (email: string): StoredDoctorProfile | null => {
+  const key = normalizeEmail(email);
+  if (!key) return null;
+
+  const map = getProfilesMap();
+  return map[key] || null;
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const storedFirstName = localStorage.getItem('doctorFirstName') || '';
-  const storedLastName = localStorage.getItem('doctorLastName') || '';
-  const storedFullName =
-    localStorage.getItem('doctorFullName') ||
-    `${storedFirstName} ${storedLastName}`.trim();
-  const storedDisplayName =
-    localStorage.getItem('doctorName') || getDoctorDisplayName(storedFirstName);
+  const initialEmail = localStorage.getItem('doctorEmail') || '';
+  const initialProfile = getProfileForEmail(initialEmail);
 
-  const [email, setEmail] = useState(localStorage.getItem('doctorEmail') || '');
+  const [email, setEmail] = useState(initialEmail);
   const [isVerified, setIsVerified] = useState(!!localStorage.getItem('doctorToken'));
-  const [doctorFirstName, setDoctorFirstName] = useState(storedFirstName);
-  const [doctorLastName, setDoctorLastName] = useState(storedLastName);
-  const [doctorFullName, setDoctorFullName] = useState(storedFullName);
-  const [doctorName, setDoctorName] = useState(storedDisplayName);
+  const [doctorFullName, setDoctorFullName] = useState(
+    localStorage.getItem('doctorFullName') || initialProfile?.fullName || ''
+  );
+  const [doctorEmail, setDoctorEmail] = useState(
+    localStorage.getItem('doctorEmail') || initialProfile?.email || ''
+  );
+  const [doctorHospital, setDoctorHospital] = useState(
+    localStorage.getItem('doctorHospital') || initialProfile?.hospital || ''
+  );
+
+  const doctorName = buildDoctorShortName(doctorFullName);
 
   const value = useMemo(
     () => ({
       email,
+      isVerified,
       doctorName,
       doctorFullName,
-      doctorFirstName,
-      doctorLastName,
-      isVerified,
+      doctorEmail,
+      doctorHospital,
 
       login(nextEmail: string) {
-        setEmail(nextEmail);
-        localStorage.setItem('doctorEmail', nextEmail);
+        const cleanEmail = nextEmail.trim();
+        setEmail(cleanEmail);
+        setDoctorEmail(cleanEmail);
+        localStorage.setItem('doctorEmail', cleanEmail);
+
+        const existingProfile = getProfileForEmail(cleanEmail);
+        if (existingProfile) {
+          setDoctorFullName(existingProfile.fullName || '');
+          setDoctorHospital(existingProfile.hospital || '');
+
+          localStorage.setItem('doctorFullName', existingProfile.fullName || '');
+          localStorage.setItem('doctorHospital', existingProfile.hospital || '');
+        }
       },
 
       verify() {
@@ -68,65 +129,99 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout() {
         setIsVerified(false);
         setEmail('');
-        setDoctorFirstName('');
-        setDoctorLastName('');
         setDoctorFullName('');
-        setDoctorName('Doctor');
+        setDoctorEmail('');
+        setDoctorHospital('');
 
         localStorage.removeItem('doctorToken');
         localStorage.removeItem('doctorEmail');
-        localStorage.removeItem('doctorName');
         localStorage.removeItem('doctorFullName');
-        localStorage.removeItem('doctorFirstName');
-        localStorage.removeItem('doctorLastName');
+        localStorage.removeItem('doctorHospital');
         localStorage.removeItem('selectedPatientId');
         localStorage.removeItem('selectedPatientName');
       },
 
-      setDoctorProfile(profile: { firstName?: string; lastName?: string; fullName?: string }) {
-        let firstName = profile.firstName?.trim() || '';
-        let lastName = profile.lastName?.trim() || '';
-        let fullName = profile.fullName?.trim() || '';
+      setDoctorProfile(profile: { fullName?: string; email?: string; hospital?: string }) {
+        const nextFullName =
+          profile.fullName !== undefined ? profile.fullName.trim() : doctorFullName;
+        const nextEmail =
+          profile.email !== undefined ? profile.email.trim() : (doctorEmail || email).trim();
+        const nextHospital =
+          profile.hospital !== undefined ? profile.hospital.trim() : doctorHospital;
 
-        if (!fullName && (firstName || lastName)) {
-          fullName = `${firstName} ${lastName}`.trim();
+        if (profile.fullName !== undefined) {
+          setDoctorFullName(nextFullName);
+          localStorage.setItem('doctorFullName', nextFullName);
         }
 
-        if (!firstName && fullName) {
-          const fullParts = fullName.split(/\s+/);
-
-          if (fullParts.length >= 3) {
-            firstName = `${fullParts[0]} ${fullParts[1]}`;
-            lastName = fullParts.slice(2).join(' ');
-          } else if (fullParts.length === 2) {
-            firstName = fullParts[0];
-            lastName = fullParts[1];
-          } else if (fullParts.length === 1) {
-            firstName = fullParts[0];
-          }
+        if (profile.email !== undefined) {
+          setEmail(nextEmail);
+          setDoctorEmail(nextEmail);
+          localStorage.setItem('doctorEmail', nextEmail);
         }
 
-        const displayName = getDoctorDisplayName(firstName);
+        if (profile.hospital !== undefined) {
+          setDoctorHospital(nextHospital);
+          localStorage.setItem('doctorHospital', nextHospital);
+        }
 
-        setDoctorFirstName(firstName);
-        setDoctorLastName(lastName);
-        setDoctorFullName(fullName);
-        setDoctorName(displayName);
+        const finalEmail = nextEmail || doctorEmail || email;
+        if (finalEmail) {
+          saveProfileForEmail({
+            fullName: nextFullName,
+            email: finalEmail,
+            hospital: nextHospital,
+          });
+        }
+      },
 
-        localStorage.setItem('doctorFirstName', firstName);
-        localStorage.setItem('doctorLastName', lastName);
-        localStorage.setItem('doctorFullName', fullName);
-        localStorage.setItem('doctorName', displayName);
+      updateDoctorProfileLocal(profile: { email?: string; hospital?: string }) {
+        const oldEmail = normalizeEmail(doctorEmail || email);
+        const nextEmail =
+          profile.email !== undefined ? profile.email.trim() : (doctorEmail || email).trim();
+        const nextHospital =
+          profile.hospital !== undefined ? profile.hospital.trim() : doctorHospital;
+
+        setEmail(nextEmail);
+        setDoctorEmail(nextEmail);
+        setDoctorHospital(nextHospital);
+
+        localStorage.setItem('doctorEmail', nextEmail);
+        localStorage.setItem('doctorHospital', nextHospital);
+
+        const map = getProfilesMap();
+        if (oldEmail && oldEmail !== normalizeEmail(nextEmail)) {
+          delete map[oldEmail];
+        }
+
+        map[normalizeEmail(nextEmail)] = {
+          fullName: doctorFullName,
+          email: nextEmail,
+          hospital: nextHospital,
+        };
+
+        saveProfilesMap(map);
+      },
+
+      loadDoctorProfileByEmail(targetEmail: string) {
+        const found = getProfileForEmail(targetEmail);
+
+        if (!found) {
+          setDoctorFullName('');
+          setDoctorHospital('');
+          return;
+        }
+
+        setDoctorFullName(found.fullName || '');
+        setDoctorEmail(found.email || targetEmail);
+        setDoctorHospital(found.hospital || '');
+
+        localStorage.setItem('doctorFullName', found.fullName || '');
+        localStorage.setItem('doctorEmail', found.email || targetEmail);
+        localStorage.setItem('doctorHospital', found.hospital || '');
       },
     }),
-    [
-      email,
-      doctorName,
-      doctorFullName,
-      doctorFirstName,
-      doctorLastName,
-      isVerified,
-    ]
+    [email, isVerified, doctorName, doctorFullName, doctorEmail, doctorHospital]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
