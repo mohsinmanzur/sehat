@@ -1,6 +1,7 @@
 import api from "./api";
 
-export const getPatientRecords = async (patientId: string) => {
-  const res = await api.get(`/record?patient_id=${patientId}`);
+export const getPatientRecords = async (patientId?: string) => {
+  const url = patientId ? `/record?patient_id=${patientId}` : "/record";
+  const res = await api.get(url);
   return res.data;
 };

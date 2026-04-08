@@ -1,8 +1,8 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import LoginPage from './pages/LoginPage';
-import RegisterDoctorPage from './pages/RegisterDoctorPage';
 import VerifyPage from './pages/VerifyPage';
+import RegisterDoctorPage from './pages/RegisterDoctorPage';
 import DashboardPage from './pages/DashboardPage';
 import AccessPage from './pages/AccessPage';
 import OverviewPage from './pages/OverviewPage';
@@ -14,9 +14,9 @@ import AppShell from './components/AppShell';
 import SplashOverlay from './components/SplashOverlay';
 import { useAuth } from './context/AuthContext';
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isVerified } = useAuth();
-  return isVerified ? children : <Navigate to="/login" replace />;
+  return isVerified ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
 export default function App() {
@@ -38,22 +38,21 @@ export default function App() {
   return (
     <>
       {location.pathname === '/login' && <SplashOverlay />}
+
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/register-doctor" element={<RegisterDoctorPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register-doctor" element={<RegisterDoctorPage />} />
         <Route path="/verify" element={<VerifyPage />} />
 
-<Route
-  path="/dashboard"
-  element={
-    <ProtectedRoute>
-      <AppShell>
-        <DashboardPage />
-      </AppShell>
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <AppShell>{shell.dashboard}</AppShell>
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/access"

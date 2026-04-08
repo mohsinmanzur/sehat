@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { requestCode, verifyDoctorCode } from '../services/authService';
 
 export default function VerifyPage() {
-  const { email, verify, setDoctorName } = useAuth();
+  const { email, verify, setDoctorProfile } = useAuth();
   const navigate = useNavigate();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -14,7 +14,7 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const refs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     const t = setInterval(() => setTimer((v) => Math.max(0, v - 1)), 1000);
@@ -32,7 +32,7 @@ export default function VerifyPage() {
     }
   };
 
-  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const code = otp.join('');
@@ -55,17 +55,50 @@ export default function VerifyPage() {
         data?.data?.doctor ||
         data?.data?.user;
 
-      if (doctor?.name) {
-        setDoctorName(doctor.name);
-      } else if (doctor?.fullName) {
-        setDoctorName(doctor.fullName);
+      if (doctor?.firstName || doctor?.lastName) {
+        setDoctorProfile({
+          firstName: doctor.firstName || '',
+          lastName: doctor.lastName || '',
+          fullName:
+            doctor.name ||
+            `${doctor.firstName || ''} ${doctor.lastName || ''}`.trim(),
+        });
+      } else if (doctor?.name) {
+        const nameParts = doctor.name.trim().split(/\s+/);
+
+        let firstName = '';
+        let lastName = '';
+
+        if (nameParts.length >= 3) {
+          firstName = `${nameParts[0]} ${nameParts[1]}`;
+          lastName = nameParts.slice(2).join(' ');
+        } else if (nameParts.length === 2) {
+          firstName = nameParts[0];
+          lastName = nameParts[1];
+        } else if (nameParts.length === 1) {
+          firstName = nameParts[0];
+        }
+
+        setDoctorProfile({
+          firstName,
+          lastName,
+          fullName: doctor.name,
+        });
       }
 
       verify();
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('OTP is wrong or verification failed.');
+
+      if (err.response) {
+        console.error('Backend verify error:', err.response.data);
+        setError(err.response.data?.message || `Backend error: ${err.response.status}`);
+      } else if (err.request) {
+        setError('No response from backend.');
+      } else {
+        setError(err.message || 'Verification failed.');
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +142,7 @@ export default function VerifyPage() {
               {otp.map((digit, index) => (
                 <input
                   key={index}
-                  ref={(el) => {(refs.current[index] = el)}}
+                  ref={(el) => (refs.current[index] = el)}
                   className="input"
                   value={digit}
                   onChange={(e) => update(index, e.target.value)}

@@ -1,41 +1,37 @@
 import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import AuthShell from '../components/AuthShell';
 import { useAuth } from '../context/AuthContext';
 import { requestCode } from '../services/authService';
 
-
 export default function LoginPage() {
-  const [email, setEmail] = useState(localStorage.getItem('doctorEmail') || 'syed.aadil3011@gmail.com');
+  const [email, setEmail] = useState(localStorage.getItem('doctorEmail') || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const submit = async (e: any) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
       setError('');
 
-      const response = await requestCode(email);
-      console.log(response);
+      await requestCode(email);
       login(email);
       navigate('/verify');
     } catch (err: any) {
-      console.error("OTP request error:", err);
+      console.error('OTP request error:', err);
 
       if (err.response) {
-        console.error("Backend response:", err.response.data);
-        setError(`Backend error: ${err.response.status}`);
+        console.error('Backend response:', err.response.data);
+        setError(err.response.data?.message || `Backend error: ${err.response.status}`);
       } else if (err.request) {
-        console.error("No response received:", err.request);
-        setError("No response from backend. This is usually a CORS or server issue.");
+        setError('No response from backend. This is usually a CORS or server issue.');
       } else {
-        console.error("Request setup error:", err.message);
         setError(`Error: ${err.message}`);
       }
     } finally {
@@ -87,7 +83,7 @@ export default function LoginPage() {
                 style={{ paddingLeft: 46 }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="dr.smith@hospital.com"
+                placeholder="doctor@hospital.com"
               />
             </div>
 
@@ -122,16 +118,16 @@ export default function LoginPage() {
           <button className="btn btn-secondary" style={{ width: '100%' }}>
             Google Workspace
           </button>
-        </section>
 
-        <div style={{ marginTop: 16, textAlign: 'center' }}>
-        <span className="muted" style={{ fontSize: 14 }}>
-           Don’t have a doctor account?{' '}
-         </span>
-        <Link to="/register-doctor" style={{ color: 'var(--primary)', fontWeight: 700 }}>
-           Register here
-        </Link>
-        </div>
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <span className="muted" style={{ fontSize: 14 }}>
+              Don’t have a doctor account?{' '}
+            </span>
+            <Link to="/register-doctor" style={{ color: 'var(--primary)', fontWeight: 700 }}>
+              Register here
+            </Link>
+          </div>
+        </section>
 
         <section className="panel" style={{ padding: 18, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           <div

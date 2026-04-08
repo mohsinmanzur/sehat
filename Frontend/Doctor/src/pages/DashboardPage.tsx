@@ -1,81 +1,136 @@
-import { Activity, ArrowRight, FolderOpen, QrCode, ShieldCheck, Timer } from 'lucide-react';
+import { ClipboardPlus, QrCode, Users, FileText, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { notifications, sessions } from '../data/mockData';
+import { useEffect, useState } from 'react';
+import { getPatients } from '../services/patientService';
+import { getPatientRecords } from '../services/recordService';
+import { getHealthMeasurements } from '../services/measurementService';
 
 export default function DashboardPage() {
+  const [patientCount, setPatientCount] = useState(0);
+  const [reportCount, setReportCount] = useState(0);
+  const [measurementCount, setMeasurementCount] = useState(0);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadInsights = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const [patientsRes, reportsRes, measurementsRes] = await Promise.all([
+          getPatients(),
+          getPatientRecords(),
+          getHealthMeasurements(),
+        ]);
+
+        console.log('Patients response:', patientsRes);
+        console.log('Reports response:', reportsRes);
+        console.log('Measurements response:', measurementsRes);
+
+        let patients = [];
+        let reports = [];
+        let measurements = [];
+
+        if (Array.isArray(patientsRes)) patients = patientsRes;
+        else if (Array.isArray(patientsRes?.data)) patients = patientsRes.data;
+        else if (Array.isArray(patientsRes?.patients)) patients = patientsRes.patients;
+
+        if (Array.isArray(reportsRes)) reports = reportsRes;
+        else if (Array.isArray(reportsRes?.data)) reports = reportsRes.data;
+        else if (Array.isArray(reportsRes?.records)) reports = reportsRes.records;
+
+        if (Array.isArray(measurementsRes)) measurements = measurementsRes;
+        else if (Array.isArray(measurementsRes?.data)) measurements = measurementsRes.data;
+        else if (Array.isArray(measurementsRes?.measurements)) {
+          measurements = measurementsRes.measurements;
+        }
+
+        setPatientCount(patients.length);
+        setReportCount(reports.length);
+        setMeasurementCount(measurements.length);
+      } catch (err: any) {
+        console.error(err);
+        setError('Could not load dashboard insights.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInsights();
+  }, []);
+
   return (
-    <div className="grid">
-      <section className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        {[
-          { title: 'Enter Patient OTP', note: 'Start a temporary session securely.', icon: ShieldCheck, action: '/access' },
-          { title: 'Scan QR', note: 'Use the patient QR for instant access.', icon: QrCode, action: '/access' },
-          { title: 'Open Reports', note: 'Review latest lab and imaging records.', icon: FolderOpen, action: '/reports' },
-        ].map((item) => (
-          <Link key={item.title} to={item.action} className="card" style={{ padding: 22 }}>
-            <div style={{ width: 54, height: 54, borderRadius: 18, background: 'var(--primary-soft)', color: 'var(--primary)', display: 'grid', placeItems: 'center', marginBottom: 16 }}><item.icon size={24} /></div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>{item.title}</div>
-            <div className="muted" style={{ lineHeight: 1.5 }}>{item.note}</div>
-          </Link>
-        ))}
+    <div className="dashboard-clean">
+      <section className="dashboard-actions-grid">
+        <Link to="/access" className="dashboard-action-card card">
+          <div className="dashboard-action-icon">
+            <ClipboardPlus size={24} />
+          </div>
+          <h2>Enter Patient OTP</h2>
+          <p>Start a secure temporary access session using the patient OTP.</p>
+        </Link>
+
+        <Link to="/access" className="dashboard-action-card card">
+          <div className="dashboard-action-icon">
+            <QrCode size={24} />
+          </div>
+          <h2>Scan QR</h2>
+          <p>Use the patient QR for quick access without extra steps.</p>
+        </Link>
       </section>
 
-      <section className="grid" style={{ gridTemplateColumns: '1.5fr 1fr' }}>
-        <div className="card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <div>
-              <h2 className="section-title">Active Sessions</h2>
-              <p className="section-subtitle">Current patients you can review right now.</p>
-            </div>
-            <Link to="/sessions" className="btn btn-secondary">See all</Link>
-          </div>
-          <div className="grid">
-            {sessions.map((session) => (
-              <div key={session.id} className="panel" style={{ padding: 18, display: 'grid', gap: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontWeight: 800 }}>{session.patient}</div>
-                    <div className="muted" style={{ fontSize: 14 }}>{session.specialty}</div>
-                  </div>
-                  <span className={`badge ${session.status}`}>{session.remaining}</span>
-                </div>
-                <div className="muted" style={{ fontSize: 14 }}>{session.insights}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                  <span className="badge primary">{session.access}</span>
-                  <Link to="/overview" className="btn btn-primary" style={{ padding: '10px 14px' }}>View Patient <ArrowRight size={14} /></Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid">
-          <div className="card" style={{ padding: 24 }}>
+      <section className="card dashboard-insights-card">
+        <div className="dashboard-section-head">
+          <div>
             <h2 className="section-title">Patient Insights</h2>
-            <p className="section-subtitle">Fast clinical context without overwhelming detail.</p>
-            <div className="grid" style={{ marginTop: 16 }}>
-              <div className="panel kpi" style={{ background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, white))', color: '#fff' }}>
-                <Activity size={20} />
-                <span style={{ display: 'block', opacity: .88, marginTop: 12 }}>Patients flagged today</span>
-                <strong>3</strong>
-              </div>
-              <div className="panel kpi">
-                <Timer size={18} color="var(--warning)" />
-                <span className="muted">Sessions expiring soon</span>
-                <strong>2</strong>
-              </div>
-            </div>
-          </div>
-          <div className="card" style={{ padding: 24 }}>
-            <h2 className="section-title">Recent Alerts</h2>
-            <div className="grid" style={{ marginTop: 12 }}>
-              {notifications.map((item) => (
-                <div key={item} className="panel" style={{ padding: 14, lineHeight: 1.5 }}>{item}</div>
-              ))}
-            </div>
+            <p className="section-subtitle">
+              Quick context for today.
+            </p>
           </div>
         </div>
+
+        {loading && (
+          <div className="muted" style={{ marginTop: 10 }}>
+            Loading patient insights...
+          </div>
+        )}
+
+        {error && (
+          <div style={{ color: 'tomato', marginTop: 10 }}>
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="dashboard-insights-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <div className="dashboard-stat-panel dashboard-stat-panel-primary">
+              <div className="dashboard-stat-icon">
+                <Users size={18} />
+              </div>
+              <div className="dashboard-stat-label">Patients in system</div>
+              <div className="dashboard-stat-value">{patientCount}</div>
+            </div>
+
+            <div className="dashboard-stat-panel">
+              <div className="dashboard-stat-icon">
+                <FileText size={18} />
+              </div>
+              <div className="dashboard-stat-label">Reports available</div>
+              <div className="dashboard-stat-value">{reportCount}</div>
+            </div>
+
+            <div className="dashboard-stat-panel">
+              <div className="dashboard-stat-icon">
+                <Activity size={18} />
+              </div>
+              <div className="dashboard-stat-label">Measurements tracked</div>
+              <div className="dashboard-stat-value">{measurementCount}</div>
+            </div>
+          </div>
+        )}
       </section>
-      <style>{`@media (max-width: 980px){ .grid[style*='1.5fr 1fr']{grid-template-columns:1fr!important;} }`}</style>
     </div>
   );
 }

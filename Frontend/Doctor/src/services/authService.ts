@@ -14,14 +14,24 @@ export const verifyDoctorCode = async (email: string, code: string) => {
 };
 
 export const registerDoctor = async (doctorData: {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   license_number: string;
   associated_hospital?: string;
   specialization?: string;
 }) => {
-  const res = await api.post("/auth/doctor/register", doctorData);
+  const payload = {
+    name: `${doctorData.firstName} ${doctorData.lastName}`.trim(),
+    email: doctorData.email,
+    phone: doctorData.phone,
+    license_number: doctorData.license_number,
+    associated_hospital: doctorData.associated_hospital || "",
+    specialization: doctorData.specialization || "",
+  };
+
+  const res = await api.post("/auth/doctor/register", payload);
   return res.data;
 };
 

@@ -3,12 +3,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthShell from '../components/AuthShell';
 import { registerDoctor, verifyDoctorAccount } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 export default function RegisterDoctorPage() {
   const navigate = useNavigate();
+  const { setDoctorProfile } = useAuth();
 
   const [form, setForm] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     license_number: '',
@@ -40,7 +43,14 @@ export default function RegisterDoctorPage() {
         console.error('Doctor verification warning:', verifyErr);
       }
 
+      setDoctorProfile({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        fullName: `${form.firstName} ${form.lastName}`.trim(),
+      });
+
       setSuccess('Doctor registered successfully. You can now log in.');
+
       setTimeout(() => {
         navigate('/login');
       }, 1500);
@@ -61,7 +71,7 @@ export default function RegisterDoctorPage() {
 
   return (
     <AuthShell>
-      <div style={{ width: 'min(100%, 620px)', display: 'grid', gap: 18 }}>
+      <div style={{ width: 'min(100%, 640px)', display: 'grid', gap: 18 }}>
         <section className="card" style={{ padding: 32 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div
@@ -78,17 +88,36 @@ export default function RegisterDoctorPage() {
               <ShieldCheck color="var(--primary)" size={30} />
             </div>
 
-            <h1 className="section-title" style={{ marginBottom: 8 }}>Register Doctor</h1>
-            <p className="section-subtitle">Create your doctor account to access Sehat Scan</p>
+            <h1 className="section-title" style={{ marginBottom: 8 }}>
+              Register Doctor
+            </h1>
+            <p className="section-subtitle">
+              Create your doctor account to access Sehat Scan
+            </p>
           </div>
 
           <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
-            <input
-              className="input"
-              placeholder="Full Name"
-              value={form.name}
-              onChange={(e) => updateField('name', e.target.value)}
-            />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 14,
+              }}
+            >
+              <input
+                className="input"
+                placeholder="First Name"
+                value={form.firstName}
+                onChange={(e) => updateField('firstName', e.target.value)}
+              />
+
+              <input
+                className="input"
+                placeholder="Last Name"
+                value={form.lastName}
+                onChange={(e) => updateField('lastName', e.target.value)}
+              />
+            </div>
 
             <input
               className="input"
@@ -160,6 +189,14 @@ export default function RegisterDoctorPage() {
             <ArrowLeft size={16} /> Back to login
           </button>
         </section>
+
+        <style>{`
+          @media (max-width: 700px) {
+            form > div:first-child {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </div>
     </AuthShell>
   );
