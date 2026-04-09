@@ -12,6 +12,7 @@ import LoadingScreen from 'src/components/LoadingScreen';
 import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
+import { ScalePressable } from 'src/components/ScalePressable';
 
 export default function AddNewMeasurement() {
     const { theme } = useTheme();
@@ -66,6 +67,10 @@ export default function AddNewMeasurement() {
         router.back();
     };
 
+    const handleAddPhoto = () => {
+        router.push('health_measurements/Scan');
+    }
+
     const displayDate = formatOrdinalDate(selectedDate);
     const displayTime = formatTime(selectedDate);
 
@@ -76,7 +81,7 @@ export default function AddNewMeasurement() {
             {/* ── Custom Header ── */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.headerIcon}>
-                    <Ionicons name="arrow-back" size={22} color={theme.textGray} />
+                    <Ionicons name="arrow-down" size={22} color={theme.textGray} />
                 </TouchableOpacity>
                 <ThemedText style={s.headerTitle}>Add Measurement</ThemedText>
                 <Pressable style={[s.headerIcon, { opacity: 0 }]}>
@@ -160,13 +165,29 @@ export default function AddNewMeasurement() {
                 />
 
                 {/* ── Save Button ── */}
-                <Pressable
-                    style={({ pressed }) => [s.saveBtn, { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 }]}
-                    onPress={handleSave}
-                >
-                    <Text style={s.saveBtnText}>Save Measurement</Text>
-                    <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
-                </Pressable>
+                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, paddingTop: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <ScalePressable
+                            style={[s.saveBtn, { backgroundColor: theme.primary, width: '100%' }]}
+                            onPress={handleSave}
+                        >
+                            <Text style={s.saveBtnText}>Save Measurement</Text>
+                            <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                        </ScalePressable>
+                    </View>
+
+                    <Pressable
+                        style={({ pressed }) => [s.iconBox, { backgroundColor: theme.primarySoft, marginRight: 0, marginTop: 8, opacity: pressed ? 0.8 : 1 }]}
+                        collapsable={false}
+                        onPress={handleAddPhoto}
+                    >
+                        <MaterialIcons
+                            name="add-a-photo"
+                            size={23}
+                            color={theme.primary}
+                        />
+                    </Pressable>
+                </View>
 
                 <Text style={[s.hipaaText, { color: theme.textLight }]}>
                     Data is encrypted and stored securely following HIPAA compliance guidelines.
@@ -214,7 +235,14 @@ const styles = (theme: any) => StyleSheet.create({
         marginBottom: 8,
         marginTop: 18,
     },
-
+    iconBox: {
+        width: 65,
+        height: 65,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
     /* ── Dropdown ── */
     dropdown: {
         flexDirection: 'row',
@@ -322,7 +350,7 @@ const styles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
         borderRadius: 18,
         paddingVertical: 18,
-        marginTop: 20,
+        marginTop: 24,
         marginBottom: 16,
     },
     saveBtnText: {

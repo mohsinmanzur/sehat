@@ -5,18 +5,21 @@ import { useTheme } from '@context/ThemeContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { ThemedText, ThemedView } from 'src/components';
 import DatePicker from 'react-native-date-picker';
+import { Dropdown } from 'src/components/common/Dropdown';
 import backend from 'src/services/Backend/backend.service';
-import { MeasurementUnitDTO } from '../../src/types/dto';
+import { MeasurementUnitDTO } from '../src/types/dto';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
+import { ScalePressable } from 'src/components/ScalePressable';
 
-export default function EditMeasurement() {
+export default function AddNewMeasurement() {
     const { theme } = useTheme();
     const { currentPatient } = useCurrentPatient()
     const router = useRouter();
 
+    const [selectedUnit, setSelectedUnit] = useState<MeasurementUnitDTO | null>(null);
     const [value, setValue] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -39,6 +42,15 @@ export default function EditMeasurement() {
     }, []);
 
     const handleSave = async () => {
+        if (!selectedUnit) {
+            if (!value) {
+                setShowValueError(true);
+                errorShakeAnimation(valueShakeAnimation);
+            }
+            setShowSelectedUnitError(true);
+            errorShakeAnimation(dropdownShakeAnimation);
+            return;
+        }
         if (!value) {
             setShowValueError(true);
             errorShakeAnimation(valueShakeAnimation);
@@ -46,12 +58,18 @@ export default function EditMeasurement() {
         }
         setShowSelectedUnitError(false);
         setShowValueError(false);
-        await backend.updateHealthMeasurement(currentPatient?.id, {
+        await backend.createHealthMeasurement({
+            patient_id: currentPatient?.id,
+            unit_id: selectedUnit?.id,
             numeric_value: parseFloat(value),
             created_at: selectedDate,
         })
         router.back();
     };
+
+    const handleAddPhoto = () => {
+        router.push('health_measurements/Scan');
+    }
 
     const displayDate = formatOrdinalDate(selectedDate);
     const displayTime = formatTime(selectedDate);
@@ -63,9 +81,9 @@ export default function EditMeasurement() {
             {/* ── Custom Header ── */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.headerIcon}>
-                    <Ionicons name="arrow-back" size={22} color={theme.textGray} />
+                    <Ionicons name="arrow-down" size={22} color={theme.textGray} />
                 </TouchableOpacity>
-                <ThemedText style={s.headerTitle}>Edit Measurement</ThemedText>
+                <ThemedText style={s.headerTitle}>Add Measurement</ThemedText>
                 <Pressable style={[s.headerIcon, { opacity: 0 }]}>
                     <Ionicons name="ellipsis-vertical" size={20} color={theme.textGray} />
                 </Pressable>
@@ -76,6 +94,16 @@ export default function EditMeasurement() {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
+                {/* ── Measurement Type ── */}
+                <Dropdown
+                    label="MEASUREMENT TYPE"
+                    options={units.map((unit) => unit.unit_name)}
+                    value={selectedUnit?.unit_name}
+                    onChange={(value) => { setSelectedUnit(units.find((unit) => unit.unit_name === value) || null); setShowSelectedUnitError(false); }}
+                    error={showSelectedUnitError}
+                    remainingStyles={{ transform: [{ translateX: dropdownShakeAnimation }] }}
+                />
+
                 {/* ── Value & Unit ── */}
                 <View style={s.row}>
                     <View style={s.col2}>
@@ -94,7 +122,7 @@ export default function EditMeasurement() {
                         </Animated.View>
                     </View>
 
-                    
+                    <ThemedText style={s.unitText} type={'subtitle'}>{selectedUnit?.symbol}</ThemedText>
                 </View>
 
                 {/* ── Date & Time ── */}
@@ -137,13 +165,29 @@ export default function EditMeasurement() {
                 />
 
                 {/* ── Save Button ── */}
-                <Pressable
-                    style={({ pressed }) => [s.saveBtn, { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 }]}
-                    onPress={handleSave}
-                >
-                    <Text style={s.saveBtnText}>Save Measurement</Text>
-                    <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
-                </Pressable>
+                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, paddingTop: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <ScalePressable
+                            style={[s.saveBtn, { backgroundColor: theme.primary, width: '100%' }]}
+                            onPress={handleSave}
+                        >
+                            <Text style={s.saveBtnText}>Save Measurement</Text>
+                            <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                        </ScalePressable>
+                    </View>
+
+                    <Pressable
+                        style={({ pressed }) => [s.iconBox, { backgroundColor: theme.primarySoft, marginRight: 0, marginTop: 8, opacity: pressed ? 0.8 : 1 }]}
+                        collapsable={false}
+                        onPress={handleAddPhoto}
+                    >
+                        <MaterialIcons
+                            name="add-a-photo"
+                            size={23}
+                            color={theme.primary}
+                        />
+                    </Pressable>
+                </View>
 
                 <Text style={[s.hipaaText, { color: theme.textLight }]}>
                     Data is encrypted and stored securely following HIPAA compliance guidelines.
@@ -191,7 +235,14 @@ const styles = (theme: any) => StyleSheet.create({
         marginBottom: 8,
         marginTop: 18,
     },
-
+    iconBox: {
+        width: 65,
+        height: 65,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
     /* ── Dropdown ── */
     dropdown: {
         flexDirection: 'row',
@@ -299,7 +350,7 @@ const styles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
         borderRadius: 18,
         paddingVertical: 18,
-        marginTop: 20,
+        marginTop: 24,
         marginBottom: 16,
     },
     saveBtnText: {

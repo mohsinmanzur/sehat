@@ -1,5 +1,4 @@
-import { Redirect, router } from 'expo-router';
-import { View, ActivityIndicator } from 'react-native';
+import { Redirect } from 'expo-router';
 import { useCurrentPatient } from '../src/context/PatientContext';
 import LoadingScreen from 'src/components/LoadingScreen';
 

@@ -6,7 +6,6 @@ export default function HealthMeasurementsLayout() {
     return (
         <Stack>
             <Stack.Screen name="[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="AddNew" options={{ headerShown: false }} />
             <Stack.Screen
                 name="DetailedView"
                 options={{
@@ -23,6 +22,7 @@ export default function HealthMeasurementsLayout() {
                 }} />
             <Stack.Screen name="ItemDetail" options={{ headerShown: false }} />
             <Stack.Screen name="EditMeasurement" options={{ headerShown: false }} />
+            <Stack.Screen name="Scan" options={{ headerShown: false }} />
         </Stack>
     )
 }

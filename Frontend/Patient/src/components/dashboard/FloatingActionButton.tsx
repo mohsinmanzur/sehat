@@ -14,7 +14,7 @@ export const FloatingActionButton: React.FC = () => {
         { backgroundColor: theme.primary, shadowColor: theme.primary },
         pressed && { transform: [{ scale: 0.95 }] }
       ]}
-      onPress={() => { router.push('/health_measurements/AddNew') }}
+      onPress={() => { router.push('/AddNew') }}
     >
       <Ionicons name="add" size={32} color={theme.backgroundDark} />
     </Pressable>

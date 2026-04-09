@@ -287,9 +287,9 @@ export default function WeightHistoryScreen() {
     const trendTitle = React.useMemo(() => getTrendTitle(allMeasurements), [allMeasurements]);
 
     return (
-        <ThemedView safe style={{ backgroundColor: theme.backgroundLight }}>
+        <ThemedView safe style={{ backgroundColor: theme.backgroundDark }}>
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.backgroundLight }]}>
+            <View style={[styles.header, { backgroundColor: 'transparent' }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.headerIcon}>
                     <Ionicons name="arrow-back" size={22} color={theme.textGray} />
                 </TouchableOpacity>
@@ -310,7 +310,7 @@ export default function WeightHistoryScreen() {
                     </View>
 
                     {stats && (
-                        <View style={[styles.statsPill, { backgroundColor: theme.card }]}>
+                        <View style={[styles.statsPill, { backgroundColor: theme.backgroundLight }]}>
                             <Text style={[styles.statsPillIcon, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>
                                 {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
                             </Text>
@@ -324,7 +324,7 @@ export default function WeightHistoryScreen() {
                 <Animated.View
                     style={[
                         styles.card,
-                        { backgroundColor: theme.card, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+                        { backgroundColor: theme.backgroundLight, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
                     ]}
                 >
                     <View style={styles.cardHeader}>
@@ -345,7 +345,7 @@ export default function WeightHistoryScreen() {
                         <Text style={[styles.sectionTitle, { color: theme.text }]}>History</Text>
                     </View>
 
-                    <View style={[styles.logCard, { backgroundColor: theme.card }]}>
+                    <View style={[styles.logCard, { backgroundColor: theme.backgroundLight }]}>
                         {allMeasurements.map((item, idx) => {
                             const nextItem = allMeasurements[idx + 1];
                             const delta = nextItem ? item.numeric_value - nextItem.numeric_value : undefined;
@@ -434,6 +434,9 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         lineHeight: 72,
         letterSpacing: -2,
+        textShadowColor: 'rgba(0,0,0,0.2)',
+        textShadowOffset: { width: -1, height: 2 },
+        textShadowRadius: 1,
     },
     currentUnit: {
         fontSize: 22,

@@ -1,6 +1,7 @@
 import { HealthMeasurementDTO, MeasurementUnitDTO, UpdateHealthMeasurementDTO } from "../../types/dto";
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
+import { router } from "expo-router";
 
 enum allowedMethods {
     GET,
@@ -42,8 +43,12 @@ class Backend {
             }
         });
 
-        if (!response.ok) throw new Error(`Error in refreshing token: ${response.status} ${await response.text()}`);
-
+        if (!response.ok)
+        {
+            await this.logout();
+            router.replace('/Login');
+            throw new Error(`Error in refreshing token: ${response.status} ${await response.text()}`);
+        }
         const data = await response.json();
         this.jwtToken = data.jwt;
         await SecureStore.setItemAsync('jwtToken', data.jwt);
@@ -77,6 +82,7 @@ class Backend {
 
         if (response.status === 401 && this.refreshToken && !_isRetry) {
             const refreshed = await this.refreshJWT();
+
             if (refreshed) {
                 return await this.request(endpoint, method, body, true);
             }
@@ -234,7 +240,6 @@ class Backend {
             throw new Error(`Error in deleting health measurement ${response.status} ${response.statusText}: ${await response.text()}`);
         }
     }
-
 
     async createMeasurementUnit(unit: MeasurementUnitDTO) {
         const response = await this.request('/health-measurement/unit', allowedMethods.POST, unit);

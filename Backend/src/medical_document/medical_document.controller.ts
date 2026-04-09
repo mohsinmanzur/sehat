@@ -1,12 +1,20 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, InternalServerErrorException, MaxFileSizeValidator, ParseFilePipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { MedicalDocumentService } from './medical_document.service';
 import { Medical_Document } from 'src/entities/medical_document.entity';
 import { CreateMedicalDocumentDto } from './dto/create-medicaldocument.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { v4 as uuidv4 } from 'uuid';
+import { HealthMeasurementService } from 'src/health_measurement/health_measurement.service';
+import { create } from 'domain';
 
 @Controller('record')
 export class MedicalDocumentController
 {
-  constructor(private readonly medicalDocumentService: MedicalDocumentService) {}
+  constructor(
+    private readonly medicalDocumentService: MedicalDocumentService,
+    private readonly healthMeasurementService: HealthMeasurementService
+  )
+    {}
 
   @Get()
   async getRecord(
@@ -19,9 +27,40 @@ export class MedicalDocumentController
     return await this.medicalDocumentService.getAllRecords();
   }
 
-  @Post()
-  async createRecord(@Body() body: CreateMedicalDocumentDto) : Promise<Medical_Document>
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('image'))
+  async uploadImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          //new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ]
+      })
+    ) file: Express.Multer.File,
+    @Body() body: CreateMedicalDocumentDto
+  )
   {
-    return await this.medicalDocumentService.createRecord(body);
+    try
+    {
+      const fileName = `${body.record_type}_${uuidv4()}.webp`;
+      const uploadedImage = await this.medicalDocumentService.uploadImagetoAzure(file, fileName);
+      const createdRecord = await this.medicalDocumentService.createRecord({
+        ...body,
+        file_name: body.file_name ? body.file_name : fileName,
+        file_url: uploadedImage.url
+      });
+      await this.healthMeasurementService.createHealthMeasurement({
+        patient_id: body.patient_id,
+        document_id: createdRecord.id,
+        unit_id: '',
+        numeric_value: 0,
+      })
+    }
+    catch (error)
+    {
+      console.error('Error uploading image:', error);
+      throw new InternalServerErrorException(`Failed to upload image: ${error.message}`);
+    }
   }
 }

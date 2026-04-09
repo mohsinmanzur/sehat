@@ -67,7 +67,7 @@ function CustomTabBar({ state, descriptors, navigation, theme }: BottomTabBarPro
     );
 }
 
-export default function MainTabLayout() {
+export default function TabBar() {
     const { theme } = useTheme();
 
     return (

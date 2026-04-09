@@ -12,5 +12,6 @@ import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
   ],
   controllers: [HealthMeasurementController],
   providers: [HealthMeasurementService],
+  exports: [HealthMeasurementService]
 })
 export class HealthMeasurementModule {}

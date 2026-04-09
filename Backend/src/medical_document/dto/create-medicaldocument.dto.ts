@@ -11,10 +11,12 @@ export class CreateMedicalDocumentDto
     patient_id: string;
 
     @IsString()
-    file_name: string;
+    @IsOptional()
+    file_name?: string;
 
     @IsString()
-    file_url: string;
+    @IsOptional()
+    file_url?: string;
 
     @IsEnum(['lab_report', 'prescription', 'imaging', 'other'])
     record_type: 'lab_report' | 'prescription' | 'imaging' | 'other';

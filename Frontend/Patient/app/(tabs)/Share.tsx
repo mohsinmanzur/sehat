@@ -2,7 +2,7 @@ import { ThemedText, ThemedView } from "src/components";
 
 export default function Share() {
     return (
-        <ThemedView>
+        <ThemedView safe>
             <ThemedText>Share</ThemedText>
         </ThemedView>
     )

@@ -21,8 +21,6 @@ import {
   PublicSans_700Bold,
   PublicSans_800ExtraBold
 } from '@expo-google-fonts/public-sans';
-import { ThemedView } from 'src/components';
-import { View } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,6 +66,18 @@ function RootLayoutNav() {
       >
         <Stack.Screen name="(auth)" options={{ animation: 'none' }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+        <Stack.Screen 
+          name="health_measurements" 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="AddNew" 
+          options={{ 
+            presentation: 'modal', 
+            animation: 'slide_from_bottom',
+            headerShown: false
+          }} 
+        />
       </Stack>
       <Toast />
     </>

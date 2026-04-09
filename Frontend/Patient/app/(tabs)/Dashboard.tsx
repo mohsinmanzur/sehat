@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, ScrollView, View, Text, TouchableOpacity, RefreshControl, Pressable } from 'react-native';
 import { useCurrentPatient } from 'src/context/PatientContext';
 import { useTheme } from 'src/context/ThemeContext';
-import { Header, MeasurementCard, FloatingActionButton, StatusTag } from 'src/components/dashboard';
+import { Header, MeasurementCard, FloatingActionButton, StatusTag, ShareCard } from 'src/components/dashboard';
 import { ThemedView } from 'src/components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DashboardMeasurement } from 'src/types/others';
@@ -168,7 +168,7 @@ const DashboardScreen: React.FC = () => {
           </ScrollView>
 
           {/* Floating Action Button */}
-          <FloatingActionButton />
+          {/*<FloatingActionButton /> */}
         </View>
       </ThemedView>
     )
