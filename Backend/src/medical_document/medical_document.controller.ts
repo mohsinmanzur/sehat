@@ -5,7 +5,6 @@ import { CreateMedicalDocumentDto } from './dto/create-medicaldocument.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { v4 as uuidv4 } from 'uuid';
 import { HealthMeasurementService } from 'src/health_measurement/health_measurement.service';
-import { create } from 'domain';
 
 @Controller('record')
 export class MedicalDocumentController
