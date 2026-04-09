@@ -5,3 +5,8 @@ export const getPatientRecords = async (patientId?: string) => {
   const res = await api.get(url);
   return res.data;
 };
+
+export const getRecordById = async (recordId: string) => {
+  const res = await api.get(`/record?id=${recordId}`);
+  return res.data;
+};

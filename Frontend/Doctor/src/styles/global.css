@@ -418,6 +418,9 @@ img {
 
 .shell-main {
   min-width: 0;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
 }
 
 .shell-header-clean {
@@ -427,6 +430,9 @@ img {
   justify-content: space-between;
   align-items: center;
   gap: 18px;
+  position: relative;
+  z-index: 60;
+  overflow: visible;
 }
 
 .shell-header-left {
@@ -466,6 +472,11 @@ img {
   border-radius: 18px;
 }
 
+.alerts-anchor {
+  position: relative;
+  z-index: 65;
+}
+
 /* ---------- Alerts dropdown ---------- */
 
 .alerts-dropdown {
@@ -474,7 +485,7 @@ img {
   right: 0;
   width: min(360px, 88vw);
   padding: 16px;
-  z-index: 35;
+  z-index: 90;
 }
 
 .alerts-head {
@@ -506,7 +517,7 @@ img {
 
 .alerts-overlay {
   background: transparent;
-  z-index: 30;
+  z-index: 50;
 }
 
 /* ---------- Dashboard ---------- */
@@ -741,6 +752,11 @@ img {
     width: 100%;
     justify-content: flex-start;
   }
+
+  .alerts-dropdown {
+    right: 0;
+    left: auto;
+  }
 }
 
 @media (max-width: 700px) {
@@ -765,6 +781,11 @@ img {
 
   .shell-header-actions {
     width: 100%;
+  }
+
+  .alerts-dropdown {
+    width: min(320px, calc(100vw - 24px));
+    right: 0;
   }
 
   .hide-mobile {

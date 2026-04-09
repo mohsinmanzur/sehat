@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { requestCode, verifyDoctorCode } from '../services/authService';
 
 export default function VerifyPage() {
-  const { email, verify, setDoctorProfile } = useAuth();
+  const { email, verify, setDoctorProfile, loadDoctorProfileByEmail } = useAuth();
   const navigate = useNavigate();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -44,47 +44,16 @@ export default function VerifyPage() {
       const data = await verifyDoctorCode(email, code);
       console.log('Verify response:', data);
 
-      const token = data?.accessToken || data?.token || data?.jwt;
+      const token = data?.jwtToken || data?.accessToken || data?.token || data?.jwt;
       if (token) {
         localStorage.setItem('doctorToken', token);
       }
 
-      const doctor =
-        data?.doctor ||
-        data?.user ||
-        data?.data?.doctor ||
-        data?.data?.user;
+      loadDoctorProfileByEmail(email);
 
-      if (doctor?.firstName || doctor?.lastName) {
-        setDoctorProfile({
-          firstName: doctor.firstName || '',
-          lastName: doctor.lastName || '',
-          fullName:
-            doctor.name ||
-            `${doctor.firstName || ''} ${doctor.lastName || ''}`.trim(),
-        });
-      } else if (doctor?.name) {
-        const nameParts = doctor.name.trim().split(/\s+/);
-
-        let firstName = '';
-        let lastName = '';
-
-        if (nameParts.length >= 3) {
-          firstName = `${nameParts[0]} ${nameParts[1]}`;
-          lastName = nameParts.slice(2).join(' ');
-        } else if (nameParts.length === 2) {
-          firstName = nameParts[0];
-          lastName = nameParts[1];
-        } else if (nameParts.length === 1) {
-          firstName = nameParts[0];
-        }
-
-        setDoctorProfile({
-          firstName,
-          lastName,
-          fullName: doctor.name,
-        });
-      }
+      setDoctorProfile({
+        email,
+      });
 
       verify();
       navigate('/dashboard');
@@ -163,11 +132,7 @@ export default function VerifyPage() {
               ))}
             </div>
 
-            {error && (
-              <div style={{ color: 'tomato', fontSize: 14 }}>
-                {error}
-              </div>
-            )}
+            {error && <div style={{ color: 'tomato', fontSize: 14 }}>{error}</div>}
 
             <button className="btn btn-primary" type="submit" disabled={loading}>
               <span>{loading ? 'Verifying...' : 'Verify Identity'}</span>
@@ -176,13 +141,15 @@ export default function VerifyPage() {
           </form>
 
           <div style={{ marginTop: 20 }}>
-            <div className="muted" style={{ marginBottom: 10 }}>Didn’t receive the code?</div>
+            <div className="muted" style={{ marginBottom: 10 }}>
+              Didn’t receive the code?
+            </div>
             <button className="btn btn-secondary" disabled={timer > 0} onClick={handleResend}>
               {timer > 0 ? `Resend in ${timer}s` : 'Resend Code'}
             </button>
           </div>
 
-          <div style={{ marginTop: 14, fontSize: 13, color: 'var(--muted)' }}>
+          <div style={{ marginTop: 14, fontSize: 13, color: 'var(--text-light)' }}>
             For testing, you can try OTP: <strong>000000</strong>
           </div>
 

@@ -12,7 +12,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemo, useState } from 'react';
@@ -46,12 +46,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [showAlerts, setShowAlerts] = useState(false);
 
   const currentMeta = useMemo(() => {
-    return pageMeta[location.pathname] || { eyebrow: 'Welcome back', title: 'Dashboard' };
+    return pageMeta[location.pathname] || {
+      eyebrow: 'Welcome back',
+      title: 'Dashboard',
+    };
   }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const openOtpModal = () => {
+    window.dispatchEvent(new CustomEvent('open-patient-otp-modal'));
   };
 
   const alerts = [
@@ -67,10 +74,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <aside className={`card sidebar-premium ${open ? 'open' : ''}`}>
             <div className="sidebar-top">
               <Logo compact />
-              <button
-                className="btn btn-secondary sidebar-close"
-                onClick={() => setOpen(false)}
-              >
+              <button className="btn btn-secondary sidebar-close" onClick={() => setOpen(false)}>
                 <X size={16} />
               </button>
             </div>
@@ -90,9 +94,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <NavLink
                   key={to}
                   to={to}
-                  className={({ isActive }) =>
-                    `sidebar-link ${isActive ? 'active' : ''}`
-                  }
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                   onClick={() => setOpen(false)}
                 >
                   <Icon size={18} />
@@ -110,10 +112,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <main className="shell-main">
             <header className="card shell-header-clean">
               <div className="shell-header-left">
-                <button
-                  className="btn btn-secondary mobile-menu-btn"
-                  onClick={() => setOpen(true)}
-                >
+                <button className="btn btn-secondary mobile-menu-btn" onClick={() => setOpen(true)}>
                   <Menu size={18} />
                 </button>
 
@@ -124,16 +123,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="shell-header-actions">
-                <Link to="/access" className="btn btn-primary shell-top-cta">
+                <button
+                  type="button"
+                  className="btn btn-primary shell-top-cta"
+                  onClick={openOtpModal}
+                >
                   <ClipboardPlus size={18} />
                   Enter Patient OTP
-                </Link>
+                </button>
 
                 <button className="btn btn-secondary icon-btn" onClick={toggleTheme}>
                   {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                 </button>
 
-                <div style={{ position: 'relative' }}>
+                <div className="alerts-anchor">
                   <button
                     className="btn btn-secondary icon-btn"
                     onClick={() => setShowAlerts((prev) => !prev)}
@@ -163,7 +166,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
-
       {showAlerts && <div className="alerts-overlay" onClick={() => setShowAlerts(false)} />}
     </div>
   );

@@ -44,16 +44,16 @@ export default function RegisterDoctorPage() {
       }
 
       setDoctorProfile({
-        firstName: form.firstName,
-        lastName: form.lastName,
         fullName: `${form.firstName} ${form.lastName}`.trim(),
+        email: form.email,
+        hospital: form.associated_hospital,
       });
 
       setSuccess('Doctor registered successfully. You can now log in.');
 
       setTimeout(() => {
         navigate('/login');
-      }, 1500);
+      }, 1200);
     } catch (err: any) {
       console.error(err);
 
@@ -155,17 +155,8 @@ export default function RegisterDoctorPage() {
               onChange={(e) => updateField('specialization', e.target.value)}
             />
 
-            {error && (
-              <div style={{ color: 'tomato', fontSize: 14 }}>
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div style={{ color: '#4ade80', fontSize: 14 }}>
-                {success}
-              </div>
-            )}
+            {error && <div style={{ color: 'tomato', fontSize: 14 }}>{error}</div>}
+            {success && <div style={{ color: '#4ade80', fontSize: 14 }}>{success}</div>}
 
             <button className="btn btn-primary" type="submit" disabled={loading}>
               <span>{loading ? 'Registering...' : 'Create Doctor Account'}</span>
