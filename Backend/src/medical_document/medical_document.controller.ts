@@ -44,17 +44,11 @@ export class MedicalDocumentController
     {
       const fileName = `${body.record_type}_${uuidv4()}.webp`;
       const uploadedImage = await this.medicalDocumentService.uploadImagetoAzure(file, fileName);
-      const createdRecord = await this.medicalDocumentService.createRecord({
+      return await this.medicalDocumentService.createRecord({
         ...body,
         file_name: body.file_name ? body.file_name : fileName,
         file_url: uploadedImage.url
       });
-      await this.healthMeasurementService.createHealthMeasurement({
-        patient_id: body.patient_id,
-        document_id: createdRecord.id,
-        unit_id: '',
-        numeric_value: 0,
-      })
     }
     catch (error)
     {
