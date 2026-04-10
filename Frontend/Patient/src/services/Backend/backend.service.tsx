@@ -2,6 +2,7 @@ import { HealthMeasurementDTO, MeasurementUnitDTO, UpdateHealthMeasurementDTO } 
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
 import { router } from "expo-router";
+import { UploadMedicalDocument } from "../../types/others";
 
 enum allowedMethods {
     GET,
@@ -56,14 +57,16 @@ class Backend {
         return true;
     }
 
-    private async request(endpoint: string, method: allowedMethods, body?: any, _isRetry = false) {
+    private async request(endpoint: string, method: allowedMethods, body?: any, _isRetry = false, content_type: string | null = 'application/json'): Promise<Response> {
         if (!this.jwtToken || !this.refreshToken) {
             await this.readTokensFromStorage();
         }
 
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
+        const headers: Record<string, string> = {};
+        
+        if (content_type) {
+            headers['Content-Type'] = content_type;
+        }
 
         if (this.jwtToken) {
             headers['Authorization'] = `Bearer ${this.jwtToken}`;
@@ -75,7 +78,7 @@ class Backend {
         };
 
         if (body && options.method !== 'GET' && options.method !== 'HEAD') {
-            options.body = JSON.stringify(body);
+            options.body = body instanceof FormData ? body : JSON.stringify(body);
         }
 
         const response = await fetch(`${this.baseUrl}${endpoint}`, options);
@@ -253,6 +256,35 @@ class Backend {
         const response = await this.request('/health-measurement/unit', allowedMethods.GET);
         if (!response.ok) {
             throw new Error(`Error in fetching measurement units ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    // =========================
+    // Health Measurements
+    // =========================
+    async createandUploadMedicalDocument(data: UploadMedicalDocument) {
+        const formData = new FormData();
+        formData.append('file', {
+            uri: data.file,
+            name: data.file_name || `upload.jpg`,
+            type: 'image/jpeg',
+        } as any);
+        formData.append('patient_id', data.patient_id);
+        formData.append('record_type', data.record_type);
+        if (data.ocr_extracted_text) {
+            formData.append('ocr_extracted_text', data.ocr_extracted_text);
+        }
+        if (data.date_issued) {
+            formData.append('date_issued', data.date_issued.toISOString());
+        }
+        if (data.created_at) {
+            formData.append('created_at', data.created_at.toISOString());
+        }
+
+        const response = await this.request('/record/upload', allowedMethods.POST, formData, false, null);
+        if (!response.ok) {
+            throw new Error(`Error in uploading medical document ${response.status} ${response.statusText}: ${await response.text()}`);
         }
         return await response.json();
     }

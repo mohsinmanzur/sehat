@@ -9,6 +9,7 @@ import Svg, { Defs, Rect, Mask } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useGlobalContext } from '@context/GlobalContext';
 
 export default function ScanDocument() {
     const [permission, requestPermission] = useCameraPermissions();
@@ -18,6 +19,7 @@ export default function ScanDocument() {
     const [zoom, setZoom] = useState(0);
     const cameraRef = useRef<CameraView>(null);
     const fadeAnim = useRef(new Animated.Value(1)).current;
+    const { setScannedImage } = useGlobalContext();
 
     const { theme } = useTheme();
     const insets = useSafeAreaInsets();
@@ -52,40 +54,24 @@ export default function ScanDocument() {
         if (!cameraRef.current) return;
         try {
             setIsProcessing(true);
-            // Capture the photo from the camera
             const photo = await cameraRef.current.takePictureAsync({
                 quality: 0.8,
-                base64: false, // Set to true if you need base64 format instead
+                base64: false,
                 shutterSound: false,
                 
             });
             
             if (!photo) return;
-            console.log("Photo captured at:", photo.uri);
 
-            // Create a FormData object to send the file to the backend
-            const formData = new FormData();
-            formData.append('file', {
-                uri: photo.uri,
-                name: 'scan.jpg',
-                type: 'image/jpeg',
-            } as any);
-
-            // Example Fetch call to your backend:
-            // const response = await fetch('YOUR_BACKEND_ENDPOINT/upload', {
-            //     method: 'POST',
-            //     body: formData,
-            //     headers: {
-            //         'Content-Type': 'multipart/form-data',
-            //         // 'Authorization': `Bearer ${token}` 
-            //     },
-            // });
-            // const result = await response.json();
-            // console.log('Upload success:', result);
-            
-        } catch (error) {
+            setScannedImage(photo.uri);
+            router.back();
+        }
+        catch (error)
+        {
             console.error('Error capturing or uploading photo:', error);
-        } finally {
+        }
+        finally
+        {
             setIsProcessing(false);
         }
     }

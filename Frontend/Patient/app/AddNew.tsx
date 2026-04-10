@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Pressable, Animated } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Pressable, Animated, BackHandler, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@context/ThemeContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { ThemedText, ThemedView } from 'src/components';
@@ -13,10 +13,13 @@ import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
 import { ScalePressable } from 'src/components/ScalePressable';
+import { useGlobalContext } from 'src/context/GlobalContext';
+import { Snackbar } from 'react-native-snackbar';
 
 export default function AddNewMeasurement() {
     const { theme } = useTheme();
     const { currentPatient } = useCurrentPatient()
+    const { scannedImage, setScannedImage } = useGlobalContext();
     const router = useRouter();
 
     const [selectedUnit, setSelectedUnit] = useState<MeasurementUnitDTO | null>(null);
@@ -27,6 +30,7 @@ export default function AddNewMeasurement() {
     const [showValueError, setShowValueError] = useState(false);
 
     const [isLoading, setisLoading] = useState(true);
+    const [isSaving, setisSaving] = useState(false);
 
     const [pickerOpen, setPickerOpen] = useState<'date' | 'time' | null>(null);
     const [units, setUnits] = useState<MeasurementUnitDTO[]>([]);
@@ -40,6 +44,20 @@ export default function AddNewMeasurement() {
             setisLoading(false);
         });
     }, []);
+
+    const handleBack = () => {
+        router.back();
+        setScannedImage(null);
+        return true;
+    };
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            handleBack
+        );
+        return () => backHandler.remove();
+    }, [router]);
 
     const handleSave = async () => {
         if (!selectedUnit) {
@@ -58,13 +76,49 @@ export default function AddNewMeasurement() {
         }
         setShowSelectedUnitError(false);
         setShowValueError(false);
-        await backend.createHealthMeasurement({
-            patient_id: currentPatient?.id,
-            unit_id: selectedUnit?.id,
-            numeric_value: parseFloat(value),
-            created_at: selectedDate,
-        })
-        router.back();
+
+        setisSaving(true);
+
+        try
+        {
+            let uploadresponse = null;
+            if (scannedImage) {
+                uploadresponse = await backend.createandUploadMedicalDocument({
+                    patient_id: currentPatient?.id || '',
+                    record_type: 'other',
+                    file: scannedImage,
+                });
+            }
+
+            await backend.createHealthMeasurement({
+                patient_id: currentPatient?.id,
+                document_id: uploadresponse?.id || null,
+                unit_id: selectedUnit?.id,
+                numeric_value: parseFloat(value),
+                created_at: selectedDate,
+            })
+
+            router.back();
+            Snackbar.show({
+                text: 'Measurement added successfully',
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: theme.primary,
+            })
+            setScannedImage(null);
+        }
+        catch (error)
+        {
+            Snackbar.show({
+                text: `Failed to add measurement: ${error.message}`,
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: theme.danger,
+            });
+            throw new Error(error);
+        }
+        finally
+        {
+            setisSaving(false);
+        }
     };
 
     const handleAddPhoto = () => {
@@ -80,7 +134,7 @@ export default function AddNewMeasurement() {
         <ThemedView safe style={s.root}>
             {/* ── Custom Header ── */}
             <View style={s.header}>
-                <TouchableOpacity onPress={() => router.back()} style={s.headerIcon}>
+                <TouchableOpacity onPress={handleBack} style={s.headerIcon}>
                     <Ionicons name="arrow-down" size={22} color={theme.textGray} />
                 </TouchableOpacity>
                 <ThemedText style={s.headerTitle}>Add Measurement</ThemedText>
@@ -171,8 +225,13 @@ export default function AddNewMeasurement() {
                             style={[s.saveBtn, { backgroundColor: theme.primary, width: '100%' }]}
                             onPress={handleSave}
                         >
-                            <Text style={s.saveBtnText}>Save Measurement</Text>
-                            <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                            {isSaving ? (<>
+                                    <ActivityIndicator color="#fff" />
+                                    <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                                </>
+                            ) : (
+                                <Text style={s.saveBtnText}>Save Measurement</Text>
+                            )}
                         </ScalePressable>
                     </View>
 
@@ -182,7 +241,7 @@ export default function AddNewMeasurement() {
                         onPress={handleAddPhoto}
                     >
                         <MaterialIcons
-                            name="add-a-photo"
+                            name= {scannedImage ? "check" : "add-a-photo"}
                             size={23}
                             color={theme.primary}
                         />

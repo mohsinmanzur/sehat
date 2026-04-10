@@ -50,7 +50,7 @@ const DashboardScreen: React.FC = () => {
   return (
     isLoading ? <LoadingScreen /> : (
 
-      <ThemedView style={[styles.safeArea, { backgroundColor: theme.backgroundLight, paddingTop: insets.top }]} >
+      <ThemedView style={[styles.safeArea, { backgroundColor: theme.backgroundDark, paddingTop: insets.top }]} >
         <View style={styles.mainContainer}>
           {/* Header */}
           <Header name={patientName} />
