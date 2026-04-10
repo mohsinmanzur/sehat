@@ -27,7 +27,7 @@ export class MedicalDocumentController
   }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @UploadedFile(
       new ParseFilePipe({
