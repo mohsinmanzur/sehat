@@ -6,7 +6,7 @@ import { Medical_Document } from 'src/entities/medical_document.entity';
 import { HealthMeasurementModule } from 'src/health_measurement/health_measurement.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Medical_Document]), HealthMeasurementModule],
+  imports: [TypeOrmModule.forFeature([Medical_Document])],
   controllers: [MedicalDocumentController],
   providers: [MedicalDocumentService],
 })

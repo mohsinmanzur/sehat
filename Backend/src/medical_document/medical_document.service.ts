@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Medical_Document } from 'src/entities/medical_document.entity';
 import { CreateMedicalDocumentDto } from './dto/create-medicaldocument.dto';
 import { Repository } from 'typeorm';
-import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
+import { BlobServiceClient, ContainerClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } from '@azure/storage-blob';
 import sharp from 'sharp';
 
 @Injectable()
@@ -73,5 +73,29 @@ export class MedicalDocumentService
       console.error('Error uploading file:', error);
       throw new InternalServerErrorException('Failed to upload and process the image.');
     }
+  }
+
+  async getSecureImageUrl(fileUrl: string): Promise<string> {
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING as string;
+    const containerName = process.env.AZURE_CONTAINER_NAME as string;
+
+    const urlObj = new URL(fileUrl);
+    const blobName = decodeURIComponent(urlObj.pathname.split(`/${containerName}/`)[1]);
+    
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blobClient = containerClient.getBlobClient(blobName);
+
+    const startsOn = new Date();
+    startsOn.setMinutes(startsOn.getMinutes() - 5);
+
+    const expiresOn = new Date();
+    expiresOn.setMinutes(expiresOn.getMinutes() + 10);
+
+    return await blobClient.generateSasUrl({
+      permissions: BlobSASPermissions.parse('r'),
+      startsOn: startsOn,
+      expiresOn: expiresOn,
+    });
   }
 }

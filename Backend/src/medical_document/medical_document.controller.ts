@@ -11,7 +11,6 @@ export class MedicalDocumentController
 {
   constructor(
     private readonly medicalDocumentService: MedicalDocumentService,
-    private readonly healthMeasurementService: HealthMeasurementService
   )
     {}
 
@@ -26,7 +25,7 @@ export class MedicalDocumentController
     return await this.medicalDocumentService.getAllRecords();
   }
 
-  @Post('upload')
+  @Post('image/upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @UploadedFile(
@@ -55,5 +54,11 @@ export class MedicalDocumentController
       console.error('Error uploading image:', error);
       throw new InternalServerErrorException(`Failed to upload image: ${error.message}`);
     }
+  }
+
+  @Post('image/get-secure-url')
+  async getSecureImageUrl(@Body('file_url') fileUrl: string)
+  {
+    return await this.medicalDocumentService.getSecureImageUrl(fileUrl);
   }
 }
