@@ -25,6 +25,13 @@ export class MedicalDocumentController
     return await this.medicalDocumentService.getAllRecords();
   }
 
+  @Get('document-url')
+  async getDocumentUrlFromMeasurementId(@Query('id') id: string): Promise<{ file_url: string }>
+  {
+    const file_url = await this.medicalDocumentService.getDocumentUrlFromMeasurementId(id);
+    return { file_url };
+  }
+
   @Post('image/upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
