@@ -263,6 +263,24 @@ class Backend {
     // =========================
     // Health Measurements
     // =========================
+    async getMedicalDocumentByID(Id: string)
+    {
+        const response = await this.request(`/record/?id=${Id}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching medical document ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async getDocumentUrlfromMeasurementId(Id: string)
+    {
+        const response = await this.request(`/record/document-url?id=${Id}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching document URL ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
     async createandUploadMedicalDocument(data: UploadMedicalDocument) {
         const formData = new FormData();
         formData.append('file', {
@@ -282,9 +300,18 @@ class Backend {
             formData.append('created_at', data.created_at.toISOString());
         }
 
-        const response = await this.request('/record/upload', allowedMethods.POST, formData, false, null);
+        const response = await this.request('/record/image/upload', allowedMethods.POST, formData, false, null);
         if (!response.ok) {
             throw new Error(`Error in uploading medical document ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async getSecureDocumentUrl(file_url: string)
+    {
+        const response = await this.request('/record/image/get-secure-url', allowedMethods.POST, { file_url });
+        if (!response.ok) {
+            throw new Error(`Error in fetching secure document URL ${response.status} ${response.statusText}: ${await response.text()}`);
         }
         return await response.json();
     }

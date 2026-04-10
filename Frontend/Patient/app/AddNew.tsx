@@ -225,12 +225,13 @@ export default function AddNewMeasurement() {
                             style={[s.saveBtn, { backgroundColor: theme.primary, width: '100%' }]}
                             onPress={handleSave}
                         >
-                            {isSaving ? (<>
+                            {isSaving ? (
                                     <ActivityIndicator color="#fff" />
+                            ) : (
+                                <>
+                                    <Text style={s.saveBtnText}>Save Measurement</Text>
                                     <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
                                 </>
-                            ) : (
-                                <Text style={s.saveBtnText}>Save Measurement</Text>
                             )}
                         </ScalePressable>
                     </View>

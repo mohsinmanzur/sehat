@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable, Image, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
-import { ThemedView } from 'src/components';
+import { ThemedText, ThemedView } from 'src/components';
 import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
 
@@ -11,6 +11,10 @@ export default function HealthMeasurementDetailScreen() {
     const { data } = useLocalSearchParams<{ data: string }>();
     const router = useRouter();
     const { theme } = useTheme();
+
+    const [secureUrl, setSecureUrl] = useState<string | null>(null);
+    const [secureUrlLoading, setSecureUrlLoading] = useState(true);
+    const [imageRatio, setImageRatio] = useState<number>(1);
 
     let measurement = null;
     try {
@@ -41,6 +45,38 @@ export default function HealthMeasurementDetailScreen() {
             params: { data }
         });
     }
+
+    useEffect(() => {
+        async function loadSecureUrl()
+        {
+            setSecureUrlLoading(true);
+            try {
+                const res = await backend.getDocumentUrlfromMeasurementId(measurement.id);
+                if (res && res.file_url) {
+                    const response = await backend.getSecureDocumentUrl(res.file_url);
+                    const url = response.file_url;
+                    setSecureUrl(url);
+                    
+                    if (url) {
+                        Image.getSize(url, (width, height) => {
+                            if (width && height) {
+                                setImageRatio(width / height);
+                            }
+                        }, (error) => {
+                            console.error('Failed to get image size:', error);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load secure URL", error);
+            }
+            finally
+            {
+                setSecureUrlLoading(false);
+            }
+        }
+        loadSecureUrl();
+    }, [measurement.id]);
 
     // Determine colors based on status
     let themeColor = measurement.unit.unit_name === 'Weight' ? theme.warning : measurement.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary;
@@ -77,29 +113,28 @@ export default function HealthMeasurementDetailScreen() {
 
     return (
         <ThemedView safe style={[styles.container, { backgroundColor: theme.backgroundLight }]}>
-
-            <View style={styles.headerTop}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-                    <Ionicons name="close" size={28} color={theme.text} />
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.heroContent}>
-                <View
-                    style={[styles.iconBox, { backgroundColor: lightThemeColor }]}
-                >
-                    <FontAwesome5 name={icon} size={40} color={themeColor} />
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.headerTop}>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Ionicons name="close" size={28} color={theme.text} />
+                    </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.heroTitle, { color: theme.text }]}>
-                    {measurement.unit.unit_name}
-                </Text>
+                <View style={styles.heroContent}>
+                    <View
+                        style={[styles.iconBox, { backgroundColor: lightThemeColor }]}
+                    >
+                        <FontAwesome5 name={icon} size={40} color={themeColor} />
+                    </View>
 
-            </View>
+                    <Text style={[styles.heroTitle, { color: theme.text }]}>
+                        {measurement.unit.unit_name}
+                    </Text>
 
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+                </View>
+
                 <View style={styles.detailCard}>
-                    <Text style={[styles.detailLabel, { color: theme.textGray }]}>Measurement Value</Text>
+                    <Text style={[styles.detailLabel, { color: theme.textGray, marginTop: 10 }]}>Measurement Value</Text>
                     <Text style={[styles.valueText, { color: theme.text }]}>{displayValue}</Text>
                 </View>
 
@@ -119,6 +154,23 @@ export default function HealthMeasurementDetailScreen() {
                         <Text style={[styles.detailDescription, { color: theme.text }]}>{measurement.ai_insight}</Text>
                     </>}
                 </View>
+
+                {secureUrlLoading && (
+                    <View style={styles.imageContainer}>
+                        <ActivityIndicator size="large" color={theme.primary} />
+                    </View>
+                )}
+
+                {secureUrl && !secureUrlLoading && (
+                    <View style={styles.imageContainer}>
+                        <Text style={[styles.detailLabel, { color: theme.textGray, marginBottom: 8 }]}>Attached Document</Text>
+                        <Image 
+                            source={{ uri: secureUrl }} 
+                            style={[styles.attachedImage, { aspectRatio: imageRatio }]} 
+                            resizeMode="contain"
+                        />
+                    </View>
+                )}
 
                 <ScalePressable
                     style= {[styles.editBtn, { backgroundColor: theme.primary }]}
@@ -167,11 +219,7 @@ const styles = StyleSheet.create({
     },
     headerTop: {
         flexDirection: 'row',
-        paddingHorizontal: 20,
         marginBottom: 20,
-    },
-    closeButton: {
-        padding: 4,
     },
     heroContent: {
         alignItems: 'center',
@@ -250,4 +298,14 @@ const styles = StyleSheet.create({
         fontFamily: 'Lexend_800ExtraBold',
         color: '#fff',
     },
+    imageContainer: {
+        marginBottom: 24,
+        width: '100%',
+    },
+    attachedImage: {
+        width: '100%',
+        borderRadius: 16,
+        backgroundColor: '#f5f5f5', // So users see it while loading
+        marginTop: 8
+    }
 });
