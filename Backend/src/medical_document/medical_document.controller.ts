@@ -28,8 +28,15 @@ export class MedicalDocumentController
   @Get('document-url')
   async getDocumentUrlFromMeasurementId(@Query('id') id: string): Promise<{ file_url: string }>
   {
-    const file_url = await this.medicalDocumentService.getDocumentUrlFromMeasurementId(id);
-    return { file_url };
+    try
+    {
+      const file_url = await this.medicalDocumentService.getDocumentUrlFromMeasurementId(id);
+      return { file_url };
+    }
+    catch (error)
+    {
+      throw new Error(`Failed to fetch document URL: ${error.message}`);
+    }
   }
 
   @Post('image/upload')
@@ -64,7 +71,7 @@ export class MedicalDocumentController
   }
 
   @Post('image/get-secure-url')
-  async getSecureImageUrl(@Body('file_url') fileUrl: string)
+  async getSecureImageUrl(@Body('file_url') fileUrl: string) : Promise<{ file_url: string }>
   {
     return await this.medicalDocumentService.getSecureImageUrl(fileUrl);
   }

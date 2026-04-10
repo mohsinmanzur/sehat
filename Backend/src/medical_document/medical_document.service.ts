@@ -47,13 +47,22 @@ export class MedicalDocumentService
 
     async getDocumentUrlFromMeasurementId(id: string) : Promise<string>
     {
-      const result = await this.medicalDocumentRepo.createQueryBuilder('md')
-        .innerJoin('Health_Measurement', 'hm', 'md.id = hm.document_id')
-        .where('hm.id = :measurementId', { measurementId: id })
-        .select('md.file_url', 'file_url')
-        .getRawOne();
-        
-      return result?.file_url;
+      if (!id) throw new Error('Measurement ID is required to fetch document URL.');
+
+      try
+      {
+        const result = await this.medicalDocumentRepo.createQueryBuilder('md')
+          .innerJoin('Health_Measurement', 'hm', 'md.id = hm.document_id')
+          .where('hm.id = :measurementId', { measurementId: id })
+          .select('md.file_url', 'file_url')
+          .getRawOne();
+          
+        return result?.file_url;
+      }
+      catch (error)
+      {
+        throw new Error(error);
+      }
     }
 
     async uploadImagetoAzure(file: Express.Multer.File, fileName: string): Promise<{ url: string }> {
@@ -86,7 +95,7 @@ export class MedicalDocumentService
     }
   }
 
-  async getSecureImageUrl(fileUrl: string): Promise<string> {
+  async getSecureImageUrl(fileUrl: string): Promise<{ file_url: string }> {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING as string;
     const containerName = process.env.AZURE_CONTAINER_NAME as string;
 
@@ -103,10 +112,11 @@ export class MedicalDocumentService
     const expiresOn = new Date();
     expiresOn.setMinutes(expiresOn.getMinutes() + 10);
 
-    return await blobClient.generateSasUrl({
+    const file_url = await blobClient.generateSasUrl({
       permissions: BlobSASPermissions.parse('r'),
       startsOn: startsOn,
       expiresOn: expiresOn,
     });
+    return { file_url };
   }
 }
