@@ -1,7 +1,7 @@
 
 # 💊 Sehat Scan - Medical Convenience
 
-<img align="right" height="120" src="https://github.com/mohsinmanzur/Sehat-Scan/blob/main/Diagrams/Sehat%20Logo.png" />
+<img align="right" height="100" src="https://github.com/mohsinmanzur/Sehat-Scan/blob/main/Diagrams/Sehat%20Logo.png" />
 
 <p>Sehat Scan bridges the gap between patients and doctors by focusing on reports digitization and easier communication between patients and doctors with a **privacy-first approach**. Our platform is built on consent-based medical document sharing, easy data extraction from physical reports, and providing meaningful insights and visualizations from a patient's medical history.</p>
 
