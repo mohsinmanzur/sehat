@@ -14,6 +14,7 @@ import { bloodGroups } from '../../src/types/others';
 import { Dropdown } from 'src/components/common/Dropdown';
 
 const date = new Date();
+date.setFullYear(date.getFullYear() - 1);
 
 const SignupScreen: React.FC = () => {
     const params = useLocalSearchParams<{ patientEmail: string }>();
@@ -48,7 +49,7 @@ const SignupScreen: React.FC = () => {
 
         try
         {
-            const patient = await backend.registerPatient({
+            const patientTokens = await backend.registerPatient({
                 name: name,
                 email: patientEmail,
                 date_of_birth: dateOfBirth,
@@ -56,7 +57,9 @@ const SignupScreen: React.FC = () => {
                 is_research_opt_in: betaOptIn,
                 gender: gender
             });
-            console.log(patient);
+            
+            const patient = await backend.getPatientById(patientTokens.id);
+
             setCurrentPatient(patient);
             await storeObject('currentPatient', patient);
 
