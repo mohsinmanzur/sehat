@@ -1,7 +1,6 @@
 import { useTheme } from "@context/ThemeContext";
 import { DashboardMeasurement } from "../../types/others";
-import { View } from "react-native-reanimated/lib/typescript/Animated";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { formatFullDateTime } from "src/utils/date";
 import { DeltaBadge } from "./delta_badge";
 
