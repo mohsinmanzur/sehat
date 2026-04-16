@@ -58,26 +58,12 @@ function RootLayoutNav() {
   return (
     <>
       <StatusBar style={theme.backgroundDark === '#121215' ? 'light' : 'dark'} backgroundColor={theme.backgroundDark} translucent={false} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.backgroundDark }
-        }}
-      >
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.backgroundDark } }} >
         <Stack.Screen name="(auth)" options={{ animation: 'none' }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
-        <Stack.Screen 
-          name="health_measurements" 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="AddNew" 
-          options={{ 
-            presentation: 'modal', 
-            animation: 'slide_from_bottom',
-            headerShown: false
-          }} 
-        />
+        <Stack.Screen name="health_measurements" options={{ headerShown: false }} />
+        <Stack.Screen name="AddNew" options={{ presentation: 'modal', animation: 'slide_from_bottom', headerShown: false }} />
+        <Stack.Screen name="Profile" options={{ animation: 'none' }} />
       </Stack>
       <Toast />
     </>

@@ -13,7 +13,7 @@ enum allowedMethods {
 
 class Backend {
     private baseUrl: string;
-    public jwtToken: string | null = null;
+    private jwtToken: string | null = null;
     private refreshToken: string | null = null;
 
     constructor() {
@@ -121,6 +121,7 @@ class Backend {
         }
 
         const data = await response.json();
+        
         this.jwtToken = data.jwtToken;
         this.refreshToken = data.refreshToken;
 
@@ -136,7 +137,15 @@ class Backend {
             throw new Error(`Error in registering patient: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+
+        this.jwtToken = data.jwtToken;
+        this.refreshToken = data.refreshToken;
+
+        await SecureStore.setItemAsync('jwtToken', data.jwtToken);
+        await SecureStore.setItemAsync('refreshToken', data.refreshToken);
+
+        return data;
     }
 
     async logout() {

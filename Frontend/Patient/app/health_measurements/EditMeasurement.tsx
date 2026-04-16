@@ -11,6 +11,7 @@ import LoadingScreen from 'src/components/LoadingScreen';
 import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
+import { Colors } from '@theme/colors';
 
 export default function EditMeasurement() {
     const { theme } = useTheme();
@@ -153,7 +154,7 @@ export default function EditMeasurement() {
     );
 }
 
-const styles = (theme: any) => StyleSheet.create({
+const styles = (theme: typeof Colors.dark) => StyleSheet.create({
     root: {
         backgroundColor: theme.backgroundLight,
     },

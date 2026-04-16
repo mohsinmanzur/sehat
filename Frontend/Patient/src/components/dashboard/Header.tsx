@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
 import { createAvatar } from '@dicebear/core';
 import { personas } from '@dicebear/collection';
 import { SvgXml } from 'react-native-svg';
+import { router } from 'expo-router';
 
 interface HeaderProps {
   name: string;
@@ -37,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ name, avatarUrl }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.leftSection}>
+      <Pressable style={styles.leftSection} onPress={() => router.push('/Profile')}>
         <View style={[styles.avatar, { overflow: 'hidden' }]}>
           <SvgXml xml={svg} width="100%" height="100%" />
         </View>
@@ -45,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({ name, avatarUrl }) => {
           <Text style={[styles.welcomeText, { color: theme.textLight }]}>WELCOME BACK</Text>
           <Text style={[styles.nameText, { color: theme.text }]}>Hello, {name}</Text>
         </View>
-      </View>
+      </Pressable>
       <TouchableOpacity style={styles.notificationButton}>
         <Ionicons name="notifications" size={24} color={theme.textGray} />
       </TouchableOpacity>
