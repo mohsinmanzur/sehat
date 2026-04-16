@@ -130,10 +130,10 @@ class Backend {
         return data;
     }
 
-    async register(patientInfo: PatientDTO) {
+    async registerPatient(patientInfo: PatientDTO) {
         const response = await this.request('/auth/register', allowedMethods.POST, patientInfo);
         if (!response.ok) {
-            throw new Error(`Error in registering patient: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in registering patient: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
@@ -184,15 +184,6 @@ class Backend {
 
         if (!response.ok) {
             throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
-    }
-
-    async createPatient(patientInfo: PatientDTO) {
-        const response = await this.request('/patient', allowedMethods.POST, patientInfo);
-        if (!response.ok) {
-            throw new Error(`Error in creating patient: ${response.status} ${await response.text()}`);
         }
 
         return await response.json();

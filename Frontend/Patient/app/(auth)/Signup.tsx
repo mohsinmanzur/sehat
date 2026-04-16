@@ -48,7 +48,7 @@ const SignupScreen: React.FC = () => {
 
         try
         {
-            const patient = await backend.createPatient({
+            const patient = await backend.registerPatient({
                 name: name,
                 email: patientEmail,
                 date_of_birth: dateOfBirth,

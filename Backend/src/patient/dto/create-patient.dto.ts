@@ -15,6 +15,9 @@ export class CreatePatientDto
     @IsString()
     email: string;
 
+    @IsEnum(['male', 'female', 'other'])
+    gender: string;
+
     @IsPhoneNumber()
     @IsOptional()
     phone?: string;
