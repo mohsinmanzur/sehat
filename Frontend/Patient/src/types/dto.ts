@@ -8,6 +8,7 @@ export type PatientDTO = {
     emergency_contacts?: Record<string, string>[];
     reward_points?: number;
     is_research_opt_in?: boolean;
+    gender: 'male' | 'female' | 'other';
     created_at?: Date;
     updated_at?: Date;
 };

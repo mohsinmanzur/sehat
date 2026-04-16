@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'src/context/ThemeContext';
 import { Spacer, ThemedButton, ThemedText, ThemedTextInput, ThemedView } from 'src/components';
 import DatePicker from 'react-native-date-picker'
-import { Dropdown } from 'react-native-element-dropdown';
 import { Ionicons } from '@expo/vector-icons';
 import SwitchToggle from 'react-native-switch-toggle';
 import Toast from 'react-native-toast-message';
@@ -12,6 +11,7 @@ import { useCurrentPatient } from '@context/PatientContext';
 import { storeObject } from 'src/services/Storage/storage.service';
 import backend from 'src/services/Backend/backend.service';
 import { bloodGroups } from '../../src/types/others';
+import { Dropdown } from 'src/components/common/Dropdown';
 
 const date = new Date();
 
@@ -24,28 +24,25 @@ const SignupScreen: React.FC = () => {
     const { setCurrentPatient } = useCurrentPatient();
 
     const [name, setName] = useState('');
+    const [gender, setGender] = useState<'male' | 'female' | 'other'>(null);
     const [dateOfBirth, setDateOfBirth] = useState(date);
     const [bloodGroup, setBloodGroup] = useState('');
     const [betaOptIn, setBetaOptIn] = useState(false);
 
-    const [showNameError, setShowNameError] = useState(false);
-    const [showDobError, setShowDobError] = useState(false);
+    const [nameError, setNameError] = useState(false);
+    const [genderError, setGenderError] = useState(false);
+    const [dobError, setDobError] = useState(false);
+    const [bloodGroupError, setBloodGroupError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handlePress = async () => {
 
-        if (!name.trim())
-        {
-            if (dateOfBirth === date) setShowDobError(true);
-            setShowNameError(true);
-            return;
-        }
+        if (!name.trim()) setNameError(true);
+        if (dateOfBirth.toDateString() === date.toDateString()) setDobError(true);
+        if (!gender) setGenderError(true);
+        if (!bloodGroup.trim()) setBloodGroupError(true);
 
-        if (dateOfBirth === date)
-        {
-            setShowDobError(true);
-            return;
-        }
+        if (!name.trim() || dateOfBirth.toDateString() === date.toDateString() || !gender || !bloodGroup.trim()) return;
 
         setIsLoading(true);
 
@@ -56,7 +53,8 @@ const SignupScreen: React.FC = () => {
                 email: patientEmail,
                 date_of_birth: dateOfBirth,
                 blood_group: bloodGroup || null,
-                is_research_opt_in: betaOptIn
+                is_research_opt_in: betaOptIn,
+                gender: gender
             });
             console.log(patient);
             setCurrentPatient(patient);
@@ -100,40 +98,85 @@ const SignupScreen: React.FC = () => {
                 <ThemedTextInput 
                     placeholder=" Enter your name"
                     value={name}
-                    onChangeText={(text) => { setName(text); setShowNameError(false); }}
-                    style={{ width: '100%', paddingVertical: 16, marginTop: 10, borderColor: showNameError ? theme.danger : theme.card, borderWidth: 1, borderRadius: 10 }}
+                    onChangeText={(text) => { setName(text); setNameError(false); }}
+                    style={{ width: '100%', paddingVertical: 16, marginTop: 10, borderColor: nameError ? theme.danger : theme.card, borderWidth: 1, borderRadius: 10 }}
                 />
+
+            {/* Gender Selection */}
+            <ThemedText type={'h2'} style={{ marginTop: 30 }}>⚧️ Gender</ThemedText>
+            <View style={{ flexDirection: 'row', gap: 15, marginTop: 10 }}>
+                <Pressable 
+                    onPress={() => { setGender('male'); setGenderError(false); }}
+                    style={(pressed) => ({ 
+                        flex: 1, 
+                        padding: 15, 
+                        borderRadius: 10, 
+                        borderWidth: 1, 
+                        borderColor: genderError ? theme.danger : gender === 'male' ? theme.primary : theme.card, 
+                        backgroundColor: gender === 'male' ? theme.primarySoft : theme.card, 
+                        alignItems: 'center',
+                        opacity: pressed ? 0.7 : 1
+                    })}
+                >
+                    <Ionicons name="male" size={28} color={gender === 'male' ? theme.primary : theme.textGray} />
+                    <ThemedText style={{ marginTop: 8, color: gender === 'male' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Male</ThemedText>
+                </Pressable>
+
+                <Pressable 
+                    onPress={() => { setGender('female'); setGenderError(false); }}
+                    style={(pressed) => ({ 
+                        flex: 1, 
+                        padding: 15, 
+                        borderRadius: 10, 
+                        borderWidth: 1, 
+                        borderColor: genderError ? theme.danger : gender === 'female' ? theme.primary : theme.card, 
+                        backgroundColor: gender === 'female' ? theme.primarySoft : theme.card, 
+                        alignItems: 'center',
+                        opacity: pressed ? 0.7 : 1
+                    })}
+                >
+                    <Ionicons name="female" size={28} color={gender === 'female' ? theme.primary : theme.textGray} />
+                    <ThemedText style={{ marginTop: 8, color: gender === 'female' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Female</ThemedText>
+                </Pressable>
+
+                <Pressable 
+                    onPress={() => { setGender('other'); setGenderError(false); }}
+                    style={(pressed) => ({ 
+                        flex: 1, 
+                        padding: 15, 
+                        borderRadius: 10, 
+                        borderWidth: 1, 
+                        borderColor: genderError ? theme.danger : gender === 'other' ? theme.primary : theme.card, 
+                        backgroundColor: gender === 'other' ? theme.primarySoft : theme.card, 
+                        alignItems: 'center',
+                        opacity: pressed ? 0.7 : 1
+                    })}
+                >
+                    <Ionicons name="male-female" size={28} color={gender === 'other' ? theme.primary : theme.textGray} />
+                    <ThemedText style={{ marginTop: 8, color: gender === 'other' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Other</ThemedText>
+                </Pressable>
+            </View>
 
                 <ThemedText type={'h2'} style={{ marginTop: 30 }}>🗓️ Date of Birth</ThemedText>
                 <DatePicker
                     mode='date'
                     date={dateOfBirth}
-                    onDateChange={(date) => { setDateOfBirth(date); setShowDobError(false); }}
+                    onDateChange={(date) => { setDateOfBirth(date); setDobError(false); }}
                     maximumDate={new Date()}
                     locale={'en-GB'}
-                    dividerColor={showDobError ? theme.danger : theme.text}
+                    dividerColor={dobError ? theme.danger : theme.text}
                 />
 
                 <ThemedText type={'h2'} style={{ marginTop: 20 }}>🩸 Blood Group</ThemedText>
-                <Dropdown
-                    data={bloodGroups}
-                    value={bloodGroup}
-                    onChange={(item) => setBloodGroup(item.value)}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select Blood Group"
-                    style={{ backgroundColor: theme.card, paddingVertical: 16, paddingHorizontal: 15, marginTop: 10, borderRadius: 10 }}
-                    placeholderStyle={{ color: theme.textVeryLight, fontFamily: 'PublicSans_600SemiBold', fontSize: 15 }}
-                    containerStyle={{ backgroundColor: theme.backgroundLight, paddingHorizontal: 5, borderRadius: 8, borderColor: theme.textVeryLight, height: 300 }}
-                    selectedTextStyle={{ fontFamily: 'PublicSans_600SemiBold', fontSize: 15, color: theme.textGray }}
-                    itemTextStyle={{ fontFamily: 'PublicSans_600SemiBold', fontSize: 15, color: theme.textGray }}
-                    //itemContainerStyle={{ backgroundColor: theme.card, borderBottomWidth: 5, borderBottomColor: theme.backgroundLight }}
-                    activeColor={theme.backgroundLight}
-                />
-                
-                <Spacer height={50}/>
 
-                <View style={{ backgroundColor: theme.card, padding: 30, borderRadius: 30 }}>
+                <Dropdown
+                    options={bloodGroups.map(item => (item.value))}
+                    value={bloodGroup}
+                    onChange={(value) => { setBloodGroup(value); setBloodGroupError(false); }}
+                    remainingStyles={{ marginTop: 20 }}
+                    error={bloodGroupError}
+                />
+                <View style={{ backgroundColor: theme.card, padding: 30, borderRadius: 30, marginVertical: 50 }}>
                     <View  style={{ flexDirection: 'row', gap: 10 }}>
                         <Ionicons name='flask-sharp' size={17} color={'#9A3200'} />
                         <ThemedText style={{ fontFamily: 'PublicSans_800ExtraBold', fontSize: 12, color: '#9A3200' }}>BETA PROGRAM</ThemedText>
@@ -166,8 +209,6 @@ const SignupScreen: React.FC = () => {
                         }}
                     />
                 </View>
-
-                <Spacer height={50} />
 
                 <ThemedButton
                     style = {[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
