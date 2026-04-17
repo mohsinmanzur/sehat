@@ -14,9 +14,11 @@ const PAD_Y = 16;
 
 interface WeightChartProps {
     measurements: DashboardMeasurement[];
+    color: string;
+
 }
 
-export const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
+export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color }) => {
     const { theme } = useTheme();
 
     // measurements are newest-first from the API; reverse to oldest-first for chart
@@ -72,8 +74,8 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
             <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
                 <Defs>
                     <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} stopOpacity="0.18" />
-                        <Stop offset="1" stopColor={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} stopOpacity="0.01" />
+                        <Stop offset="0" stopColor={color || theme.primary} stopOpacity="0.18" />
+                        <Stop offset="1" stopColor={color || theme.primary} stopOpacity="0.01" />
                     </LinearGradient>
                 </Defs>
                 {/* Area fill */}
@@ -82,7 +84,7 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
                 <Path
                     d={linePath}
                     fill="none"
-                    stroke={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary}
+                    stroke={color || theme.primary}
                     strokeWidth={2.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -94,13 +96,13 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
                         // End dot with halo
                         return (
                             <React.Fragment key={i}>
-                                <Circle cx={pt.x} cy={pt.y} r={8} fill={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} opacity={0.15} />
-                                <Circle cx={pt.x} cy={pt.y} r={4.5} fill={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} />
+                                <Circle cx={pt.x} cy={pt.y} r={8} fill={color || theme.primary} opacity={0.15} />
+                                <Circle cx={pt.x} cy={pt.y} r={4.5} fill={color || theme.primary} />
                                 <Circle cx={pt.x} cy={pt.y} r={2} fill="#fff" />
                             </React.Fragment>
                         );
                     }
-                    return <Circle key={i} cx={pt.x} cy={pt.y} r={3.5} fill={measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary} />;
+                    return <Circle key={i} cx={pt.x} cy={pt.y} r={3.5} fill={color || theme.primary} />;
                 })}
             </Svg>
 
@@ -111,8 +113,8 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements }) => {
                         key={`${label}-${x}`}
                         style={[
                             styles.chartXLabel,
-                            { color: measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary, position: 'absolute', transform: [{ translateX: -24 }], left: x },
-                            isToday && { color: measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary, fontWeight: '700' },
+                            { color: color || theme.primary, position: 'absolute', transform: [{ translateX: -24 }], left: x },
+                            isToday && { color: color || theme.primary, fontWeight: '700' },
                         ]}
                     >
                         {label}

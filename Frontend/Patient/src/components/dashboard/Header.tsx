@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ name, avatarUrl }) => {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.leftSection} onPress={() => router.push('/Profile')}>
+      <Pressable style={({ pressed }) => [styles.leftSection, {opacity: pressed ? 0.7 : 1}]} onPress={() => router.push('/Profile')}>
         <View style={[styles.avatar, { overflow: 'hidden' }]}>
           <SvgXml xml={svg} width="100%" height="100%" />
         </View>

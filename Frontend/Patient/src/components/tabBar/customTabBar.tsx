@@ -7,6 +7,8 @@ import { useTheme } from '@context/ThemeContext';
 import { Colors } from '@theme/colors';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { router } from 'expo-router';
+import { Shadow } from 'react-native-shadow-2';
+import { ScalePressable } from '../ScalePressable';
 
 export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
@@ -23,60 +25,82 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
         };
     });
 
-    const foregroundColor = '#dddddd';
+    const foregroundColor = '#ffffff';
 
   return (
-    <View style={[styles.container, { bottom: insets.bottom + 15}]}>
-      {/* Main Tab Pill */}
-      <BlurView intensity={80} tint="dark" style={styles.tabBar}>
-        <Animated.View style={[styles.slidingBackground, animatedStyle]} />
-        
-        {state.routes.map((route: any, index: number) => {
-          const { options } = descriptors[route.key];
-          const label = options.title !== undefined ? options.title : route.name;
-          const isFocused = state.index === index;
-          const Icon = options.tabBarIcon;
+    <>
+      <View pointerEvents="none" style={styles.bottomShadowContainer}>
+        <Shadow 
+          distance={200} 
+          startColor={'rgb(0, 0, 0, 0.3)'}
+          sides={{ top: true, bottom: false, start: false, end: false }}
+          corners={{ topStart: false, topEnd: false, bottomStart: false, bottomEnd: false }}
+          style={{ width: '100%', height: 1 }}
+          containerStyle={{ width: '100%' }}
+        >
+          <View style={{ width: '100%', height: 1 }} />
+        </Shadow>
+      </View>
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+      <View style={[styles.container, { bottom: insets.bottom + 15}]}>
+        {/* Main Tab Pill */}
+        <BlurView intensity={10} tint="default" style={styles.tabBar}>
+          <Animated.View style={[styles.slidingBackground, animatedStyle]} />
+          
+          {state.routes.map((route: any, index: number) => {
+            const { options } = descriptors[route.key];
+            const label = options.title !== undefined ? options.title : route.name;
+            const isFocused = state.index === index;
+            const Icon = options.tabBarIcon;
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              onPress={onPress}
-              style={styles.tabItem}
-            >
-              {Icon && Icon({ focused: isFocused, color: foregroundColor, size: 24 })}
-              <Text style={[styles.tabText, { color: foregroundColor }]}>
-                {label as string}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </BlurView>
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
+
+            return (
+              <ScalePressable
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                onPress={onPress}
+                style={styles.tabItem}
+              >
+                {Icon && Icon({ focused: isFocused, color: foregroundColor, size: 24 })}
+                <Text style={[styles.tabText, { color: foregroundColor }]}>
+                  {label as string}
+                </Text>
+              </ScalePressable>
+            );
+          })}
+        </BlurView>
 
       {/* Floating Action Button */}
-      <BlurView intensity={80} tint="dark" style={styles.actionButton}>
-        <TouchableOpacity style={styles.actionButtonInner} onPress={() => router.push('/AddNew')}>
-            <MaterialIcons name="add" size={30} color={foregroundColor} />
-        </TouchableOpacity>
-      </BlurView>
+        <BlurView intensity={10} tint="default" style={styles.actionButton}>
+          <ScalePressable style={styles.actionButtonInner} onPress={() => router.push('/AddNew')}>
+              <MaterialIcons name="add" size={30} color={foregroundColor} />
+          </ScalePressable>
+        </BlurView>
     </View>
+    </>
   );
 }
 
 const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
+  bottomShadowContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    alignItems: 'center',
+    zIndex: 0,
+  },
   container: {
     position: 'absolute',
     bottom: 30,
@@ -87,6 +111,10 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     alignSelf: 'center',
     gap: 12,
   },
+  shadow: {
+    flex: 1,
+    borderRadius: 35,
+  },
   tabBar: {
     flex: 1,
     flexDirection: 'row',
@@ -95,9 +123,9 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 5,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: theme.card === '#F3F3F4' ? 1 : 0.5,
+    borderColor: '#ffffffa8',
+    backgroundColor: 'transparent'
   },
   tabItem: {
     flex: 1,
@@ -113,7 +141,7 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     height: 50,
     width: (240) / 3, // dynamically match the width (158 / 3)
     borderRadius: 27,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
     zIndex: 0,
   },
   tabText: {
@@ -126,9 +154,9 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     height: 60,
     borderRadius: 35,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: theme.card === '#F3F3F4' ? 1 : 0.5,
+    borderColor: '#ffffffa8',
+    backgroundColor: 'transparent',
   },
   actionButtonInner: {
     flex: 1,

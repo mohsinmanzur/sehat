@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { formatFullDateTime } from "src/utils/date";
 import { DeltaBadge } from "./delta_badge";
 
-export const LogRow: React.FC<{ item: DashboardMeasurement; isLast: boolean; delta?: number, measurements: DashboardMeasurement[] }> = ({ item, isLast, delta, measurements }) => {
+export const LogRow: React.FC<{ item: DashboardMeasurement; isLast: boolean; delta?: number, measurements: DashboardMeasurement[], color?: string }> = ({ item, isLast, delta, measurements, color }) => {
     const { theme } = useTheme();
     return (
         <View style={[
@@ -15,7 +15,7 @@ export const LogRow: React.FC<{ item: DashboardMeasurement; isLast: boolean; del
                 <Text style={[styles.logWeight, { color: theme.text }]}>{item.numeric_value.toFixed(1)} {item.unit.symbol}</Text>
                 <Text style={[styles.logDate, { color: theme.textLight }]}>{formatFullDateTime(item.created_at)}</Text>
             </View>
-            <DeltaBadge delta={delta} unit={item.unit.symbol} measurements={measurements} />
+            <DeltaBadge delta={delta} unit={item.unit.symbol} measurements={measurements} color={color} />
         </View>
     );
 };

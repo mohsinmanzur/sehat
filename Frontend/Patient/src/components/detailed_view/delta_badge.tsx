@@ -2,7 +2,7 @@ import { useTheme } from "@context/ThemeContext";
 import { DashboardMeasurement } from "../../types/others";
 import { StyleSheet, Text, View } from "react-native";
 
-export const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: DashboardMeasurement[] }> = ({ delta, unit, measurements }) => {
+export const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: DashboardMeasurement[], color?: string }> = ({ delta, unit, measurements, color }) => {
     const { theme } = useTheme();
     if (delta === undefined) return null;
     const isDown = delta < 0;
@@ -15,7 +15,7 @@ export const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: 
         ]}>
             <Text style={[
                 styles.deltaBadgeText,
-                { color: measurements[0]?.unit.unit_name === 'Weight' ? theme.warning : measurements[0]?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }
+                { color: color || theme.primary }
             ]}>
                 {isNeutral ? '•' : (isDown ? '↓' : '↑')} {Math.abs(delta).toFixed(1)} {unit}
             </Text>

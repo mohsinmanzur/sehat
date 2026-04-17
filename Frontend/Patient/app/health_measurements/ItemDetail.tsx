@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
-import { ThemedText, ThemedView } from 'src/components';
+import { ThemedView } from 'src/components';
 import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
 
 export default function HealthMeasurementDetailScreen() {
-    const { data } = useLocalSearchParams<{ data: string }>();
+    const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string, primaryColor: string, secondaryColor: string }>();
     const router = useRouter();
     const { theme } = useTheme();
 
@@ -79,8 +79,8 @@ export default function HealthMeasurementDetailScreen() {
     }, [measurement.id]);
 
     // Determine colors based on status
-    let themeColor = measurement.unit.unit_name === 'Weight' ? theme.warning : measurement.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary;
-    let lightThemeColor = measurement.unit.unit_name === 'Weight' ? theme.warningLight : measurement.unit.unit_name === 'Blood Sugar' ? theme.dangerLight : theme.primarySoft;
+    let themeColor = primaryColor || theme.primary;
+    let lightThemeColor = secondaryColor || theme.primarySoft;
     let icon = measurement.unit.unit_name === 'Weight' ? 'weight' : measurement.unit.unit_name === 'Blood Sugar' ? 'tint' : 'heartbeat';
 
     switch (measurement.status) {
@@ -115,8 +115,8 @@ export default function HealthMeasurementDetailScreen() {
         <ThemedView safe style={[styles.container, { backgroundColor: theme.backgroundLight }]}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.headerTop}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="close" size={28} color={theme.text} />
+                    <TouchableOpacity onPress={() => router.back()} style={{ width: 36, height: 36, justifyContent: 'center', alignItems: 'center', marginLeft: -5 }}>
+                        <Ionicons name="arrow-back" size={22} color={theme.textGray} />
                     </TouchableOpacity>
                 </View>
 
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: 24,
-        paddingTop: 32,
+        paddingTop: 14,
     },
     detailCard: {
         marginBottom: 24,

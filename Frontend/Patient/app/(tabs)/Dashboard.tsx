@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, ScrollView, View, Text, RefreshControl } from 'react-native';
 import { useCurrentPatient } from 'src/context/PatientContext';
 import { useTheme } from 'src/context/ThemeContext';
 import { Header, MeasurementCard } from 'src/components/dashboard';
@@ -19,20 +19,31 @@ const DashboardScreen: React.FC = () => {
   const patientName = currentPatient?.name?.split(' ')[0] || 'Arjun';
 
   const [isLoading, setIsLoading] = useState(true);
-  const [measurements, setMeasurements] = useState<DashboardMeasurement[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [measurements, setMeasurements] = useState<DashboardMeasurement[]>([]);
+  const [units, setUnits] = useState<string[]>([]);
 
   const fetchMeasurements = async () => {
     if (currentPatient?.id) {
       try {
         const data = await backend.getMeasurementsByPatient(currentPatient.id);
         setMeasurements(data || []);
+
+        const units = Array.from(new Set(data.map((m: DashboardMeasurement) => m.unit.unit_name)));
+        setUnits(units as string[]);
       } catch (error) {
         console.error("Error fetching measurements:", error);
       }
     } else {
       setMeasurements([]);
     }
+  };
+
+  const getLatest = (keyword: string) => {
+    return measurements
+      .filter(m => m.unit.unit_name.match(keyword))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
   };
 
   useFocusEffect(
@@ -58,9 +69,6 @@ const DashboardScreen: React.FC = () => {
           {/* Recent Documents Header */}
           <View style={[styles.sectionHeader, { marginTop: 20, marginHorizontal: 7 }]}>
             <Text style={[styles.sectionTitle, { color: theme.textGray }]}>HEALTH MEASUREMENTS</Text>
-            <TouchableOpacity>
-              {/*<Text style={[styles.viewAllText, { color: theme.primary }]}>View All</Text>*/}
-            </TouchableOpacity>
           </View>
 
           <ScrollView
@@ -77,87 +85,37 @@ const DashboardScreen: React.FC = () => {
               />
             }
           >
-            {(() => {
-              const getLatest = (keywords: string[]) => {
-                return measurements
-                  .filter(m => keywords.some(k => m.unit.unit_name.toLowerCase().includes(k)))
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-              };
+            <View style={styles.cardWrapper}>
 
-              const bs = getLatest(['sugar']);
-              const bp = getLatest(['pressure']);
-              const wt = getLatest(['weight']);
-              const hr = getLatest(['heart', 'pulse']);
-
-
-              return (
-                <View style={styles.cardWrapper}>
+              {units.map((unit, index) => {
+                const latest = getLatest(unit);
+                const iconName = unit === 'Blood Sugar' ? 'tint' :
+                  unit === 'Blood Pressure' ? 'heartbeat' :
+                    unit === 'Weight' ? 'weight' :
+                      unit === 'Heart Rate' ? 'heartbeat' : 'activity';
+                
+                const primaryColor = theme.items[index % theme.items.length].primary;
+                const secondaryColor = theme.items[index % theme.items.length].secondary;
+                return (
                   <ScalePressable
-                    disabled={!bs}
-                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(bs) } })}
+                    key={index}
+                    disabled={!latest}
+                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(latest), primaryColor, secondaryColor } })}
                   >
                     <MeasurementCard
-                      id={bs?.id || 'blood_sugar'}
-                      title={'Blood Sugar'}
-                      value={bs?.numeric_value?.toString() || '--'}
-                      unit={bs?.unit?.symbol || 'mg/dL'}
-                      dateStr={formatDate(bs?.created_at)}
-                      iconName={'tint'}
-                      color={theme.danger}
-                      colorSecondary={theme.dangerLight}
+                      id={unit.toLowerCase().replace(/\s/g, '_')}
+                      title={unit}
+                      value={latest?.numeric_value?.toString() || '--'}
+                      unit={latest?.unit?.symbol || ''}
+                      dateStr={formatDate(latest?.created_at)}
+                      iconName={iconName}
+                      color={primaryColor}
+                      colorSecondary={secondaryColor}
                     />
                   </ScalePressable>
-
-                  <ScalePressable
-                    disabled={!bp}
-                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(bp) } })}
-                  >
-                    <MeasurementCard
-                      id={bp?.id || 'blood_pressure'}
-                      title={'Blood Pressure'}
-                      value={bp?.numeric_value?.toString() || '--'}
-                      unit={bp?.unit?.symbol || 'mmHg'}
-                      dateStr={formatDate(bp?.created_at)}
-                      iconName={'heartbeat'}
-                      color={theme.primary}
-                      colorSecondary={theme.primarySoft}
-                    />
-                  </ScalePressable>
-
-                  <ScalePressable
-                    disabled={!wt}
-                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(wt) } })}
-                  >
-                    <MeasurementCard
-                      id={wt?.id || 'weight'}
-                      title={'Weight'}
-                      value={wt?.numeric_value?.toString() || '--'}
-                      unit={wt?.unit?.symbol || 'kg'}
-                      dateStr={formatDate(wt?.created_at)}
-                      iconName={'weight'}
-                      color={theme.warning}
-                      colorSecondary={theme.warningLight}
-                    />
-                  </ScalePressable>
-
-                  <ScalePressable
-                    disabled={!hr}
-                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(hr) } })}
-                  >
-                    <MeasurementCard
-                      id={hr?.id || 'heart_rate'}
-                      title={'Heart Rate'}
-                      value={hr?.numeric_value?.toString() || '--'}
-                      unit={hr?.unit?.symbol || 'bpm'}
-                      dateStr={formatDate(hr?.created_at)}
-                      iconName={'heartbeat'}
-                      color={theme.success}
-                      colorSecondary={theme.successLight}
-                    />
-                  </ScalePressable>
-                </View>
-              );
-            })()}
+                )
+              })}
+            </View>
 
             {/* Smart Insight Card */}
             {/*<InsightCard />*/}
@@ -168,7 +126,7 @@ const DashboardScreen: React.FC = () => {
           </ScrollView>
 
           {/* Floating Action Button */}
-          {/*<FloatingActionButton /> */}
+          {/* <FloatingActionButton /> */}
         </View>
       </ThemedView>
     )
@@ -219,7 +177,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   cardWrapper: {
-    marginBottom: 4,
+    marginBottom: 80,
     marginHorizontal: 6,
     gap: 5,
   },

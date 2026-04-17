@@ -1,8 +1,8 @@
 import { useTheme } from '@context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardMeasurement } from 'src/types/others';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useRef, useEffect, useState } from 'react';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { ThemedText, ThemedView } from 'src/components';
 import backend from 'src/services/Backend/backend.service';
@@ -14,7 +14,7 @@ import { LogRow } from 'src/components/detailed_view/log_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
 
 export default function WeightHistoryScreen() {
-    const { data } = useLocalSearchParams<{ data: any }>();
+    const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: any; primaryColor: string; secondaryColor: string }>();
     const { currentPatient } = useCurrentPatient();
     const { theme } = useTheme();
     const [isLoading, setIsLoading] = useState(true);
@@ -29,24 +29,26 @@ export default function WeightHistoryScreen() {
         }
     }, [data]);
 
-    useEffect(() => {
-        const getMeasurements = async () => {
-            if (!currentPatient?.id || !measurement) return;
+    useFocusEffect(
+        useCallback(() => {
+            const getMeasurements = async () => {
+                if (!currentPatient?.id || !measurement) return;
 
-            try {
-                const results = await backend.getMeasurementsByPatient(currentPatient.id);
-                const filtered = results.filter(m =>
-                    m.unit.unit_name.toLowerCase() === measurement.unit.unit_name.toLowerCase()
-                );
-                setAllMeasurements(filtered);
-            } catch (error) {
-                console.error("Failed to fetch measurements", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        getMeasurements();
-    }, [currentPatient?.id, measurement]);
+                try {
+                    const results = await backend.getMeasurementsByPatient(currentPatient.id);
+                    const filtered = results.filter(m =>
+                        m.unit.unit_name.toLowerCase() === measurement.unit.unit_name.toLowerCase()
+                    );
+                    setAllMeasurements(filtered);
+                } catch (error) {
+                    console.error("Failed to fetch measurements", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            getMeasurements();
+        }, [currentPatient?.id, measurement])
+    );
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(24)).current;
@@ -94,13 +96,13 @@ export default function WeightHistoryScreen() {
                 <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
                     <Text style={[styles.currentLabel, { color: theme.textLight }]}>CURRENT {measurement?.unit.unit_name.toUpperCase()}</Text>
                     <View style={styles.currentRow}>
-                        <Text style={[styles.currentValue, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>{measurement?.numeric_value}</Text>
-                        <Text style={[styles.currentUnit, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>{measurement?.unit.symbol}</Text>
+                        <Text style={[styles.currentValue, { color: primaryColor || theme.primary }]}>{measurement?.numeric_value}</Text>
+                        <Text style={[styles.currentUnit, { color: primaryColor || theme.primary }]}>{measurement?.unit.symbol}</Text>
                     </View>
 
                     {stats && (
                         <View style={[styles.statsPill, { backgroundColor: theme.backgroundLight }]}>
-                            <Text style={[styles.statsPillIcon, { color: measurement?.unit.unit_name === 'Weight' ? theme.warning : measurement?.unit.unit_name === 'Blood Sugar' ? theme.danger : theme.primary }]}>
+                            <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
                                 {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
                             </Text>
                             <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.unit.symbol}</Text>
@@ -122,7 +124,7 @@ export default function WeightHistoryScreen() {
                         </View>
                     </View>
 
-                    {!isLoading && <WeightChart measurements={allMeasurements} />}
+                    {!isLoading && <WeightChart measurements={allMeasurements} color={primaryColor} />}
                 </Animated.View>
 
                 {/* ── Daily Log ── */}
@@ -141,7 +143,7 @@ export default function WeightHistoryScreen() {
                             const isLast = idx === allMeasurements.length - 1;
                             return (
                                 <ScalePressable
-                                    onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item) } }) }}
+                                    onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item), primaryColor, secondaryColor } }) }}
                                     key={item.id}
                                 >
                                     <LogRow
@@ -150,6 +152,7 @@ export default function WeightHistoryScreen() {
                                         isLast={isLast}
                                         delta={delta}
                                         measurements={allMeasurements}
+                                        color={primaryColor}
                                     />
                                 </ScalePressable>
                             );

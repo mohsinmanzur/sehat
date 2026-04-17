@@ -1,8 +1,12 @@
 {
   "devices": [
     {
+      "installationId": "805c11cc-618c-4f29-b71c-94b11df0b331",
+      "lastUsed": 1776419758079
+    },
+    {
       "installationId": "580851dc-ede7-4593-80d9-47aac47f5f8b",
-      "lastUsed": 1776333032453
+      "lastUsed": 1776418363104
     },
     {
       "installationId": "eed6ff81-9419-4da5-9bb9-d3d09f4f89f2",
@@ -35,10 +39,6 @@
     {
       "installationId": "85f5fcf9-614f-4237-9fd3-25b2b7f28fae",
       "lastUsed": 1775079759211
-    },
-    {
-      "installationId": "b8848757-a613-418c-8e16-20f6195edf55",
-      "lastUsed": 1774997801660
     }
   ]
 }
