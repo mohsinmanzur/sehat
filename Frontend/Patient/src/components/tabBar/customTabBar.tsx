@@ -42,7 +42,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
         </Shadow>
       </View>
 
-      <View style={[styles.container, { bottom: insets.bottom + 15}]}>
+      <View style={[styles.container, { bottom: insets.bottom + 25}]}>
         {/* Main Tab Pill */}
         <BlurView intensity={10} tint="default" style={styles.tabBar}>
           <Animated.View style={[styles.slidingBackground, animatedStyle]} />
