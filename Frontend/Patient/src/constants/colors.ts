@@ -66,7 +66,7 @@ export const Colors = {
     shadow: '#000000',
     items: [
       {
-        primary: '#e26363',
+        primary: '#e73131',
         secondary: '#312224',
       },
       {

@@ -2,7 +2,7 @@ import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { DashboardMeasurement } from "../../types/others";
 import { useTheme } from "@context/ThemeContext";
 import { buildAreaPath, buildSmoothPath, formatChartDate } from "src/helpers/detailed_view.helpers";
-import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient, Path, Stop, Text as SvgText } from "react-native-svg";
 import React from "react";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -10,7 +10,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CHART_WIDTH = SCREEN_WIDTH - 64;
 const CHART_HEIGHT = 130;
 const PAD_X = 12;
-const PAD_Y = 16;
+const PAD_Y = 20; // Increased Y padding to ensure highest labels don't get clipped
 
 interface WeightChartProps {
     measurements: DashboardMeasurement[];
@@ -25,11 +25,7 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
     const chronological = [...measurements].reverse();
 
     if (chronological.length < 2) {
-        return (
-            <View style={[styles.chartEmpty, { height: CHART_HEIGHT }]}>
-                <Text style={{ color: theme.textVeryLight, fontSize: 13 }}>Not enough data to display chart</Text>
-            </View>
-        );
+        chronological[1] = chronological[0];
     }
 
     const values = chronological.map(d => d.numeric_value);
@@ -45,16 +41,27 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
     const linePath = buildSmoothPath(points);
     const areaPath = buildAreaPath(points, CHART_HEIGHT);
 
+    const isTodayDate = (dateStr: string | Date) => {
+        const d = new Date(dateStr);
+        const today = new Date();
+        return d.getDate() === today.getDate() &&
+               d.getMonth() === today.getMonth() &&
+               d.getFullYear() === today.getFullYear();
+    };
+
     // Build x-axis labels: always show first, last ("TODAY"), and up to 2 evenly
     // spaced points in between — max 4 labels total.
     const xLabels: { label: string; isToday: boolean; x: number }[] = (() => {
         const total = chronological.length;
         if (total <= 4) {
-            return chronological.map((d, i) => ({
-                label: i === total - 1 ? 'TODAY' : formatChartDate(d.created_at),
-                isToday: i === total - 1,
-                x: toX(i),
-            }));
+            return chronological.map((d, i) => {
+                const isLast = i === total - 1;
+                return {
+                    label: (isLast && isTodayDate(d.created_at)) ? 'TODAY' : formatChartDate(d.created_at),
+                    isToday: isLast,
+                    x: toX(i),
+                };
+            });
         }
         const indices = [
             0,
@@ -62,11 +69,15 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
             Math.round((2 * total) / 3),
             total - 1,
         ];
-        return indices.map(i => ({
-            label: i === total - 1 ? 'TODAY' : formatChartDate(chronological[i].created_at),
-            isToday: i === total - 1,
-            x: toX(i),
-        }));
+        return indices.map(i => {
+            const isLast = i === total - 1;
+            const d = chronological[i];
+            return {
+                label: (isLast && isTodayDate(d.created_at)) ? 'TODAY' : formatChartDate(d.created_at),
+                isToday: isLast,
+                x: toX(i),
+            };
+        });
     })();
 
     return (
@@ -91,18 +102,36 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
                 />
                 {/* One dot per measurement */}
                 {points.map((pt, i) => {
+                    const isFirst = i === 0;
                     const isLast = i === points.length - 1;
-                    if (isLast) {
-                        // End dot with halo
-                        return (
-                            <React.Fragment key={i}>
-                                <Circle cx={pt.x} cy={pt.y} r={8} fill={color || theme.primary} opacity={0.15} />
-                                <Circle cx={pt.x} cy={pt.y} r={4.5} fill={color || theme.primary} />
-                                <Circle cx={pt.x} cy={pt.y} r={2} fill="#fff" />
-                            </React.Fragment>
-                        );
-                    }
-                    return <Circle key={i} cx={pt.x} cy={pt.y} r={3.5} fill={color || theme.primary} />;
+                    const valueStr = chronological[i].numeric_value.toString();
+
+                    return (
+                        <React.Fragment key={i}>
+                            {/* Inner/Outer circle logic */}
+                            {isLast ? (
+                                <>
+                                    <Circle cx={pt.x} cy={pt.y} r={8} fill={color || theme.primary} opacity={0.15} />
+                                    <Circle cx={pt.x} cy={pt.y} r={4.5} fill={color || theme.primary} />
+                                    <Circle cx={pt.x} cy={pt.y} r={2} fill="#fff" />
+                                </>
+                            ) : (
+                                <Circle cx={pt.x} cy={pt.y} r={3.5} fill={color || theme.primary} />
+                            )}
+                            
+                            {/* Show label above dot for first and last entries */}
+                            <SvgText
+                                x={isFirst ? pt.x - 4 : pt.x + 4}
+                                y={pt.y - 12} // Place it slightly above the point
+                                fill={color || theme.primary}
+                                fontSize="12"
+                                fontWeight="bold"
+                                textAnchor={isFirst ? "start" : "end"} // Align nicely without clipping
+                            >
+                                {valueStr}
+                            </SvgText>
+                        </React.Fragment>
+                    );
                 })}
             </Svg>
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, ScrollView, View, Text, RefreshControl } from 'react-native';
+import { StyleSheet, ScrollView, View, Text, RefreshControl, FlatList } from 'react-native';
 import { useCurrentPatient } from 'src/context/PatientContext';
 import { useTheme } from 'src/context/ThemeContext';
 import { Header, MeasurementCard } from 'src/components/dashboard';
@@ -11,6 +11,7 @@ import LoadingScreen from 'src/components/LoadingScreen';
 import { ScalePressable } from 'src/components/ScalePressable';
 import { router, useFocusEffect } from 'expo-router';
 import { formatDate } from 'src/utils/date';
+import { UpdatedMeasurementCard } from 'src/components/dashboard/UpdatedMeasurementCard';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -61,20 +62,24 @@ const DashboardScreen: React.FC = () => {
   return (
     isLoading ? <LoadingScreen /> : (
 
-      <ThemedView style={[styles.safeArea, { backgroundColor: theme.backgroundDark, paddingTop: insets.top }]} >
+      <ThemedView safe style={{ backgroundColor: theme.backgroundDark, paddingTop: insets.top }} >
         <View style={styles.mainContainer}>
           {/* Header */}
           <Header name={patientName} />
 
           {/* Recent Documents Header */}
-          <View style={[styles.sectionHeader, { marginTop: 20, marginHorizontal: 7 }]}>
-            <Text style={[styles.sectionTitle, { color: theme.textGray }]}>HEALTH MEASUREMENTS</Text>
+          <View style={[styles.sectionHeader, { marginTop: 10, marginHorizontal: 7 }]}>
+            {/* <Text style={[styles.sectionTitle, { color: theme.textGray }]}>HEALTH MEASUREMENTS</Text> */}
           </View>
 
-          <ScrollView
+          <FlatList
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            data={units}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.cardWrapper}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -84,49 +89,41 @@ const DashboardScreen: React.FC = () => {
                 progressBackgroundColor={theme.backgroundLight}
               />
             }
-          >
-            <View style={styles.cardWrapper}>
+            renderItem={({ item: unit, index }) => {
+            
+              const latest = getLatest(unit);
+              const iconName = unit === 'Blood Sugar' ? 'tint' :
+                unit === 'Blood Pressure' ? 'heartbeat' :
+                  unit === 'Weight' ? 'weight' :
+                    unit === 'Heart Rate' ? 'stethoscope' : 'activity';
+              
+              const primaryColor = theme.items[index % theme.items.length].primary;
+              const secondaryColor = theme.items[index % theme.items.length].secondary;
 
-              {units.map((unit, index) => {
-                const latest = getLatest(unit);
-                const iconName = unit === 'Blood Sugar' ? 'tint' :
-                  unit === 'Blood Pressure' ? 'heartbeat' :
-                    unit === 'Weight' ? 'weight' :
-                      unit === 'Heart Rate' ? 'heartbeat' : 'activity';
-                
-                const primaryColor = theme.items[index % theme.items.length].primary;
-                const secondaryColor = theme.items[index % theme.items.length].secondary;
-                return (
-                  <ScalePressable
-                    key={index}
-                    disabled={!latest}
-                    onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(latest), primaryColor, secondaryColor } })}
-                  >
-                    <MeasurementCard
-                      id={unit.toLowerCase().replace(/\s/g, '_')}
-                      title={unit}
-                      value={latest?.numeric_value?.toString() || '--'}
-                      unit={latest?.unit?.symbol || ''}
-                      dateStr={formatDate(latest?.created_at)}
-                      iconName={iconName}
-                      color={primaryColor}
-                      colorSecondary={secondaryColor}
-                    />
-                  </ScalePressable>
-                )
-              })}
-            </View>
+              const itemHistory = measurements
+                .filter(m => m.unit.unit_name === unit)
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
+                .map(m => m.numeric_value);
 
-            {/* Smart Insight Card */}
-            {/*<InsightCard />*/}
-
-            {/* Share with Doctor */}
-            {/*<ShareCard />*/}
-
-          </ScrollView>
-
-          {/* Floating Action Button */}
-          {/* <FloatingActionButton /> */}
+              return (
+                  <UpdatedMeasurementCard
+                    id={unit.toLowerCase().replace(/\s/g, '_')}
+                    item={latest}
+                    iconName={iconName}
+                    primaryColor={primaryColor}
+                    secondaryColor={secondaryColor}
+                    itemHistory={itemHistory}
+                  />
+              )
+            }
+          }
+          ListFooterComponent={
+              <View style={{ height: 80 }}>
+                {/* Smart Insight Card */}
+                {/* Share with Doctor */}
+              </View>
+          }
+          />
         </View>
       </ThemedView>
     )
@@ -134,14 +131,12 @@ const DashboardScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   mainContainer: {
     flex: 1,
     position: 'relative',
   },
   scrollView: {
+    marginBottom: 80,
     flex: 1,
   },
   scrollContent: {
@@ -172,14 +167,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.5,
   },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
   cardWrapper: {
-    marginBottom: 80,
-    marginHorizontal: 6,
-    gap: 5,
+    marginHorizontal: 15,
+    marginVertical: 7,
+    gap: 15,
   },
 });
 

@@ -44,3 +44,25 @@ export function getTrendTitle(measurements: DashboardMeasurement[]): string {
     const unit = diffDays <= 14 ? `${diffDays} Day` : diffDays <= 60 ? `${Math.round(diffDays / 7)} Week` : `${Math.round(diffDays / 30)} Month`;
     return `${unit} Trend`;
 }
+
+export const calculatePoints = (data: number[], width: number, height: number): string => {
+    // Return empty if no data
+    if (!data || data.length === 0) return "";
+    
+    // Draw a flat line in the middle if there is only 1 data point
+    if (data.length === 1) return `0,${height / 2} ${width},${height / 2}`; 
+
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min === 0 ? 1 : max - min; // Guard against division by zero if all values are identical
+
+    return data.map((value, index) => {
+        // Spread points evenly across the width
+        const x = (index / (data.length - 1)) * width;
+        
+        // Scale the value to the height. (We subtract from height because SVG Y=0 is at the top)
+        const y = height - ((value - min) / range) * height; 
+        
+        return `${x},${y}`;
+    }).join(" "); // Joins into an SVG readable format like "0,30 20,15 40,25"
+};
