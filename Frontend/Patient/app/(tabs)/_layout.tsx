@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { UserOnly } from "src/components/auth/UserOnly";
 import CustomTabBar from "src/components/tabBar/customTabBar";
-import { MaterialIcons, Octicons } from "@expo/vector-icons";
+import { Octicons } from "@expo/vector-icons";
 
 export default function TabsLayout() {
     return (

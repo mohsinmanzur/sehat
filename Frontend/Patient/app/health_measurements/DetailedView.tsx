@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DashboardMeasurement } from 'src/types/others';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { ThemedText, ThemedView } from 'src/components';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
         lineHeight: 72,
         letterSpacing: -2,
         textShadowColor: 'rgba(0,0,0,0.2)',
-        textShadowOffset: { width: -1, height: 2 },
+        textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 1,
     },
     currentUnit: {

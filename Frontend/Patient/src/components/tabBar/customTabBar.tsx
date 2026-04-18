@@ -1,5 +1,4 @@
-// components/CustomTabBar.tsx
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, useColorScheme } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +18,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
     const TAB_INNER_WIDTH = 240 - 87;
     const TAB_ITEM_WIDTH = TAB_INNER_WIDTH / state.routes.length;
 
+    const mode = useColorScheme();
+
     const animatedStyle = useAnimatedStyle(() => {
         return {
             transform: [{ translateX: withSpring(state.index * TAB_ITEM_WIDTH, { duration: 100 }) }]
@@ -32,7 +33,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
       <View pointerEvents="none" style={styles.bottomShadowContainer}>
         <Shadow 
           distance={200} 
-          startColor={'rgb(0, 0, 0, 0.3)'}
+          startColor={'rgb(0, 0, 0, 0)'}
           sides={{ top: true, bottom: false, start: false, end: false }}
           corners={{ topStart: false, topEnd: false, bottomStart: false, bottomEnd: false }}
           style={{ width: '100%', height: 1 }}
@@ -44,7 +45,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
       <View style={[styles.container, { bottom: insets.bottom + 25}]}>
         {/* Main Tab Pill */}
-        <BlurView intensity={10} tint="default" style={styles.tabBar}>
+        <BlurView intensity={10} tint={mode == 'dark' ? 'default' : 'dark'} style={styles.tabBar}>
           <Animated.View style={[styles.slidingBackground, animatedStyle]} />
           
           {state.routes.map((route: any, index: number) => {
@@ -83,7 +84,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
         </BlurView>
 
       {/* Floating Action Button */}
-        <BlurView intensity={10} tint="default" style={styles.actionButton}>
+        <BlurView intensity={10} tint={mode === 'light' ? 'dark' : 'default'} style={styles.actionButton}>
           <ScalePressable style={styles.actionButtonInner} onPress={() => router.push('/AddNew')}>
               <MaterialIcons name="add" size={30} color={foregroundColor} />
           </ScalePressable>
@@ -125,7 +126,7 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     alignItems: 'center',
     borderWidth: theme.card === '#F3F3F4' ? 1 : 0.5,
     borderColor: '#ffffffa8',
-    backgroundColor: 'transparent'
+    backgroundColor: theme.textVeryLight === '#C0C1C8' ? theme.textVeryLight : 'transparent'
   },
   tabItem: {
     flex: 1,
@@ -156,7 +157,7 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     overflow: 'hidden',
     borderWidth: theme.card === '#F3F3F4' ? 1 : 0.5,
     borderColor: '#ffffffa8',
-    backgroundColor: 'transparent',
+    backgroundColor: theme.textVeryLight === '#C0C1C8' ? theme.textVeryLight : 'transparent'
   },
   actionButtonInner: {
     flex: 1,

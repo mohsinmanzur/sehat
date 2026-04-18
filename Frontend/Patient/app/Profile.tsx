@@ -3,7 +3,7 @@ import { useTheme } from "@context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@theme/colors";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { Snackbar } from "react-native-snackbar";
 import { ThemedText, ThemedView } from "src/components";
 import { ScalePressable } from "src/components/ScalePressable";

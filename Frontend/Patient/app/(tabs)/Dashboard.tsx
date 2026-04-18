@@ -1,16 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, ScrollView, View, Text, RefreshControl, FlatList } from 'react-native';
+import { StyleSheet, View, RefreshControl, FlatList } from 'react-native';
 import { useCurrentPatient } from 'src/context/PatientContext';
 import { useTheme } from 'src/context/ThemeContext';
-import { Header, MeasurementCard } from 'src/components/dashboard';
+import { Header } from 'src/components/dashboard';
 import { ThemedView } from 'src/components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DashboardMeasurement } from 'src/types/others';
 import backend from 'src/services/Backend/backend.service';
 import LoadingScreen from 'src/components/LoadingScreen';
-import { ScalePressable } from 'src/components/ScalePressable';
-import { router, useFocusEffect } from 'expo-router';
-import { formatDate } from 'src/utils/date';
+import { useFocusEffect } from 'expo-router';
 import { UpdatedMeasurementCard } from 'src/components/dashboard/UpdatedMeasurementCard';
 
 const DashboardScreen: React.FC = () => {

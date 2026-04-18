@@ -32,7 +32,7 @@ export const Colors = {
         secondary: '#fffaf3',
       },
       {
-        primary: '#56b6c5',
+        primary: '#13acc4',
         secondary: '#f3fdff',
       },
       {
