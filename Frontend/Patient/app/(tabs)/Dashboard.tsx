@@ -5,7 +5,7 @@ import { useTheme } from 'src/context/ThemeContext';
 import { Header } from 'src/components/dashboard';
 import { ThemedView } from 'src/components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DashboardMeasurement } from 'src/types/others';
+import { GetHealthMeasurement } from 'src/types/others';
 import backend from 'src/services/Backend/backend.service';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { useFocusEffect } from 'expo-router';
@@ -20,7 +20,7 @@ const DashboardScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [measurements, setMeasurements] = useState<DashboardMeasurement[]>([]);
+  const [measurements, setMeasurements] = useState<GetHealthMeasurement[]>([]);
   const [units, setUnits] = useState<string[]>([]);
 
   const fetchMeasurements = async () => {
@@ -29,7 +29,7 @@ const DashboardScreen: React.FC = () => {
         const data = await backend.getMeasurementsByPatient(currentPatient.id);
         setMeasurements(data || []);
 
-        const units = Array.from(new Set(data.map((m: DashboardMeasurement) => m.unit.unit_name)));
+        const units = Array.from(new Set(data.map((m: GetHealthMeasurement) => m.measurement_unit.unit_name)));
         setUnits(units as string[]);
       } catch (error) {
         console.error("Error fetching measurements:", error);
@@ -41,7 +41,7 @@ const DashboardScreen: React.FC = () => {
 
   const getLatest = (keyword: string) => {
     return measurements
-      .filter(m => m.unit.unit_name.match(keyword))
+      .filter(m => m.measurement_unit.unit_name.match(keyword))
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
   };
 
@@ -99,7 +99,7 @@ const DashboardScreen: React.FC = () => {
               const secondaryColor = theme.items[index % theme.items.length].secondary;
 
               const itemHistory = measurements
-                .filter(m => m.unit.unit_name === unit)
+                .filter(m => m.measurement_unit.unit_name === unit)
                 .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
                 .map(m => m.numeric_value);
 

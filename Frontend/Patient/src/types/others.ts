@@ -9,24 +9,6 @@ export const bloodGroups = [
     { label: 'O-', value: 'O-' },
 ]
 
-export type DashboardMeasurement = {
-    id: string;
-    numeric_value: number;
-    unit: {
-        unit_name: string;
-        symbol: string;
-    };
-    created_at: string;
-
-    special_condition: string;
-    ai_insight?: string;
-
-    anomaly_detected: boolean;
-    severity_score: number;
-    min_value: number;
-    max_value: number;
-};
-
 export type UploadMedicalDocument = {
     id?: string;
     patient_id: string;
@@ -39,3 +21,35 @@ export type UploadMedicalDocument = {
     file: string;
 
 }
+
+export type GetHealthMeasurement = {
+    id: string;
+    numeric_value: number;
+    created_at: string;
+    updated_at: string;
+    patient: {
+        id: string;
+        name: string;
+        email: string;
+        gender: string;
+        phone: string;
+        date_of_birth: string;
+        blood_group: string;
+    };
+    measurement_unit: {
+        id: string;
+        unit_name: string;
+        symbol: string;
+    };
+    medical_document: {
+        id: string;
+        patient_id: string;
+        file_name: string;
+        file_url: string;
+        record_type: 'lab_report' | 'prescription' | 'imaging' | 'other';
+        ocr_extracted_text: string;
+        date_issued: string;
+        created_at: string;
+        updated_at: string;
+    } | null;
+};

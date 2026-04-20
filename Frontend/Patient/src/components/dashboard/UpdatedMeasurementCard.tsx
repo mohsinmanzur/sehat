@@ -5,13 +5,13 @@ import { Colors } from "@theme/colors";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ScalePressable } from "../ScalePressable";
-import { DashboardMeasurement } from "../../types/others";
+import { GetHealthMeasurement } from "../../types/others";
 import { router } from "expo-router";
 import { LineChart } from 'react-native-wagmi-charts'; // 1. Import Wagmi Charts
 
 interface UpdatedMeasurementCardProps {
   id: string;
-  item: DashboardMeasurement;
+  item: GetHealthMeasurement;
   iconName: string;
   primaryColor: string;
   secondaryColor: string;
@@ -67,11 +67,11 @@ export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ 
                     {/* Title and Value */}
                     <View style={styles.titleRow}>
                         <ThemedText type={'title'} style={styles.value}>{item.numeric_value}</ThemedText>
-                        <ThemedText type={'subtitle'} style={styles.unit}> {item.unit.symbol}</ThemedText>
+                        <ThemedText type={'subtitle'} style={styles.unit}> {item.measurement_unit.symbol}</ThemedText>
                     </View>
 
                     <ThemedText type={'subtitle'} style={styles.title}>
-                        {item.unit.unit_name}
+                        {item.measurement_unit.unit_name}
                     </ThemedText>
 
                 </View>

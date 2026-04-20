@@ -1,6 +1,6 @@
 import { useTheme } from '@context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { DashboardMeasurement } from 'src/types/others';
+import { GetHealthMeasurement } from 'src/types/others';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
@@ -18,11 +18,11 @@ export default function WeightHistoryScreen() {
     const { currentPatient } = useCurrentPatient();
     const { theme } = useTheme();
     const [isLoading, setIsLoading] = useState(true);
-    const [allMeasurements, setAllMeasurements] = useState<DashboardMeasurement[]>([]);
+    const [allMeasurements, setAllMeasurements] = useState<GetHealthMeasurement[]>([]);
     const measurement = React.useMemo(() => {
         if (!data) return null;
         try {
-            return JSON.parse(data) as DashboardMeasurement;
+            return JSON.parse(data) as GetHealthMeasurement;
         } catch (e) {
             console.error("Failed to parse measurement data", e);
             return null;
@@ -37,7 +37,7 @@ export default function WeightHistoryScreen() {
                 try {
                     const results = await backend.getMeasurementsByPatient(currentPatient.id);
                     const filtered = results.filter(m =>
-                        m.unit.unit_name.toLowerCase() === measurement.unit.unit_name.toLowerCase()
+                        m.measurement_unit?.unit_name.toLowerCase() === measurement.measurement_unit?.unit_name.toLowerCase()
                     );
                     setAllMeasurements(filtered);
                 } catch (error) {
@@ -84,7 +84,7 @@ export default function WeightHistoryScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.headerIcon}>
                     <Ionicons name="arrow-back" size={22} color={theme.textGray} />
                 </TouchableOpacity>
-                <ThemedText style={[styles.headerTitle, { color: theme.textGray }]}>{measurement?.unit.unit_name} History</ThemedText>
+                <ThemedText style={[styles.headerTitle, { color: theme.textGray }]}>{measurement?.measurement_unit?.unit_name} History</ThemedText>
                 <Ionicons name="ellipsis-vertical" size={20} color={theme.textGray} style={{ opacity: 0 }} />
             </View>
             <ScrollView
@@ -94,10 +94,10 @@ export default function WeightHistoryScreen() {
             >
                 {/* ── Current Weight ── */}
                 <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-                    <Text style={[styles.currentLabel, { color: theme.textLight }]}>CURRENT {measurement?.unit.unit_name.toUpperCase()}</Text>
+                    <Text style={[styles.currentLabel, { color: theme.textLight }]}>CURRENT {measurement?.measurement_unit?.unit_name?.toUpperCase()}</Text>
                     <View style={styles.currentRow}>
                         <Text style={[styles.currentValue, { color: primaryColor || theme.primary }]}>{measurement?.numeric_value}</Text>
-                        <Text style={[styles.currentUnit, { color: primaryColor || theme.primary }]}>{measurement?.unit.symbol}</Text>
+                        <Text style={[styles.currentUnit, { color: primaryColor || theme.primary }]}>{measurement?.measurement_unit?.symbol}</Text>
                     </View>
 
                     {stats && (
@@ -105,7 +105,7 @@ export default function WeightHistoryScreen() {
                             <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
                                 {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
                             </Text>
-                            <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.unit.symbol}</Text>
+                            <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
                             <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
                         </View>
                     )}
@@ -137,7 +137,7 @@ export default function WeightHistoryScreen() {
                     </View>
 
                     <View style={[styles.logCard, { backgroundColor: theme.backgroundLight }]}>
-                        {allMeasurements.map((item, idx) => {
+                        {allMeasurements.map((item: GetHealthMeasurement, idx) => {
                             const nextItem = allMeasurements[idx + 1];
                             const delta = nextItem ? item.numeric_value - nextItem.numeric_value : undefined;
                             const isLast = idx === allMeasurements.length - 1;

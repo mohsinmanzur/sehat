@@ -6,6 +6,7 @@ import { useTheme } from 'src/context/ThemeContext';
 import { ThemedView } from 'src/components';
 import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
+import { GetHealthMeasurement } from '../../src/types/others';
 
 export default function HealthMeasurementDetailScreen() {
     const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string, primaryColor: string, secondaryColor: string }>();
@@ -16,7 +17,7 @@ export default function HealthMeasurementDetailScreen() {
     const [secureUrlLoading, setSecureUrlLoading] = useState(true);
     const [imageRatio, setImageRatio] = useState<number>(1);
 
-    let measurement = null;
+    let measurement: GetHealthMeasurement | null = null;
     try {
         measurement = JSON.parse(data);
     } catch (e) {
@@ -81,35 +82,11 @@ export default function HealthMeasurementDetailScreen() {
     // Determine colors based on status
     let themeColor = primaryColor || theme.primary;
     let lightThemeColor = secondaryColor || theme.primarySoft;
-    let icon = measurement.unit.unit_name === 'Weight' ? 'weight' : measurement.unit.unit_name === 'Blood Sugar' ? 'tint' : 'heartbeat';
-
-    switch (measurement.status) {
-        case 'Requires Review':
-        case 'Elevated':
-            themeColor = theme.warning;
-            lightThemeColor = theme.warningLight;
-            break;
-        case 'Normal':
-        case 'Completed':
-            themeColor = theme.success;
-            lightThemeColor = theme.successLight;
-            break;
-        default:
-            if (measurement.status === 'Requires Review' || measurement.status === 'High') {
-                themeColor = theme.danger;
-                lightThemeColor = theme.dangerLight;
-            }
-            break;
-    }
-
-    if (measurement.status === 'Requires Review') {
-        themeColor = theme.danger;
-        lightThemeColor = theme.dangerLight;
-    }
+    let icon = measurement.measurement_unit.unit_name === 'Weight' ? 'weight' : measurement.measurement_unit.unit_name === 'Blood Sugar' ? 'tint' : 'heartbeat';
 
     const dateObj = new Date(measurement.created_at);
     const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const displayValue = `${measurement.numeric_value} ${measurement.unit.symbol}`;
+    const displayValue = `${measurement.numeric_value} ${measurement.measurement_unit.symbol}`;
 
     return (
         <ThemedView safe style={[styles.container, { backgroundColor: theme.backgroundLight }]}>
@@ -128,7 +105,7 @@ export default function HealthMeasurementDetailScreen() {
                     </View>
 
                     <Text style={[styles.heroTitle, { color: theme.text }]}>
-                        {measurement.unit.unit_name}
+                        {measurement.measurement_unit.unit_name}
                     </Text>
 
                 </View>
@@ -139,20 +116,8 @@ export default function HealthMeasurementDetailScreen() {
                 </View>
 
                 <View style={styles.detailCard}>
-                    <Text style={[styles.detailLabel, { color: theme.textGray }]}>Category</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>{measurement.special_condition}</Text>
-                </View>
-
-                <View style={styles.detailCard}>
                     <Text style={[styles.detailLabel, { color: theme.textGray }]}>Date Recorded</Text>
                     <Text style={[styles.detailValue, { color: theme.text }]}>{displayDate}</Text>
-                </View>
-
-                <View style={styles.detailCard}>
-                    {measurement.ai_insight && <>
-                        <Text style={[styles.detailLabel, { color: theme.textGray }]}>Doctor's Note / Insight</Text>
-                        <Text style={[styles.detailDescription, { color: theme.text }]}>{measurement.ai_insight}</Text>
-                    </>}
                 </View>
 
                 {secureUrlLoading && (

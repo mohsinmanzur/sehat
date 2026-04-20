@@ -2,7 +2,7 @@ import { HealthMeasurementDTO, MeasurementUnitDTO, UpdateHealthMeasurementDTO } 
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
 import { router } from "expo-router";
-import { UploadMedicalDocument } from "../../types/others";
+import { GetHealthMeasurement, UploadMedicalDocument } from "../../types/others";
 
 enum allowedMethods {
     GET,
@@ -201,7 +201,8 @@ class Backend {
     // =========================
     // Health Measurements
     // =========================
-    async getMeasurementsByPatient(patientId: string) {
+    async getMeasurementsByPatient(patientId: string) : Promise<GetHealthMeasurement[]>
+    {
         const response = await this.request(`/health-measurement/?patient_id=${patientId}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -211,7 +212,8 @@ class Backend {
         return await response.json();
     }
 
-    async getMeasurementById(id: string) {
+    async getMeasurementById(id: string) : Promise<GetHealthMeasurement>
+    {
         const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -261,7 +263,7 @@ class Backend {
     }
 
     // =========================
-    // Health Measurements
+    // Medical Documents
     // =========================
     async getMedicalDocumentByID(Id: string)
     {

@@ -1,8 +1,8 @@
 import { useTheme } from "@context/ThemeContext";
-import { DashboardMeasurement } from "../../types/others";
+import { GetHealthMeasurement } from "../../types/others";
 import { StyleSheet, Text, View } from "react-native";
 
-export const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: DashboardMeasurement[], color?: string }> = ({ delta, unit, measurements, color }) => {
+export const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: GetHealthMeasurement[], color?: string }> = ({ delta, unit, measurements, color }) => {
     const { theme } = useTheme();
     if (delta === undefined) return null;
     const isDown = delta < 0;
