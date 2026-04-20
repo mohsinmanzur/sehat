@@ -7,6 +7,7 @@ import { ThemedView } from 'src/components';
 import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
 import { GetHealthMeasurement } from '../../src/types/others';
+import { GhostElement } from 'src/components/GhostElement';
 
 export default function HealthMeasurementDetailScreen() {
     const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string, primaryColor: string, secondaryColor: string }>();
@@ -15,7 +16,7 @@ export default function HealthMeasurementDetailScreen() {
 
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
     const [secureUrlLoading, setSecureUrlLoading] = useState(true);
-    const [imageRatio, setImageRatio] = useState<number>(1);
+    const [imageRatio, setImageRatio] = useState<number>(3 / 4);
 
     let measurement: GetHealthMeasurement | null = null;
     try {
@@ -89,7 +90,7 @@ export default function HealthMeasurementDetailScreen() {
     const displayValue = `${measurement.numeric_value} ${measurement.measurement_unit.symbol}`;
 
     return (
-        <ThemedView safe style={[styles.container, { backgroundColor: theme.backgroundLight }]}>
+        <ThemedView safe style={[styles.container, { backgroundColor: theme.backgroundDark }]}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.headerTop}>
                     <TouchableOpacity onPress={() => router.back()} style={{ width: 36, height: 36, justifyContent: 'center', alignItems: 'center', marginLeft: -5 }}>
@@ -122,7 +123,8 @@ export default function HealthMeasurementDetailScreen() {
 
                 {secureUrlLoading && (
                     <View style={styles.imageContainer}>
-                        <ActivityIndicator size="large" color={theme.primary} />
+                        <Text style={[styles.detailLabel, { color: theme.textGray, marginBottom: 8 }]}>Attached Document</Text>
+                        <GhostElement style={[styles.attachedImage, { aspectRatio: imageRatio }]} />
                     </View>
                 )}
 
@@ -131,7 +133,7 @@ export default function HealthMeasurementDetailScreen() {
                         <Text style={[styles.detailLabel, { color: theme.textGray, marginBottom: 8 }]}>Attached Document</Text>
                         <Image 
                             source={{ uri: secureUrl }} 
-                            style={[styles.attachedImage, { aspectRatio: imageRatio }]} 
+                            style={[styles.attachedImage, { aspectRatio: imageRatio, backgroundColor: theme.backgroundLight }]} 
                             resizeMode="contain"
                         />
                     </View>
@@ -270,7 +272,6 @@ const styles = StyleSheet.create({
     attachedImage: {
         width: '100%',
         borderRadius: 16,
-        backgroundColor: '#f5f5f5', // So users see it while loading
         marginTop: 8
     }
 });

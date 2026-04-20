@@ -1,4 +1,4 @@
-import { DashboardMeasurement } from "../types/others";
+import { GetHealthMeasurement } from "../types/others";
 
 export function buildSmoothPath(points: { x: number; y: number }[]): string {
     if (points.length < 2) return '';
@@ -35,7 +35,7 @@ export function formatChartDate(dateStr: string): string {
 }
 
 // ─── Trend title ──────────────────────────────────────────────────────────────
-export function getTrendTitle(measurements: DashboardMeasurement[]): string {
+export function getTrendTitle(measurements: GetHealthMeasurement[]): string {
     if (measurements.length < 2) return 'Trend';
     const start = new Date(measurements[measurements.length - 1].created_at);
     const end = new Date(measurements[0].created_at);

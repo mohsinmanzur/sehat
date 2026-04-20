@@ -13,6 +13,7 @@ import { ScalePressable } from "src/components/ScalePressable";
 import { CustomTimePickerModal } from "src/components";
 import { router } from "expo-router";
 import { useGlobalContext } from "@context/GlobalContext";
+import { Snackbar } from "react-native-snackbar";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
     
@@ -40,14 +41,13 @@ export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date,
 export default function Share()
 {
     const { theme } = useTheme();
-    const { selectedReports } = useGlobalContext();
+    const { selectedReports, setSelectedReports } = useGlobalContext();
 
     const styles = StylesFunc(theme);
 
-    const [revokingId, setRevokingId] = useState<string | null>(null);
-
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
 
+    const [revokingId, setRevokingId] = useState<string | null>(null);
     const [selectedTime, setSelectedTime] = useState({ days: 0, hours: 1, minutes: 0 });
 
     const handleRevokeAccess = (id: string) => {
@@ -68,18 +68,31 @@ export default function Share()
                     <ThemedText type={'h2'} style={{ marginRight: 10 }}>Select Reports</ThemedText>
                 
                     {selectedReports.size > 0 && (
-                        <View style={styles.selectedReportsCountContainer}>
+                        <ScalePressable
+                            style={styles.selectedReportsCountContainer}
+                            onPress={() => {
+                                setSelectedReports(new Set());
+                                Snackbar.show({ text: 'Cleared selected reports', duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.primarySoft, textColor: theme.primary });
+                            }}
+                        >
                             <ThemedText style={styles.selectedReportsCount}>{selectedReports.size} Selected</ThemedText>
-                        </View>
+                        
+                            <FontAwesome5 name="times" color={theme.primary} size={13} style={{ marginTop: 1.3 }} />
+                        </ScalePressable>
                     )}
                 </View>
 
                 <ScalePressable style={styles.selectReportsButton} onPress={() => router.navigate({ pathname: 'health_measurements/SelectReports' })}>
-                    <FontAwesome5 name="file-medical" color={theme.textLight} size={21} style={{ marginRight: 7 }} />
+                    <FontAwesome5
+                        name="file-medical"
+                        color={ selectedReports.size > 0 ? theme.primary : theme.textLight}
+                        size={21}
+                        style={{ marginRight: 7 }}
+                    />
                 </ScalePressable>
-            </View>
 
-            <View style={[styles.templateContainer, { marginTop: 15 } ]}>
+                <Spacer height={30} />
+
                 <ThemedText type={'h2'} style={{ marginRight: 10 }}>
                     Access Time
                 </ThemedText>
@@ -115,9 +128,9 @@ export default function Share()
                         <View style={styles.doctorIconContainer}>
                             <SvgXml xml={doctorSvg} />
                         </View>
-                        <View>
-                            <ThemedText type={'h3'}>{item.doctor.name}</ThemedText>
-                            <ThemedText style={styles.doctorInfo}>
+                        <View style={{ flex: 1, paddingRight: 20 }}>
+                            <ThemedText type={'h3'} numberOfLines={1} ellipsizeMode="tail">{item.doctor.name}</ThemedText>
+                            <ThemedText style={styles.doctorInfo} numberOfLines={1} ellipsizeMode="tail">
                                 {item.doctor.specialization} • {item.doctor.associated_hospital}
                             </ThemedText>
 
@@ -185,7 +198,7 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
     },
     accessDoctorInfoRow: {
         flexDirection: 'row',
-        gap: 10
+        gap: 15
     },
     timeRow: {
         flexDirection: 'row',
@@ -223,7 +236,10 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: 13
+        borderRadius: 13,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10
     },
     selectedReportsCount: {
         color: theme.primary,

@@ -1,9 +1,8 @@
 import { useTheme } from '@context/ThemeContext';
-import { Ionicons } from '@expo/vector-icons';
 import { GetHealthMeasurement } from 'src/types/others';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
 import { ThemedText, ThemedView } from 'src/components';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
@@ -13,6 +12,7 @@ import { getTrendTitle } from 'src/helpers/detailed_view.helpers';
 import { LogRow } from 'src/components/detailed_view/log_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
 import { Header } from 'src/components/detailed_view/header';
+import { GhostElement } from 'src/components/GhostElement';
 
 export default function WeightHistoryScreen() {
     const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: any; primaryColor: string; secondaryColor: string }>();
@@ -115,11 +115,19 @@ export default function WeightHistoryScreen() {
                 >
                     <View style={styles.cardHeader}>
                         <View>
-                            <Text style={[styles.cardTitle, { color: theme.text }]}>{trendTitle}</Text>
+                            {isLoading ? (
+                                <GhostElement style={{ height: 20, width: 150, borderRadius: 4, marginBottom: 3 }} />
+                            ) : (
+                                <Text style={[styles.cardTitle, { color: theme.text }]}>{trendTitle}</Text>
+                            )}
                         </View>
                     </View>
 
-                    {!isLoading && <WeightChart measurements={allMeasurements} color={primaryColor} />}
+                    {isLoading ? (
+                        <GhostElement style={{ height: 180, borderRadius: 12, marginTop: 10 }} />
+                    ) : (
+                        <WeightChart measurements={allMeasurements} color={primaryColor} />
+                    )}
                 </Animated.View>
 
                 {/* ── Daily Log ── */}
@@ -132,26 +140,41 @@ export default function WeightHistoryScreen() {
                     </View>
 
                     <View style={[styles.logCard, { backgroundColor: theme.backgroundLight }]}>
-                        {allMeasurements.map((item: GetHealthMeasurement, idx) => {
-                            const nextItem = allMeasurements[idx + 1];
-                            const delta = nextItem ? item.numeric_value - nextItem.numeric_value : undefined;
-                            const isLast = idx === allMeasurements.length - 1;
-                            return (
-                                <ScalePressable
-                                    onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item), primaryColor, secondaryColor } }) }}
-                                    key={item.id}
-                                >
-                                    <LogRow
+                        {isLoading ? (
+                            <View style={{ padding: 16, gap: 16 }}>
+                                {[1, 2, 3, 4].map(key => (
+                                    <View key={key} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                        <GhostElement style={{ width: 44, height: 44, borderRadius: 22 }} />
+                                        <View style={{ flex: 1, gap: 8 }}>
+                                            <GhostElement style={{ width: '50%', height: 16, borderRadius: 4 }} />
+                                            <GhostElement style={{ width: '30%', height: 12, borderRadius: 4 }} />
+                                        </View>
+                                        <GhostElement style={{ width: 30, height: 16, borderRadius: 4 }} />
+                                    </View>
+                                ))}
+                            </View>
+                        ) : (
+                            allMeasurements.map((item: GetHealthMeasurement, idx) => {
+                                const nextItem = allMeasurements[idx + 1];
+                                const delta = nextItem ? item.numeric_value - nextItem.numeric_value : undefined;
+                                const isLast = idx === allMeasurements.length - 1;
+                                return (
+                                    <ScalePressable
+                                        onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item), primaryColor, secondaryColor } }) }}
                                         key={item.id}
-                                        item={item}
-                                        isLast={isLast}
-                                        delta={delta}
-                                        measurements={allMeasurements}
-                                        color={primaryColor}
-                                    />
-                                </ScalePressable>
-                            );
-                        })}
+                                    >
+                                        <LogRow
+                                            key={item.id}
+                                            item={item}
+                                            isLast={isLast}
+                                            delta={delta}
+                                            measurements={allMeasurements}
+                                            color={primaryColor}
+                                        />
+                                    </ScalePressable>
+                                );
+                            })
+                        )}
                     </View>
                 </Animated.View>
             </ScrollView>

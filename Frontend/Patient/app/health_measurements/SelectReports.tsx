@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { ThemedText, ThemedView } from "src/components";
 import { Header } from "src/components/detailed_view/header";
@@ -12,6 +12,8 @@ import { formatFullDateTime } from 'src/utils/date';
 import { ScalePressable } from 'src/components/ScalePressable';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useGlobalContext } from '@context/GlobalContext';
+import { router } from 'expo-router';
+import { GhostElement } from 'src/components/GhostElement';
 
 const SelectReportsScreen = () => {
     const { theme } = useTheme();
@@ -57,7 +59,13 @@ const SelectReportsScreen = () => {
                 </ThemedText>
 
                 {/* Filters */}
-                { !isLoading  &&
+                { isLoading ?
+                    <View style={[styles.filterScroll, { flexDirection: 'row', gap: 10, paddingRight: 20 }]}>
+                        <GhostElement style={{ width: 60, height: 32, borderRadius: 20 }} />
+                        <GhostElement style={{ width: 120, height: 32, borderRadius: 20 }} />
+                        <GhostElement style={{ width: 100, height: 32, borderRadius: 20 }} />
+                    </View>
+                :
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
                         {units.map(f => {
                             const isActive = activeFilter === f;
@@ -105,12 +113,25 @@ const SelectReportsScreen = () => {
 
                 {/* List Items */}
                 { isLoading ? 
-                    <ActivityIndicator animating={isLoading} color={theme.primary} />
+                    <View style={styles.listContainer}>
+                        {[1, 2, 3, 4, 5].map(key => (
+                            <View key={key} style={[styles.listItem, { backgroundColor: theme.backgroundLight }]}>
+                                <GhostElement style={[styles.iconContainer, { backgroundColor: theme.backgroundDark }]} />
+                                
+                                <View style={styles.itemContent}>
+                                    <View style={styles.valRow}>
+                                        <GhostElement style={{ width: '40%', height: 20, borderRadius: 4, marginBottom: 4 }} />
+                                    </View>
+                                    <GhostElement style={{ width: '70%', height: 14, borderRadius: 4 }} />
+                                </View>
+                            </View>
+                        ))}
+                    </View>
                 :
                     <View style={styles.listContainer}>
                         {measurements.filter(item => activeFilter === 'All' || item.measurement_unit.unit_name === activeFilter).map(item => {
                             const isSelected = selectedReports.has(item.id);
-                            const unitIndex = units.indexOf(item.measurement_unit.unit_name);
+                            const unitIndex = units.indexOf(item.measurement_unit.unit_name) - 1; // subtract 1 to account for 'All' at index 0, aligning with Dashboard
                             const primaryColor = theme.items[unitIndex % theme.items.length]?.primary || theme.primary;
                             const secondaryColor = theme.items[unitIndex % theme.items.length]?.secondary || theme.primarySoft;
                             const iconName = iconMap[item.measurement_unit.unit_name] || 'activity';
@@ -149,16 +170,16 @@ const SelectReportsScreen = () => {
             </ScrollView>
 
             {/* Bottom Bar */}
-            <View style={[styles.bottomBar, { backgroundColor: theme.backgroundDark }]}>
-                <View>
-                    <ThemedText style={styles.selectedCount}>{selectedReports.size} items</ThemedText>
-                    <ThemedText style={styles.selectedCountSub}>selected</ThemedText>
+            { selectedReports.size > 0 &&
+                <View style={[styles.bottomBar]}>
+                    <ScalePressable
+                        style={[styles.proceedBtn, { backgroundColor: theme.primary }]}
+                        onPress={() => { router.back() }}
+                    >
+                        <Ionicons name="arrow-forward" size={23} color="#fff" />
+                    </ScalePressable>
                 </View>
-                <TouchableOpacity style={[styles.proceedBtn, { backgroundColor: theme.primary }]} activeOpacity={0.8}>
-                    <ThemedText style={styles.proceedBtnText}>Proceed to Share </ThemedText>
-                    <Ionicons name="arrow-forward" size={18} color="#fff" />
-                </TouchableOpacity>
-            </View>
+            }
         </ThemedView>
     );
 }
@@ -261,11 +282,10 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderTopWidth: 1,
+        paddingHorizontal: 30,
+        paddingVertical: 40,
     },
     selectedCount: {
         fontSize: 16,
@@ -276,16 +296,11 @@ const styles = StyleSheet.create({
         color: '#6b7280',
     },
     proceedBtn: {
-        flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 14,
-        borderRadius: 12,
-    },
-    proceedBtnText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: '600',
+        borderRadius: 100,
+        elevation: 1,
     },
 });
 
