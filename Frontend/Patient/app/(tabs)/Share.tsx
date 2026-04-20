@@ -11,16 +11,18 @@ import { SvgXml } from "react-native-svg";
 import { doctorSvg } from "../../src/constants/avatars";
 import { ScalePressable } from "src/components/ScalePressable";
 import { CustomTimePickerModal } from "src/components";
-import { SelectMeasurementsComponent } from "src/components/share/SelectMeasurements";
+import { router } from "expo-router";
+import { useGlobalContext } from "@context/GlobalContext";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
     
     const calculateTimeLeft = () => {
         const difference = new Date(expiresAt).getTime() - new Date().getTime();
         if (difference <= 0) return 'Expired';
-        const hours = Math.floor((difference / (1000 * 60 * 60))); 
+        const days = Math.floor((difference / (1000 * 60 * 60 * 24)));
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((difference / (1000 * 60)) % 60);
-        return `${hours}H ${minutes}M`;
+        return `${days}D ${hours}H ${minutes}M`;
     };
 
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
@@ -38,13 +40,13 @@ export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date,
 export default function Share()
 {
     const { theme } = useTheme();
+    const { selectedReports } = useGlobalContext();
+
     const styles = StylesFunc(theme);
 
     const [revokingId, setRevokingId] = useState<string | null>(null);
-    const [selectedReports, setSelectedReports] = useState<string[]>(['a']);
 
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
-    const [isMeasurementPickerVisible, setIsMeasurementPickerVisible] = useState(false);
 
     const [selectedTime, setSelectedTime] = useState({ days: 0, hours: 1, minutes: 0 });
 
@@ -65,19 +67,17 @@ export default function Share()
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <ThemedText type={'h2'} style={{ marginRight: 10 }}>Select Reports</ThemedText>
                 
-                    {selectedReports.length > 0 && (
+                    {selectedReports.size > 0 && (
                         <View style={styles.selectedReportsCountContainer}>
-                            <ThemedText style={styles.selectedReportsCount}>{selectedReports.length} Selected</ThemedText>
+                            <ThemedText style={styles.selectedReportsCount}>{selectedReports.size} Selected</ThemedText>
                         </View>
                     )}
                 </View>
 
-                <ScalePressable style={styles.selectReportsButton} onPress={() => setIsMeasurementPickerVisible(true)}>
+                <ScalePressable style={styles.selectReportsButton} onPress={() => router.navigate({ pathname: 'health_measurements/SelectReports' })}>
                     <FontAwesome5 name="file-medical" color={theme.textLight} size={21} style={{ marginRight: 7 }} />
                 </ScalePressable>
             </View>
-
-            <SelectMeasurementsComponent visible={isMeasurementPickerVisible} onClose={() => setIsMeasurementPickerVisible(false)} />
 
             <View style={[styles.templateContainer, { marginTop: 15 } ]}>
                 <ThemedText type={'h2'} style={{ marginRight: 10 }}>
@@ -109,7 +109,7 @@ export default function Share()
                 {access_grant_data.length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }}/>}
             </View>
 
-            {access_grant_data.map((item) => (
+            {access_grant_data.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).map((item) => (
                 <View key={item.id} style={styles.accessView}>
                     <View style={styles.accessDoctorInfoRow}>
                         <View style={styles.doctorIconContainer}>

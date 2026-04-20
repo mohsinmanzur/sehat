@@ -12,6 +12,7 @@ import { ScalePressable } from 'src/components/ScalePressable';
 import { getTrendTitle } from 'src/helpers/detailed_view.helpers';
 import { LogRow } from 'src/components/detailed_view/log_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
+import { Header } from 'src/components/detailed_view/header';
 
 export default function WeightHistoryScreen() {
     const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: any; primaryColor: string; secondaryColor: string }>();
@@ -80,13 +81,7 @@ export default function WeightHistoryScreen() {
     return (
         <ThemedView safe style={{ backgroundColor: theme.backgroundDark }}>
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: 'transparent' }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.headerIcon}>
-                    <Ionicons name="arrow-back" size={22} color={theme.textGray} />
-                </TouchableOpacity>
-                <ThemedText style={[styles.headerTitle, { color: theme.textGray }]}>{measurement?.measurement_unit?.unit_name} History</ThemedText>
-                <Ionicons name="ellipsis-vertical" size={20} color={theme.textGray} style={{ opacity: 0 }} />
-            </View>
+            <Header title={`${measurement?.measurement_unit?.unit_name} History`} />
             <ScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
@@ -167,36 +162,6 @@ export default function WeightHistoryScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-    },
-
-    // Header
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-    },
-    headerIcon: {
-        width: 36,
-        height: 36,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerBtn: {
-        width: 36,
-        height: 36,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    headerBtnIcon: {
-        fontSize: 22,
-        fontWeight: '400',
-    },
-    headerTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        letterSpacing: 0.2,
     },
 
     // Scroll

@@ -10,6 +10,7 @@ import backend from 'src/services/Backend/backend.service';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { useFocusEffect } from 'expo-router';
 import { UpdatedMeasurementCard } from 'src/components/dashboard/UpdatedMeasurementCard';
+import { iconMap } from '../../src/constants/general';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -90,10 +91,7 @@ const DashboardScreen: React.FC = () => {
             renderItem={({ item: unit, index }) => {
             
               const latest = getLatest(unit);
-              const iconName = unit === 'Blood Sugar' ? 'tint' :
-                unit === 'Blood Pressure' ? 'heartbeat' :
-                  unit === 'Weight' ? 'weight' :
-                    unit === 'Heart Rate' ? 'stethoscope' : 'activity';
+              const iconName = iconMap[unit] || 'activity';
               
               const primaryColor = theme.items[index % theme.items.length].primary;
               const secondaryColor = theme.items[index % theme.items.length].secondary;
