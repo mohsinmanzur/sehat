@@ -1,21 +1,22 @@
-import { useColorScheme, View, ViewProps, KeyboardAvoidingView, Platform } from 'react-native'
+import { useColorScheme, View, KeyboardAvoidingView, Platform, ScrollView, ScrollViewProps } from 'react-native'
 import React from 'react'
 import { Colors } from '../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export interface SafeViewProps extends ViewProps {
+export interface SafeViewProps extends ScrollViewProps {
   safe?: boolean;
   keyboardAvoid?: boolean;
+  scroll?: boolean;
 }
 
-export const ThemedView = ({ safe = false, keyboardAvoid = false, style, ...props }: SafeViewProps) => {
+export const ThemedView = ({ safe = false, keyboardAvoid = false, scroll = false, style, ...props }: SafeViewProps) => {
   const colorScheme = useColorScheme() ?? 'dark';
   const theme = Colors[colorScheme];
 
   const insets = useSafeAreaInsets();
 
-  const Component = keyboardAvoid ? KeyboardAvoidingView : View;
-  const keyboardProps = keyboardAvoid
+  const Component: React.ElementType = scroll ? ScrollView : (keyboardAvoid ? KeyboardAvoidingView : View);
+  const keyboardProps = keyboardAvoid && !scroll
     ? {
       behavior: 'padding' as const,
       keyboardVerticalOffset: Platform.OS === 'ios' ? 0 : 12,
@@ -39,7 +40,7 @@ export const ThemedView = ({ safe = false, keyboardAvoid = false, style, ...prop
         style
       ]}
       {...keyboardProps}
-      {...props}
+      {...(props as any)}
     />
   )
 }

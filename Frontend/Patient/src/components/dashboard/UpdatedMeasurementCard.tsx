@@ -36,7 +36,7 @@ export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ 
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 15, maxWidth: '48%' }} >
+        <View style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 15, maxWidth: '48%', elevation: 0 }} >
             <ScalePressable
                 key={id}
                 style={{ flex: 1 }}

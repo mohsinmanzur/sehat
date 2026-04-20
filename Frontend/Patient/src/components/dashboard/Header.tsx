@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
-import { createAvatar } from '@dicebear/core';
-import { personas } from '@dicebear/collection';
 import { SvgXml } from 'react-native-svg';
 import { router } from 'expo-router';
+import { userSvg } from "../../constants/avatars";
 
 interface HeaderProps {
   name: string;
@@ -15,32 +14,11 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ name, avatarUrl }) => {
   const { theme } = useTheme();
 
-  const avatar = createAvatar(personas, {
-    "backgroundColor": [
-      "b6e3f4",
-      "d1d4f9",
-      "c0aede",
-      "ffd5dc",
-      "ffdfbf"
-    ],
-    "scale": 90,
-    "translateY": 5,
-    "seed": "Brooklynn",
-    "eyes": ["happy"],
-    "mouth": ["smile"],
-    "body": [
-      "checkered",
-      "rounded",
-      "squared"
-    ]
-  });
-  const svg = avatar.toString();
-
   return (
     <View style={styles.container}>
       <Pressable style={({ pressed }) => [styles.leftSection, {opacity: pressed ? 0.7 : 1}]} onPress={() => router.push('/Profile')}>
         <View style={[styles.avatar, { overflow: 'hidden' }]}>
-          <SvgXml xml={svg} width="100%" height="100%" />
+          <SvgXml xml={userSvg} width="100%" height="100%" />
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.welcomeText, { color: theme.textLight }]}>WELCOME BACK</Text>

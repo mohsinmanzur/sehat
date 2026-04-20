@@ -8,3 +8,4 @@ export * from './LoadingScreen';
 export * from './Spacer';
 export * from './ThemedTextInput';
 export * from './Divider';
+export * from './common/CustomTimePickerModal';

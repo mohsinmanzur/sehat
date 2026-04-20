@@ -34,7 +34,7 @@ const ProfileScreen: React.FC = () => {
             </Pressable>
 
             <ScalePressable style={styles.logoutButtton} onPress={handleLogout}>
-                <ThemedText>Logout</ThemedText>
+                <ThemedText style={{ color: '#FFFFFF' }}>Logout</ThemedText>
             </ScalePressable>
         </ThemedView>
     );
