@@ -4,7 +4,7 @@ import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from 'src/entities/health_measurement.entity';
-import { DashboardMeasurement } from './dto/get-measurements.dto';
+import { GetHealthMeasurement } from './dto/get-measurements.dto';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 
 @Controller('health-measurement')
@@ -15,7 +15,7 @@ export class HealthMeasurementController {
   async getHealthMeasurements(
     @Query('patient_id') patient_id?: string,
     @Query('id') id?: string
-  ): Promise<DashboardMeasurement[] | Health_Measurement | Health_Measurement[] | null> {
+  ): Promise<GetHealthMeasurement[] | GetHealthMeasurement | Health_Measurement[] | null> {
     if (patient_id) {
       return await this.healthMeasurementService.getHealthMeasurementsByPatient(patient_id);
     }

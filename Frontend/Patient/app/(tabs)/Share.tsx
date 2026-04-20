@@ -11,6 +11,7 @@ import { SvgXml } from "react-native-svg";
 import { doctorSvg } from "../../src/constants/avatars";
 import { ScalePressable } from "src/components/ScalePressable";
 import { CustomTimePickerModal } from "src/components";
+import { SelectMeasurementsComponent } from "src/components/share/SelectMeasurements";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
     
@@ -43,6 +44,8 @@ export default function Share()
     const [selectedReports, setSelectedReports] = useState<string[]>(['a']);
 
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
+    const [isMeasurementPickerVisible, setIsMeasurementPickerVisible] = useState(false);
+
     const [selectedTime, setSelectedTime] = useState({ days: 0, hours: 1, minutes: 0 });
 
     const handleRevokeAccess = (id: string) => {
@@ -69,10 +72,12 @@ export default function Share()
                     )}
                 </View>
 
-                <ScalePressable style={styles.selectReportsButton}>
+                <ScalePressable style={styles.selectReportsButton} onPress={() => setIsMeasurementPickerVisible(true)}>
                     <FontAwesome5 name="file-medical" color={theme.textLight} size={21} style={{ marginRight: 7 }} />
                 </ScalePressable>
             </View>
+
+            <SelectMeasurementsComponent visible={isMeasurementPickerVisible} onClose={() => setIsMeasurementPickerVisible(false)} />
 
             <View style={[styles.templateContainer, { marginTop: 15 } ]}>
                 <ThemedText type={'h2'} style={{ marginRight: 10 }}>

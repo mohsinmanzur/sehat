@@ -4,11 +4,11 @@ import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
 import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from 'src/entities/health_measurement.entity';
-import { Reference_Range } from 'src/entities/reference_range.entity';
-import { AI_Analysis } from 'src/entities/ai_analysis.entity';
+import { Patient } from 'src/entities/patient.entity';
+import { Medical_Document } from 'src/entities/medical_document.entity';
 import { Repository } from 'typeorm';
-import { DashboardMeasurement } from './dto/get-measurements.dto';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
+import { GetHealthMeasurement } from './dto/get-measurements.dto';
 
 @Injectable()
 export class HealthMeasurementService {
@@ -21,51 +21,33 @@ export class HealthMeasurementService {
         return await this.healthMeasurementRepo.find();
     }
 
-    async getHealthMeasurementsByPatient(patient_id: string): Promise<DashboardMeasurement[]> {
-        const rawResults = await this.healthMeasurementRepo.createQueryBuilder('hm')
-            .leftJoin(Measurement_Unit, 'mu', 'hm.unit_id = mu.id')
-            .leftJoin(Reference_Range, 'rr', 'hm.unit_id = rr.unit_id')
-            .leftJoin(AI_Analysis, 'ai', 'hm.document_id = ai.document_id')
-            .select([
-                'hm.id AS id',
-                'hm.numeric_value AS numeric_value',
-                'hm.created_at AS created_at',
-                'mu.unit_name AS unit_name',
-                'mu.symbol AS symbol',
-                'rr.special_condition AS special_condition',
-                'rr.min_value AS min_value',
-                'rr.max_value AS max_value',
-                'ai.suggested_text AS ai_insight',
-                'ai.severity_score AS severity_score',
-                'ai.anomaly_detected AS anomaly_detected'
-            ])
+    async getHealthMeasurementsByPatient(patient_id: string): Promise<GetHealthMeasurement[]> {
+        const measurements = await this.healthMeasurementRepo.createQueryBuilder('hm')
+            .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
+            .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
+            .leftJoinAndMapOne('hm.medical_document', Medical_Document, 'medical_document', 'hm.document_id = medical_document.id')
             .where('hm.patient_id = :patient_id', { patient_id })
             .orderBy('hm.created_at', 'DESC')
-            .getRawMany();
+            .getMany();
 
-        return rawResults.map(raw => {
-            return {
-                id: raw.id,
-                numeric_value: Number(raw.numeric_value),
-                unit: {
-                    unit_name: raw.unit_name || 'Measurement',
-                    symbol: raw.symbol || ''
-                },
-                created_at: raw.created_at,
-                special_condition: raw.special_condition || 'GENERAL',
-                ai_insight: raw.ai_insight || null,
-
-                // Raw fields from the database for the frontend to compute status
-                anomaly_detected: raw.anomaly_detected || false,
-                severity_score: Number(raw.severity_score) || 0,
-                min_value: Number(raw.min_value) || 0,
-                max_value: Number(raw.max_value) || 0
-            };
+        return measurements.map((m: any) => {
+            const { patient_id, unit_id, document_id, ...rest } = m;
+            return rest as GetHealthMeasurement;
         });
     }
 
-    async getHealthMeasurementById(id: string): Promise<Health_Measurement | null> {
-        return await this.healthMeasurementRepo.findOneBy({ id });
+    async getHealthMeasurementById(id: string): Promise<GetHealthMeasurement | null> {
+        const measurement = await this.healthMeasurementRepo.createQueryBuilder('hm')
+            .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
+            .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
+            .leftJoinAndMapOne('hm.medical_document', Medical_Document, 'medical_document', 'hm.document_id = medical_document.id')
+            .where('hm.id = :id', { id })
+            .getOne();
+
+        if (!measurement) return null;
+
+        const { patient_id, unit_id, document_id, ...rest } = measurement as any;
+        return rest as GetHealthMeasurement;
     }
 
     async createHealthMeasurement(measurement: CreateMeasurementDto): Promise<Health_Measurement> {

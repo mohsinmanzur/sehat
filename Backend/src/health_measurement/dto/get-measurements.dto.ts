@@ -1,18 +1,13 @@
-export type DashboardMeasurement = {
+import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
+import { Patient } from 'src/entities/patient.entity';
+import { Medical_Document } from 'src/entities/medical_document.entity';
+
+export type GetHealthMeasurement = {
     id: string;
     numeric_value: number;
-    unit: {
-        unit_name: string;
-        symbol: string;
-    };
-    created_at: string;
-
-    special_condition: string;
-    ai_insight?: string;
-
-    // Raw fields from the database for the frontend to compute status
-    anomaly_detected: boolean;
-    severity_score: number;
-    min_value: number;
-    max_value: number;
+    created_at: Date;
+    updated_at: Date;
+    patient: Patient;
+    measurement_unit: Measurement_Unit;
+    medical_document: Medical_Document | null;
 };
