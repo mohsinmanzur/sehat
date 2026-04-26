@@ -11,4 +11,7 @@ export class CreateMeasurementUnitDto
 
     @IsString()
     symbol: string;
+
+    @IsString()
+    measurement_group: string;
 }

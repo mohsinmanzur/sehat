@@ -40,6 +40,7 @@ export type GetHealthMeasurement = {
         id: string;
         unit_name: string;
         symbol: string;
+        measurement_group: string;
     };
     medical_document: {
         id: string;

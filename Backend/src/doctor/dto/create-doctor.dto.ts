@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsPhoneNumber, IsString, IsUUID } from "class-validator";
+import { IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString, IsUUID } from "class-validator";
 
 export class CreateDoctorDTO
 {
@@ -11,6 +11,9 @@ export class CreateDoctorDTO
 
     @IsEmail()
     email: string;
+
+    @IsEnum(['male', 'female', 'other'])
+    gender: string;
 
     @IsPhoneNumber()
     phone: string;

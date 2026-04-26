@@ -1,8 +1,8 @@
 import { HealthMeasurementDTO, MeasurementUnitDTO, UpdateHealthMeasurementDTO } from "../../types/dto";
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
-import { router } from "expo-router";
 import { GetHealthMeasurement, UploadMedicalDocument } from "../../types/others";
+import { removeValue } from "../Storage/storage.service";
 
 enum allowedMethods {
     GET,
@@ -15,9 +15,15 @@ class Backend {
     private baseUrl: string;
     private jwtToken: string | null = null;
     private refreshToken: string | null = null;
+    private isRefreshing: boolean = false;
+    private onLogoutCallback: (() => void) | null = null;
 
     constructor() {
         this.baseUrl = 'https://sehatscan-abgtfbb6cmgmgugr.uaenorth-01.azurewebsites.net';
+    }
+
+    setOnLogout(callback: () => void) {
+        this.onLogoutCallback = callback;
     }
 
     // =========================
@@ -34,27 +40,35 @@ class Backend {
     }
 
     async refreshJWT() {
-        if (!this.refreshToken) throw new Error('No refresh token available');
-
-        const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-            method: allowedMethods[allowedMethods.POST],
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.refreshToken}`,
-            }
-        });
-
-        if (!response.ok)
-        {
+        if (this.isRefreshing) return false;
+        if (!this.refreshToken) {
             await this.logout();
-            router.replace('/Login');
-            throw new Error(`Error in refreshing token: ${response.status} ${await response.text()}`);
+            return false;
         }
-        const data = await response.json();
-        this.jwtToken = data.jwt;
-        await SecureStore.setItemAsync('jwtToken', data.jwt);
 
-        return true;
+        this.isRefreshing = true;
+        try {
+            const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+                method: allowedMethods[allowedMethods.POST],
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.refreshToken}`,
+                }
+            });
+
+            if (!response.ok) {
+                await this.logout();
+                return false;
+            }
+
+            const data = await response.json();
+            this.jwtToken = data.jwt;
+            await SecureStore.setItemAsync('jwtToken', data.jwt);
+
+            return true;
+        } finally {
+            this.isRefreshing = false;
+        }
     }
 
     private async request(endpoint: string, method: allowedMethods, body?: any, _isRetry = false, content_type: string | null = 'application/json'): Promise<Response> {
@@ -83,11 +97,15 @@ class Backend {
 
         const response = await fetch(`${this.baseUrl}${endpoint}`, options);
 
-        if (response.status === 401 && this.refreshToken && !_isRetry) {
+        if (response.status === 401 && !_isRetry) {
             const refreshed = await this.refreshJWT();
 
             if (refreshed) {
                 return await this.request(endpoint, method, body, true);
+            } else {
+                // If refresh failed (or was already handled by logout in refreshJWT)
+                // we return the 401 so the caller can handle it if needed.
+                return response;
             }
         }
 
@@ -153,6 +171,10 @@ class Backend {
         this.refreshToken = null;
         await SecureStore.deleteItemAsync('jwtToken');
         await SecureStore.deleteItemAsync('refreshToken');
+        await removeValue('currentPatient');
+        if (this.onLogoutCallback) {
+            this.onLogoutCallback();
+        }
     }
 
     // =========================

@@ -7,7 +7,6 @@ import { ThemedView } from 'src/components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GetHealthMeasurement } from 'src/types/others';
 import backend from 'src/services/Backend/backend.service';
-import LoadingScreen from 'src/components/LoadingScreen';
 import { useFocusEffect } from 'expo-router';
 import { UpdatedMeasurementCard } from 'src/components/dashboard/UpdatedMeasurementCard';
 import { iconMap } from '../../src/constants/general';
@@ -31,7 +30,7 @@ const DashboardScreen: React.FC = () => {
         const data = await backend.getMeasurementsByPatient(currentPatient.id);
         setMeasurements(data || []);
 
-        const units = Array.from(new Set(data.map((m: GetHealthMeasurement) => m.measurement_unit.unit_name)));
+        const units = Array.from(new Set(data.map((m: GetHealthMeasurement) => m.measurement_unit.measurement_group)));
         setUnits(units as string[]);
       } catch (error) {
         console.error("Error fetching measurements:", error);
@@ -58,82 +57,82 @@ const DashboardScreen: React.FC = () => {
     await fetchMeasurements();
     setRefreshing(false);
   };
-  
+
   return (
-      <ThemedView safe style={{ backgroundColor: theme.backgroundDark, paddingTop: insets.top }} >
-        <View style={styles.mainContainer}>
-          {/* Header */}
-          <Header name={patientName} />
+    <ThemedView safe style={{ backgroundColor: theme.backgroundDark, paddingTop: insets.top }} >
+      <View style={styles.mainContainer}>
+        {/* Header */}
+        <Header name={patientName} />
 
-          {/* Recent Documents Header */}
-          <View style={[styles.sectionHeader, { marginTop: 10, marginHorizontal: 7 }]}>
-            {/* <Text style={[styles.sectionTitle, { color: theme.textGray }]}>HEALTH MEASUREMENTS</Text> */}
-          </View>
+        {/* Recent Documents Header */}
+        <View style={[styles.sectionHeader, { marginTop: 10, marginHorizontal: 7 }]}>
+          {/* <Text style={[styles.sectionTitle, { color: theme.textGray }]}>HEALTH MEASUREMENTS</Text> */}
+        </View>
 
-          {isLoading ? (
-             <FlatList
-               style={styles.scrollView}
-               showsVerticalScrollIndicator={false}
-               contentContainerStyle={styles.scrollContent}
-               data={[1, 2, 3, 4]} // Ghost boxes
-               keyExtractor={(item) => item.toString()}
-               numColumns={2}
-               columnWrapperStyle={styles.cardWrapper}
-               renderItem={() => <SkeletonCard />}
-             />
-          ) : (
-            <FlatList
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-              data={units}
-              keyExtractor={(item, index) => index.toString()}
-              numColumns={2}
-              columnWrapperStyle={styles.cardWrapper}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={[theme.primary]}
-                  tintColor={theme.primary}
-                  progressBackgroundColor={theme.backgroundLight}
+        {isLoading ? (
+          <FlatList
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            data={[1, 2, 3, 4]} // Ghost boxes
+            keyExtractor={(item) => item.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.cardWrapper}
+            renderItem={() => <SkeletonCard />}
+          />
+        ) : (
+          <FlatList
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            data={units}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.cardWrapper}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[theme.primary]}
+                tintColor={theme.primary}
+                progressBackgroundColor={theme.backgroundLight}
+              />
+            }
+            renderItem={({ item: unit, index }) => {
+
+              const latest = getLatest(unit);
+              const iconName = iconMap[unit] || 'activity';
+
+              const primaryColor = theme.items[index % theme.items.length].primary;
+              const secondaryColor = theme.items[index % theme.items.length].secondary;
+
+              const itemHistory = measurements
+                .filter(m => m.measurement_unit.unit_name === unit)
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
+                .map(m => m.numeric_value);
+
+              return (
+                <UpdatedMeasurementCard
+                  id={unit.toLowerCase().replace(/\s/g, '_')}
+                  item={latest}
+                  iconName={iconName}
+                  primaryColor={primaryColor}
+                  secondaryColor={secondaryColor}
+                  itemHistory={itemHistory}
                 />
-              }
-              renderItem={({ item: unit, index }) => {
-              
-                const latest = getLatest(unit);
-                const iconName = iconMap[unit] || 'activity';
-                
-                const primaryColor = theme.items[index % theme.items.length].primary;
-                const secondaryColor = theme.items[index % theme.items.length].secondary;
-
-                const itemHistory = measurements
-                  .filter(m => m.measurement_unit.unit_name === unit)
-                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
-                  .map(m => m.numeric_value);
-
-                return (
-                    <UpdatedMeasurementCard
-                      id={unit.toLowerCase().replace(/\s/g, '_')}
-                      item={latest}
-                      iconName={iconName}
-                      primaryColor={primaryColor}
-                      secondaryColor={secondaryColor}
-                      itemHistory={itemHistory}
-                    />
-                )
-              }
+              )
+            }
             }
             ListFooterComponent={
-                <View style={{ height: 80 }}>
-                  {/* Smart Insight Card */}
-                  {/* Share with Doctor */}
-                </View>
+              <View style={{ height: 80 }}>
+                {/* Smart Insight Card */}
+                {/* Share with Doctor */}
+              </View>
             }
-            />
-          )}
-        </View>
-      </ThemedView>
+          />
+        )}
+      </View>
+    </ThemedView>
   );
 };
 

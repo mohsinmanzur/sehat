@@ -10,4 +10,7 @@ export class Measurement_Unit {
 
     @Column()
     symbol: string;
+
+    @Column()
+    measurement_group: string;
 }

@@ -18,6 +18,7 @@ export type DoctorDTO = {
     name: string;
     email: string;
     phone: string;
+    gender: 'male' | 'female' | 'other';
     license_number: string;
     associated_hospital?: string;
     specialization?: string;
@@ -57,6 +58,7 @@ export type MeasurementUnitDTO = {
     id?: string;
     unit_name: string;
     symbol: string;
+    measurement_group: string;
 };
 
 export type ReferenceRangeDTO = {
@@ -64,7 +66,7 @@ export type ReferenceRangeDTO = {
     unit_id: string;
     min_value: number;
     max_value: number;
-    target_gender: 'male' | 'female' | 'other';
+    target_gender?: 'male' | 'female' | 'other';
     min_age?: number;
     max_age?: number;
     special_condition?: string;
@@ -86,7 +88,7 @@ export type AccessGrantDTO = {
     patient_id: string;
     measurement_id?: string;
     access_token?: string;
-    permission: 'view_only' | 'emergency_access' | 'full_access';
+    permission: 'view_only' | 'emergency' | 'full_access';
     is_revoked?: boolean;
     expires_at: Date;
 }

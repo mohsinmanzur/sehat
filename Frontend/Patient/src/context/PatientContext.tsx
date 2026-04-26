@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { PatientDTO } from '../types/dto';
-import { getObject } from 'src/services/Storage/storage.service';
+import { getObject, removeValue } from 'src/services/Storage/storage.service';
+import backend from 'src/services/Backend/backend.service';
+
+import { router } from 'expo-router';
 
 interface UserContextValue {
     currentPatient: PatientDTO | null;
@@ -16,6 +19,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
+        backend.setOnLogout(() => {
+            setCurrentPatient(null);
+            removeValue('currentPatient');
+            router.replace('/(auth)/Login');
+        });
+
         const loadCurrentPatient = async () => {
             setIsInitialized(false);
             try
