@@ -2,8 +2,8 @@ import { useTheme } from '@context/ThemeContext';
 import { GetHealthMeasurement } from 'src/types/others';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
-import { ThemedView } from 'src/components';
+import { View, Text, StyleSheet, ScrollView, Animated, RefreshControl } from 'react-native';
+import { ThemedText, ThemedView } from 'src/components';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
 import { getRelativeTimeRange } from 'src/utils/date';
@@ -20,6 +20,7 @@ export default function DetailedViewScreen() {
     const { theme } = useTheme();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [allMeasurements, setAllMeasurements] = useState<GetHealthMeasurement[]>([]);
     const [diastolicMeasurements, setDiastolicMeasurements] = useState<(GetHealthMeasurement | null)[]>([]);
 
@@ -33,46 +34,53 @@ export default function DetailedViewScreen() {
         }
     }, [data]);
 
+    const getMeasurements = useCallback(async (showLoading = true) => {
+        if (showLoading) setIsLoading(true);
+        try {
+            const results = await backend.getMeasurementsByPatient(currentPatient.id);
+            let filtered = results.filter(m =>
+                m.measurement_unit?.measurement_group.toLowerCase() === measurement?.measurement_unit?.measurement_group.toLowerCase()
+            );
+            let alignedDiastolic: (GetHealthMeasurement | null)[] = [];
+
+            if (measurement?.measurement_unit?.measurement_group.toLowerCase() === 'blood pressure') {
+                const diastolicRaw = filtered.filter(m =>
+                    m.measurement_unit?.unit_name.toLowerCase() === 'diastolic'
+                );
+                filtered = filtered.filter(m => m.measurement_unit?.unit_name.toLowerCase() !== 'diastolic');
+
+                alignedDiastolic = filtered.map(primary =>
+                    diastolicRaw.find(sec => sec.created_at === primary.created_at) || null
+                );
+            } else {
+                filtered = filtered.filter(m => m.measurement_unit?.unit_name === measurement?.measurement_unit?.unit_name);
+            }
+
+            if (filtered.length === 0) {
+                router.back();
+                return;
+            }
+
+            setAllMeasurements(filtered);
+            setDiastolicMeasurements(alignedDiastolic);
+        } catch (error) {
+            console.error("Failed to fetch measurements", error);
+        } finally {
+            setIsLoading(false);
+            setRefreshing(false);
+        }
+    }, [currentPatient?.id, measurement]);
+
     useFocusEffect(
         useCallback(() => {
-            const getMeasurements = async () => {
-                setIsLoading(true);
-                try {
-                    const results = await backend.getMeasurementsByPatient(currentPatient.id);
-                    let filtered = results.filter(m =>
-                        m.measurement_unit?.measurement_group.toLowerCase() === measurement.measurement_unit?.measurement_group.toLowerCase()
-                    );
-                    let alignedDiastolic: (GetHealthMeasurement | null)[] = [];
-
-                    if (measurement.measurement_unit?.measurement_group.toLowerCase() === 'blood pressure') {
-                        const diastolicRaw = filtered.filter(m =>
-                            m.measurement_unit?.unit_name.toLowerCase() === 'diastolic'
-                        );
-                        filtered = filtered.filter(m => m.measurement_unit?.unit_name.toLowerCase() !== 'diastolic');
-
-                        alignedDiastolic = filtered.map(primary =>
-                            diastolicRaw.find(sec => sec.created_at === primary.created_at) || null
-                        );
-                    } else {
-                        filtered = filtered.filter(m => m.measurement_unit?.unit_name === measurement.measurement_unit?.unit_name);
-                    }
-
-                    if (filtered.length === 0) {
-                        router.back();
-                        return;
-                    }
-
-                    setAllMeasurements(filtered);
-                    setDiastolicMeasurements(alignedDiastolic);
-                } catch (error) {
-                    console.error("Failed to fetch measurements", error);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
             getMeasurements();
-        }, [currentPatient?.id, measurement])
+        }, [getMeasurements])
     );
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        getMeasurements(false);
+    }, [getMeasurements]);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(24)).current;
@@ -100,8 +108,6 @@ export default function DetailedViewScreen() {
         };
     }, [allMeasurements]);
 
-    const trendTitle = React.useMemo(() => getTrendTitle(allMeasurements), [allMeasurements]);
-
     return (
         <ThemedView safe style={{ backgroundColor: theme.backgroundDark }}>
             {/* Header */}
@@ -110,6 +116,15 @@ export default function DetailedViewScreen() {
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor={primaryColor || theme.primary}
+                        colors={[primaryColor || theme.backgroundDark]}
+                        progressBackgroundColor={theme.backgroundLight}
+                    />
+                }
             >
                 {/* ── Current Weight ── */}
                 <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
@@ -125,9 +140,9 @@ export default function DetailedViewScreen() {
 
                         return (
                             <View style={styles.currentRow}>
-                                <Text style={[styles.currentValue, { color: primaryColor || theme.primary }]}>{displayFirst}</Text>
-                                {displaySecond !== undefined && displaySecond !== null && <Text style={[styles.currentValue, { color: primaryColor || theme.primary, fontSize: 45 }]}>/{displaySecond}</Text>}
-                                <Text style={[styles.currentUnit, { color: primaryColor || theme.primary }]}>{measurement?.measurement_unit?.symbol}</Text>
+                                <Text style={[styles.currentValue, { color: theme.text }]}>{displayFirst}</Text>
+                                {displaySecond !== undefined && displaySecond !== null && <Text style={[styles.currentValue, { color: theme.text, fontSize: 45 }]}>/{displaySecond}</Text>}
+                                <Text style={[styles.currentUnit, { color: theme.text }]}>{measurement?.measurement_unit?.symbol}</Text>
                             </View>
                         );
                     })()}
@@ -137,11 +152,7 @@ export default function DetailedViewScreen() {
                     ) : (
                         stats && (
                             <View style={[styles.statsPill, { backgroundColor: theme.backgroundLight }]}>
-                                <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
-                                    {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
-                                </Text>
-                                <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
-                                <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
+                                <ThemedText>Test</ThemedText>
                             </View>
                         )
                     )}
@@ -158,8 +169,13 @@ export default function DetailedViewScreen() {
                         <View>
                             {isLoading ? (
                                 <GhostElement style={{ height: 20, width: 150, borderRadius: 4, marginBottom: 3 }} />
-                            ) : (
-                                <Text style={[styles.cardTitle, { color: theme.text }]}>{trendTitle}</Text>
+                            ) : (<View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
+                                    {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
+                                </Text>
+                                <Text style={[styles.statsPillMain, { color: theme.text }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
+                                <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
+                            </View>
                             )}
                         </View>
                     </View>

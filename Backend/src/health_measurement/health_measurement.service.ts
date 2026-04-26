@@ -9,12 +9,14 @@ import { Medical_Document } from 'src/entities/medical_document.entity';
 import { Repository } from 'typeorm';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { GetHealthMeasurement } from './dto/get-measurements.dto';
+import { Reference_Range } from 'src/entities/reference_range.entity';
 
 @Injectable()
 export class HealthMeasurementService {
     constructor(
         @InjectRepository(Health_Measurement) private healthMeasurementRepo: Repository<Health_Measurement>,
-        @InjectRepository(Measurement_Unit) private measurementUnitRepo: Repository<Measurement_Unit>
+        @InjectRepository(Measurement_Unit) private measurementUnitRepo: Repository<Measurement_Unit>,
+        @InjectRepository(Reference_Range) private referenceRangeRepo: Repository<Reference_Range>
     ) { }
 
     async getAllMeasurements(): Promise<Health_Measurement[] | null> {
@@ -75,5 +77,13 @@ export class HealthMeasurementService {
 
     async getUnits(): Promise<Measurement_Unit[]> {
         return await this.measurementUnitRepo.find();
+    }
+
+    async getReferenceRangesByUnit(unit_id: string): Promise<Reference_Range[]> {
+        return await this.referenceRangeRepo.find({ where: { unit_id } });
+    }
+
+    async getAllReferenceRanges(): Promise<Reference_Range[]> {
+        return await this.referenceRangeRepo.find();
     }
 }

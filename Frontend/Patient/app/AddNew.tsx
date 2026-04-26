@@ -41,6 +41,9 @@ export default function AddNewMeasurement() {
     const valueShakeAnimation = useRef(new Animated.Value(0)).current;
     const dropdownShakeAnimation = useRef(new Animated.Value(0)).current;
 
+    const [specialConditions, setSpecialConditions] = useState<string[]>([]);
+    const [selectedSpecialConditions, setSelectedSpecialConditions] = useState<string[]>([]);
+
     useEffect(() => {
         backend.getMeasurementUnits().then((units) => {
             setUnits(units);
@@ -226,6 +229,21 @@ export default function AddNewMeasurement() {
                     }
 
                     <ThemedText style={s.unitText} type={'subtitle'}>{selectedUnit?.symbol}</ThemedText>
+                </View>
+
+                <View style={s.optionsRow}>
+                    <ScalePressable
+                        style={[s.optionPill, specialConditions.includes('Fasting') && s.optionPillActive]}
+                        onPress={() => {
+                            if (specialConditions.includes('Fasting')) {
+                                setSpecialConditions(specialConditions.filter((condition) => condition !== 'Fasting'));
+                            } else {
+                                setSpecialConditions([...specialConditions, 'Fasting']);
+                            }
+                        }}
+                    >
+                        <Text style={[s.optionPillText, specialConditions.includes('Fasting') && s.optionPillTextActive]}>Fasting</Text>
+                    </ScalePressable>
                 </View>
 
                 {/* ── Date & Time ── */}
@@ -467,6 +485,39 @@ const styles = (theme: any) => StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Lexend_800ExtraBold',
         color: '#fff',
+    },
+
+    /* ── Options Pills ── */
+    optionsContainer: {
+        marginTop: 20,
+        marginBottom: 8,
+    },
+    optionsRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 12
+    },
+    optionPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 25,
+        backgroundColor: theme.card,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    optionPillActive: {
+        backgroundColor: theme.primarySoft,
+        borderColor: theme.primary,
+    },
+    optionPillText: {
+        fontSize: 13,
+        fontFamily: 'Lexend_600SemiBold',
+        color: theme.textGray,
+    },
+    optionPillTextActive: {
+        color: theme.primary,
     },
 
     /* ── Footer ── */

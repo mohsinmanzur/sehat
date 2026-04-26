@@ -74,6 +74,8 @@ export default function EditMeasurement() {
                 });
             }
 
+            // Double back to go to DetailedView screen
+            router.back();
             router.back();
         } catch (error) {
             console.error("Failed to update measurement", error);

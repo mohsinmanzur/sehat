@@ -6,6 +6,7 @@ import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from 'src/entities/health_measurement.entity';
 import { GetHealthMeasurement } from './dto/get-measurements.dto';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
+import { Reference_Range } from 'src/entities/reference_range.entity';
 
 @Controller('health-measurement')
 export class HealthMeasurementController {
@@ -48,5 +49,13 @@ export class HealthMeasurementController {
   @Get('unit')
   async getUnits(): Promise<Measurement_Unit[]> {
     return await this.healthMeasurementService.getUnits();
+  }
+
+  @Get('reference-ranges')
+  async getReferenceRanges(@Query('unit_id') unit_id?: string): Promise<Reference_Range[] | null> {
+    if (unit_id) {
+      return await this.healthMeasurementService.getReferenceRangesByUnit(unit_id);
+    }
+    return await this.healthMeasurementService.getAllReferenceRanges();
   }
 }

@@ -31,7 +31,6 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, secondar
     }
 
     const values = chronological.map(d => d.numeric_value);
-    const secondaryValues = chronologicalSecondary.map(d => d?.numeric_value).filter(v => v !== undefined && v !== null) as number[];
     const minVal = Math.min(...values) - 0.5;
     const maxVal = Math.max(...values) + 0.5;
 
