@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
+import { Measurement_Unit } from '../entities/measurement_unit.entity';
 import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
-import { Health_Measurement } from 'src/entities/health_measurement.entity';
-import { Patient } from 'src/entities/patient.entity';
-import { Medical_Document } from 'src/entities/medical_document.entity';
+import { Health_Measurement } from '../entities/health_measurement.entity';
+import { Patient } from '../entities/patient.entity';
+import { Medical_Document } from '../entities/medical_document.entity';
 import { Repository } from 'typeorm';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { GetHealthMeasurement } from './dto/get-measurements.dto';
-import { Reference_Range } from 'src/entities/reference_range.entity';
+import { Reference_Range } from '../entities/reference_range.entity';
 
 @Injectable()
 export class HealthMeasurementService {
@@ -32,13 +32,10 @@ export class HealthMeasurementService {
             .orderBy('hm.created_at', 'DESC')
             .getMany();
 
-        return measurements.map((m: any) => {
-            const { patient_id, unit_id, document_id, ...rest } = m;
-            return rest as GetHealthMeasurement;
-        });
+        return measurements as unknown as GetHealthMeasurement[];
     }
 
-    async getHealthMeasurementById(id: string): Promise<GetHealthMeasurement | null> {
+    async getMeasurementById(id: string): Promise<GetHealthMeasurement> {
         const measurement = await this.healthMeasurementRepo.createQueryBuilder('hm')
             .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
             .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
@@ -46,15 +43,12 @@ export class HealthMeasurementService {
             .where('hm.id = :id', { id })
             .getOne();
 
-        if (!measurement) return null;
-
-        const { patient_id, unit_id, document_id, ...rest } = measurement as any;
-        return rest as GetHealthMeasurement;
+        return measurement as unknown as GetHealthMeasurement;
     }
 
     async createHealthMeasurement(measurement: CreateMeasurementDto): Promise<Health_Measurement> {
-        const createdRecord = this.healthMeasurementRepo.create(measurement);
-        return await this.healthMeasurementRepo.save(createdRecord);
+        const newMeasurement = this.healthMeasurementRepo.create(measurement);
+        return await this.healthMeasurementRepo.save(newMeasurement);
     }
 
     async updateHealthMeasurement(id: string, measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
