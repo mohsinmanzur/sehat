@@ -1,4 +1,4 @@
-import { HealthMeasurementDTO, MeasurementUnitDTO, UpdateHealthMeasurementDTO } from "../../types/dto";
+import { HealthMeasurementDTO, MeasurementUnitDTO, ReferenceRangeDTO, UpdateHealthMeasurementDTO } from "../../types/dto";
 import * as SecureStore from 'expo-secure-store';
 import { PatientDTO } from "../../types/dto";
 import { GetHealthMeasurement, UploadMedicalDocument } from "../../types/others";
@@ -77,7 +77,7 @@ class Backend {
         }
 
         const headers: Record<string, string> = {};
-        
+
         if (content_type) {
             headers['Content-Type'] = content_type;
         }
@@ -139,7 +139,7 @@ class Backend {
         }
 
         const data = await response.json();
-        
+
         this.jwtToken = data.jwtToken;
         this.refreshToken = data.refreshToken;
 
@@ -223,8 +223,7 @@ class Backend {
     // =========================
     // Health Measurements
     // =========================
-    async getMeasurementsByPatient(patientId: string) : Promise<GetHealthMeasurement[]>
-    {
+    async getMeasurementsByPatient(patientId: string): Promise<GetHealthMeasurement[]> {
         const response = await this.request(`/health-measurement/?patient_id=${patientId}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -234,8 +233,7 @@ class Backend {
         return await response.json();
     }
 
-    async getMeasurementById(id: string) : Promise<GetHealthMeasurement>
-    {
+    async getMeasurementById(id: string): Promise<GetHealthMeasurement> {
         const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -287,8 +285,7 @@ class Backend {
     // =========================
     // Medical Documents
     // =========================
-    async getMedicalDocumentByID(Id: string)
-    {
+    async getMedicalDocumentByID(Id: string) {
         const response = await this.request(`/record/?id=${Id}`, allowedMethods.GET);
         if (!response.ok) {
             throw new Error(`Error in fetching medical document ${response.status} ${response.statusText}: ${await response.text()}`);
@@ -296,8 +293,7 @@ class Backend {
         return await response.json();
     }
 
-    async getDocumentUrlfromMeasurementId(Id: string)
-    {
+    async getDocumentUrlfromMeasurementId(Id: string) {
         const response = await this.request(`/record/document-url?id=${Id}`, allowedMethods.GET);
         if (!response.ok) {
             throw new Error(`Error in fetching document URL ${response.status} ${response.statusText}: ${await response.text()}`);
@@ -331,11 +327,21 @@ class Backend {
         return await response.json();
     }
 
-    async getSecureDocumentUrl(file_url: string)
-    {
+    async getSecureDocumentUrl(file_url: string) {
         const response = await this.request('/record/image/get-secure-url', allowedMethods.POST, { file_url });
         if (!response.ok) {
             throw new Error(`Error in fetching secure document URL ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    // =========================
+    // Reference Ranges
+    // =========================
+    async getReferenceRanges(unit_id?: string): Promise<ReferenceRangeDTO[]> {
+        const response = await this.request(`/health-measurement/reference-ranges${unit_id ? `/?unit_id=${unit_id}` : ''}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching reference ranges ${response.status} ${response.statusText}: ${await response.text()}`);
         }
         return await response.json();
     }

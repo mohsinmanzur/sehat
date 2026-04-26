@@ -233,16 +233,16 @@ export default function AddNewMeasurement() {
 
                 <View style={s.optionsRow}>
                     <ScalePressable
-                        style={[s.optionPill, specialConditions.includes('Fasting') && s.optionPillActive]}
+                        style={[s.optionPill, selectedSpecialConditions.includes('Fasting') && s.optionPillActive]}
                         onPress={() => {
-                            if (specialConditions.includes('Fasting')) {
-                                setSpecialConditions(specialConditions.filter((condition) => condition !== 'Fasting'));
+                            if (selectedSpecialConditions.includes('Fasting')) {
+                                setSelectedSpecialConditions(selectedSpecialConditions.filter((condition) => condition !== 'Fasting'));
                             } else {
-                                setSpecialConditions([...specialConditions, 'Fasting']);
+                                setSelectedSpecialConditions([...selectedSpecialConditions, 'Fasting']);
                             }
                         }}
                     >
-                        <Text style={[s.optionPillText, specialConditions.includes('Fasting') && s.optionPillTextActive]}>Fasting</Text>
+                        <Text style={[s.optionPillText, selectedSpecialConditions.includes('Fasting') && s.optionPillTextActive]}>Fasting</Text>
                     </ScalePressable>
                 </View>
 

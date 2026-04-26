@@ -69,7 +69,7 @@ export type ReferenceRangeDTO = {
     target_gender?: 'male' | 'female' | 'other';
     min_age?: number;
     max_age?: number;
-    special_condition?: string;
+    special_conditions?: string[];
 }
 
 export type AIAnalysisDTO = {
