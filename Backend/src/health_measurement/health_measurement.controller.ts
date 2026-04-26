@@ -31,8 +31,8 @@ export class HealthMeasurementController {
   }
 
   @Put()
-  async updateHealthMeasurement(@Body() measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
-    return await this.healthMeasurementService.updateHealthMeasurement(measurement);
+  async updateHealthMeasurement(@Query('id') id: string, @Body() measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
+    return await this.healthMeasurementService.updateHealthMeasurement(id, measurement);
   }
 
   @Delete()

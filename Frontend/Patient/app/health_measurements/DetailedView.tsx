@@ -3,23 +3,26 @@ import { GetHealthMeasurement } from 'src/types/others';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
-import { ThemedText, ThemedView } from 'src/components';
+import { ThemedView } from 'src/components';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
 import { getRelativeTimeRange } from 'src/utils/date';
 import { ScalePressable } from 'src/components/ScalePressable';
 import { getTrendTitle } from 'src/helpers/detailed_view.helpers';
-import { LogRow } from 'src/components/detailed_view/log_row';
+import { HistoryRow } from 'src/components/detailed_view/history_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
 import { Header } from 'src/components/detailed_view/header';
 import { GhostElement } from 'src/components/GhostElement';
 
-export default function WeightHistoryScreen() {
+export default function DetailedViewScreen() {
     const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: any; primaryColor: string; secondaryColor: string }>();
     const { currentPatient } = useCurrentPatient();
     const { theme } = useTheme();
+
     const [isLoading, setIsLoading] = useState(true);
     const [allMeasurements, setAllMeasurements] = useState<GetHealthMeasurement[]>([]);
+    const [diastolicMeasurements, setDiastolicMeasurements] = useState<(GetHealthMeasurement | null)[]>([]);
+
     const measurement = React.useMemo(() => {
         if (!data) return null;
         try {
@@ -33,14 +36,34 @@ export default function WeightHistoryScreen() {
     useFocusEffect(
         useCallback(() => {
             const getMeasurements = async () => {
-                if (!currentPatient?.id || !measurement) return;
-
+                setIsLoading(true);
                 try {
                     const results = await backend.getMeasurementsByPatient(currentPatient.id);
-                    const filtered = results.filter(m =>
-                        m.measurement_unit?.unit_name.toLowerCase() === measurement.measurement_unit?.unit_name.toLowerCase()
+                    let filtered = results.filter(m =>
+                        m.measurement_unit?.measurement_group.toLowerCase() === measurement.measurement_unit?.measurement_group.toLowerCase()
                     );
+                    let alignedDiastolic: (GetHealthMeasurement | null)[] = [];
+
+                    if (measurement.measurement_unit?.measurement_group.toLowerCase() === 'blood pressure') {
+                        const diastolicRaw = filtered.filter(m =>
+                            m.measurement_unit?.unit_name.toLowerCase() === 'diastolic'
+                        );
+                        filtered = filtered.filter(m => m.measurement_unit?.unit_name.toLowerCase() !== 'diastolic');
+
+                        alignedDiastolic = filtered.map(primary =>
+                            diastolicRaw.find(sec => sec.created_at === primary.created_at) || null
+                        );
+                    } else {
+                        filtered = filtered.filter(m => m.measurement_unit?.unit_name === measurement.measurement_unit?.unit_name);
+                    }
+
+                    if (filtered.length === 0) {
+                        router.back();
+                        return;
+                    }
+
                     setAllMeasurements(filtered);
+                    setDiastolicMeasurements(alignedDiastolic);
                 } catch (error) {
                     console.error("Failed to fetch measurements", error);
                 } finally {
@@ -65,6 +88,7 @@ export default function WeightHistoryScreen() {
         if (!allMeasurements || allMeasurements.length < 2) return null;
         const latest = allMeasurements[0];
         const oldest = allMeasurements[allMeasurements.length - 1];
+        if (!latest || !oldest) return null;
         const diff = latest.numeric_value - oldest.numeric_value;
         const timeRange = getRelativeTimeRange(oldest.created_at, latest.created_at);
 
@@ -81,7 +105,7 @@ export default function WeightHistoryScreen() {
     return (
         <ThemedView safe style={{ backgroundColor: theme.backgroundDark }}>
             {/* Header */}
-            <Header title={`${measurement?.measurement_unit?.unit_name} History`} />
+            <Header title={`${measurement?.measurement_unit?.measurement_group} History`} />
             <ScrollView
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
@@ -89,20 +113,37 @@ export default function WeightHistoryScreen() {
             >
                 {/* ── Current Weight ── */}
                 <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-                    <Text style={[styles.currentLabel, { color: theme.textLight }]}>CURRENT {measurement?.measurement_unit?.unit_name?.toUpperCase()}</Text>
-                    <View style={styles.currentRow}>
-                        <Text style={[styles.currentValue, { color: primaryColor || theme.primary }]}>{measurement?.numeric_value}</Text>
-                        <Text style={[styles.currentUnit, { color: primaryColor || theme.primary }]}>{measurement?.measurement_unit?.symbol}</Text>
-                    </View>
+                    <Text style={[styles.currentLabel, { color: theme.textLight }]}>CURRENT {measurement?.measurement_unit?.measurement_group?.toUpperCase()}</Text>
+                    {isLoading ? (
+                        <GhostElement style={{ height: 68, width: 140, borderRadius: 8, marginBottom: 14 }} />
+                    ) : (() => {
+                        const primaryVal = allMeasurements[0]?.numeric_value;
+                        const diastolicItem = diastolicMeasurements[0];
 
-                    {stats && (
-                        <View style={[styles.statsPill, { backgroundColor: theme.backgroundLight }]}>
-                            <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
-                                {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
-                            </Text>
-                            <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
-                            <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
-                        </View>
+                        const displayFirst = primaryVal;
+                        const displaySecond = diastolicItem?.numeric_value;
+
+                        return (
+                            <View style={styles.currentRow}>
+                                <Text style={[styles.currentValue, { color: primaryColor || theme.primary }]}>{displayFirst}</Text>
+                                {displaySecond !== undefined && displaySecond !== null && <Text style={[styles.currentValue, { color: primaryColor || theme.primary, fontSize: 45 }]}>/{displaySecond}</Text>}
+                                <Text style={[styles.currentUnit, { color: primaryColor || theme.primary }]}>{measurement?.measurement_unit?.symbol}</Text>
+                            </View>
+                        );
+                    })()}
+
+                    {isLoading ? (
+                        <GhostElement style={{ height: 38, width: 180, borderRadius: 24, marginBottom: 24 }} />
+                    ) : (
+                        stats && (
+                            <View style={[styles.statsPill, { backgroundColor: theme.backgroundLight }]}>
+                                <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
+                                    {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
+                                </Text>
+                                <Text style={[styles.statsPillMain, { color: theme.textGray }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
+                                <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
+                            </View>
+                        )
                     )}
                 </Animated.View>
 
@@ -126,11 +167,11 @@ export default function WeightHistoryScreen() {
                     {isLoading ? (
                         <GhostElement style={{ height: 180, borderRadius: 12, marginTop: 10 }} />
                     ) : (
-                        <WeightChart measurements={allMeasurements} color={primaryColor} />
+                        <WeightChart measurements={allMeasurements} secondaryMeasurements={diastolicMeasurements} color={primaryColor} />
                     )}
                 </Animated.View>
 
-                {/* ── Daily Log ── */}
+                {/* ── History ── */}
                 <Animated.View
                     style={{
                         opacity: fadeAnim, transform: [{ translateY: slideAnim }],
@@ -160,12 +201,13 @@ export default function WeightHistoryScreen() {
                                 const isLast = idx === allMeasurements.length - 1;
                                 return (
                                     <ScalePressable
-                                        onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item), primaryColor, secondaryColor } }) }}
+                                        onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item), data2: JSON.stringify(diastolicMeasurements?.[idx]), primaryColor, secondaryColor } }) }}
                                         key={item.id}
                                     >
-                                        <LogRow
+                                        <HistoryRow
                                             key={item.id}
                                             item={item}
+                                            secondaryItem={diastolicMeasurements?.[idx]}
                                             isLast={isLast}
                                             delta={delta}
                                             measurements={allMeasurements}
@@ -205,13 +247,13 @@ const styles = StyleSheet.create({
     },
     currentRow: {
         flexDirection: 'row',
-        alignItems: 'flex-end',
+        alignItems: 'baseline',
         marginBottom: 14,
     },
     currentValue: {
         fontSize: 68,
         fontWeight: '900',
-        lineHeight: 72,
+        lineHeight: 68,
         letterSpacing: -2,
         textShadowColor: 'rgba(0,0,0,0.2)',
         textShadowOffset: { width: -1, height: 1 },
@@ -220,7 +262,7 @@ const styles = StyleSheet.create({
     currentUnit: {
         fontSize: 22,
         fontWeight: '600',
-        marginBottom: 10,
+        marginBottom: 0,
         marginLeft: 4,
     },
 

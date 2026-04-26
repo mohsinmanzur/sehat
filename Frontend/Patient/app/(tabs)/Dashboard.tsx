@@ -30,7 +30,7 @@ const DashboardScreen: React.FC = () => {
         const data = await backend.getMeasurementsByPatient(currentPatient.id);
         setMeasurements(data || []);
 
-        const units = Array.from(new Set(data.map((m: GetHealthMeasurement) => m.measurement_unit.measurement_group)));
+        const units = [...new Set(data.map((m: GetHealthMeasurement) => m.measurement_unit.measurement_group))].reverse();
         setUnits(units as string[]);
       } catch (error) {
         console.error("Error fetching measurements:", error);
@@ -40,9 +40,15 @@ const DashboardScreen: React.FC = () => {
     }
   };
 
-  const getLatest = (keyword: string) => {
+  const getLatest = (keyword: string, unit_name?: string) => {
     return measurements
-      .filter(m => m.measurement_unit.unit_name.match(keyword))
+      .filter(m => {
+        const groupMatch = m.measurement_unit.measurement_group.match(keyword);
+        if (unit_name) {
+          return groupMatch && m.measurement_unit.unit_name === unit_name;
+        }
+        return groupMatch;
+      })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
   };
 
@@ -100,21 +106,30 @@ const DashboardScreen: React.FC = () => {
             }
             renderItem={({ item: unit, index }) => {
 
-              const latest = getLatest(unit);
+              const latest = unit === 'Blood Pressure' ? getLatest(unit, 'Systolic') : getLatest(unit);
+              const secondaryLatest = unit === 'Blood Pressure' ? getLatest(unit, 'Diastolic') : undefined;
               const iconName = iconMap[unit] || 'activity';
 
               const primaryColor = theme.items[index % theme.items.length].primary;
               const secondaryColor = theme.items[index % theme.items.length].secondary;
 
-              const itemHistory = measurements
-                .filter(m => m.measurement_unit.unit_name === unit)
+              let itemHistory = measurements
+                .filter(m => m.measurement_unit.measurement_group === unit)
                 .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
                 .map(m => m.numeric_value);
+
+              if (unit === 'Blood Pressure') {
+                itemHistory = measurements
+                  .filter(m => m.measurement_unit.measurement_group === unit && m.measurement_unit.unit_name === 'Systolic')
+                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
+                  .map(m => m.numeric_value);
+              }
 
               return (
                 <UpdatedMeasurementCard
                   id={unit.toLowerCase().replace(/\s/g, '_')}
                   item={latest}
+                  secondaryItem={secondaryLatest}
                   iconName={iconName}
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}

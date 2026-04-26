@@ -55,8 +55,8 @@ export class HealthMeasurementService {
         return await this.healthMeasurementRepo.save(createdRecord);
     }
 
-    async updateHealthMeasurement(measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
-        const existingRecord = await this.healthMeasurementRepo.findOneBy({ id: measurement.id });
+    async updateHealthMeasurement(id: string, measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
+        const existingRecord = await this.healthMeasurementRepo.findOneBy({ id });
         if (!existingRecord) {
             throw new Error('Health measurement not found');
         }

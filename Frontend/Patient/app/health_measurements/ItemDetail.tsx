@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
@@ -10,7 +10,7 @@ import { GetHealthMeasurement } from '../../src/types/others';
 import { GhostElement } from 'src/components/GhostElement';
 
 export default function HealthMeasurementDetailScreen() {
-    const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string, primaryColor: string, secondaryColor: string }>();
+    const { data, data2, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string, data2?: string, primaryColor: string, secondaryColor: string }>();
     const router = useRouter();
     const { theme } = useTheme();
 
@@ -19,8 +19,12 @@ export default function HealthMeasurementDetailScreen() {
     const [imageRatio, setImageRatio] = useState<number>(3 / 4);
 
     let measurement: GetHealthMeasurement | null = null;
+    let secondaryMeasurement: GetHealthMeasurement | null = null;
     try {
         measurement = JSON.parse(data);
+        if (data2) {
+            secondaryMeasurement = JSON.parse(data2);
+        }
     } catch (e) {
         console.error("Failed to parse measurement data", e);
     }
@@ -38,19 +42,21 @@ export default function HealthMeasurementDetailScreen() {
 
     const handleDelete = async () => {
         await backend.deleteHealthMeasurement(measurement.id);
+        if (secondaryMeasurement) {
+            await backend.deleteHealthMeasurement(secondaryMeasurement.id);
+        }
         router.back();
     }
 
     const handleEdit = () => {
         router.push({
             pathname: '/health_measurements/EditMeasurement',
-            params: { data }
+            params: { data: JSON.stringify(measurement), data2: secondaryMeasurement ? JSON.stringify(secondaryMeasurement) : undefined }
         });
     }
 
     useEffect(() => {
-        async function loadSecureUrl()
-        {
+        async function loadSecureUrl() {
             setSecureUrlLoading(true);
             try {
                 const res = await backend.getDocumentUrlfromMeasurementId(measurement.id);
@@ -58,7 +64,7 @@ export default function HealthMeasurementDetailScreen() {
                     const response = await backend.getSecureDocumentUrl(res.file_url);
                     const url = response.file_url;
                     setSecureUrl(url);
-                    
+
                     if (url) {
                         Image.getSize(url, (width, height) => {
                             if (width && height) {
@@ -72,8 +78,7 @@ export default function HealthMeasurementDetailScreen() {
             } catch (error) {
                 console.error("Failed to load secure URL", error);
             }
-            finally
-            {
+            finally {
                 setSecureUrlLoading(false);
             }
         }
@@ -106,14 +111,14 @@ export default function HealthMeasurementDetailScreen() {
                     </View>
 
                     <Text style={[styles.heroTitle, { color: theme.text }]}>
-                        {measurement.measurement_unit.unit_name}
+                        {measurement.measurement_unit.measurement_group}
                     </Text>
 
                 </View>
 
                 <View style={styles.detailCard}>
                     <Text style={[styles.detailLabel, { color: theme.textGray, marginTop: 10 }]}>Measurement Value</Text>
-                    <Text style={[styles.valueText, { color: theme.text }]}>{displayValue}</Text>
+                    <Text style={[styles.valueText, { color: theme.text }]}>{secondaryMeasurement ? `${measurement.numeric_value}/${secondaryMeasurement.numeric_value} ${secondaryMeasurement.measurement_unit.symbol}` : displayValue}</Text>
                 </View>
 
                 <View style={styles.detailCard}>
@@ -131,16 +136,16 @@ export default function HealthMeasurementDetailScreen() {
                 {secureUrl && !secureUrlLoading && (
                     <View style={styles.imageContainer}>
                         <Text style={[styles.detailLabel, { color: theme.textGray, marginBottom: 8 }]}>Attached Document</Text>
-                        <Image 
-                            source={{ uri: secureUrl }} 
-                            style={[styles.attachedImage, { aspectRatio: imageRatio, backgroundColor: theme.backgroundLight }]} 
+                        <Image
+                            source={{ uri: secureUrl }}
+                            style={[styles.attachedImage, { aspectRatio: imageRatio, backgroundColor: theme.backgroundLight }]}
                             resizeMode="contain"
                         />
                     </View>
                 )}
 
                 <ScalePressable
-                    style= {[styles.editBtn, { backgroundColor: theme.primary }]}
+                    style={[styles.editBtn, { backgroundColor: theme.primary }]}
                     onPress={handleEdit}
                 >
                     <MaterialIcons name="edit" size={20} color="#fff" style={{ marginRight: 8 }} />
@@ -149,7 +154,7 @@ export default function HealthMeasurementDetailScreen() {
 
                 <ScalePressable
                     onPress={handleDelete}
-                    style= {[styles.deleteBtn, { backgroundColor: theme.backgroundLight, borderWidth: 1, borderColor: theme.danger }]}
+                    style={[styles.deleteBtn, { backgroundColor: theme.backgroundLight, borderWidth: 1, borderColor: theme.danger }]}
                 >
                     <MaterialIcons name="delete" size={20} color={theme.danger} style={{ marginRight: 8 }} />
                     <Text style={[styles.deleteBtnText, { color: theme.danger }]}>Delete Entry</Text>

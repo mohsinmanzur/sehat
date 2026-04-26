@@ -1,57 +1,85 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Pressable, Animated } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Pressable, Animated, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@context/ThemeContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { ThemedText, ThemedView } from 'src/components';
 import DatePicker from 'react-native-date-picker';
 import backend from 'src/services/Backend/backend.service';
-import { MeasurementUnitDTO } from '../../src/types/dto';
 import LoadingScreen from 'src/components/LoadingScreen';
-import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
 import { Colors } from '@theme/colors';
+import { GetHealthMeasurement } from '../../src/types/others';
 
 export default function EditMeasurement() {
-    const { theme } = useTheme();
-    const { currentPatient } = useCurrentPatient()
-    const router = useRouter();
 
-    const [value, setValue] = useState('');
+    const router = useRouter();
+    const { data, data2 } = useLocalSearchParams<{ data: string, data2?: string }>();
+    const { theme } = useTheme();
+
+    const [measurement, setMeasurement] = useState<GetHealthMeasurement | null>(null);
+    const [secondaryMeasurement, setSecondaryMeasurement] = useState<GetHealthMeasurement | null>(null);
+
+    const [value, setValue] = useState<string>('');
+    const [secondaryValue, setSecondaryValue] = useState<string>('');
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const [showSelectedUnitError, setShowSelectedUnitError] = useState(false);
     const [showValueError, setShowValueError] = useState(false);
 
     const [isLoading, setisLoading] = useState(true);
-
+    const [isSaving, setisSaving] = useState(false);
     const [pickerOpen, setPickerOpen] = useState<'date' | 'time' | null>(null);
-    const [units, setUnits] = useState<MeasurementUnitDTO[]>([]);
 
     const valueShakeAnimation = useRef(new Animated.Value(0)).current;
-    const dropdownShakeAnimation = useRef(new Animated.Value(0)).current;
+    const value2Ref = useRef<TextInput>(null);
 
     useEffect(() => {
-        backend.getMeasurementUnits().then((units) => {
-            setUnits(units);
-            setisLoading(false);
-        });
-    }, []);
+        if (data) {
+            const parsed = JSON.parse(data) as GetHealthMeasurement;
+            setMeasurement(parsed);
+            setValue(parsed.numeric_value.toString());
+            if (parsed.created_at) {
+                setSelectedDate(new Date(parsed.created_at));
+            }
+        }
+        if (data2) {
+            const parsed2 = JSON.parse(data2) as GetHealthMeasurement;
+            setSecondaryMeasurement(parsed2);
+            setSecondaryValue(parsed2.numeric_value.toString());
+        }
+        setisLoading(false);
+    }, [data, data2]);
 
     const handleSave = async () => {
-        if (!value) {
+        if (!measurement || (secondaryMeasurement && !secondaryValue)) {
             setShowValueError(true);
             errorShakeAnimation(valueShakeAnimation);
             return;
         }
-        setShowSelectedUnitError(false);
+
         setShowValueError(false);
-        await backend.updateHealthMeasurement(currentPatient?.id, {
-            numeric_value: parseFloat(value),
-            created_at: selectedDate,
-        })
-        router.back();
+        setisSaving(true);
+
+        try {
+            await backend.updateHealthMeasurement(measurement.id, {
+                numeric_value: parseFloat(value),
+                created_at: selectedDate,
+            });
+
+            if (secondaryMeasurement) {
+                await backend.updateHealthMeasurement(secondaryMeasurement.id, {
+                    numeric_value: parseFloat(secondaryValue),
+                    created_at: selectedDate,
+                });
+            }
+
+            router.back();
+        } catch (error) {
+            console.error("Failed to update measurement", error);
+        } finally {
+            setisSaving(false);
+        }
     };
 
     const displayDate = formatOrdinalDate(selectedDate);
@@ -85,17 +113,52 @@ export default function EditMeasurement() {
                             <TextInput
                                 style={s.valueInput}
                                 value={value}
-                                onChangeText={(text) => { setValue(text); setShowValueError(false); }}
+                                onChangeText={(text) => {
+                                    setValue(text);
+                                    setShowValueError(false);
+                                    if (text.length === 3 && secondaryMeasurement) {
+                                        value2Ref.current?.focus();
+                                    }
+                                }}
                                 keyboardType="numeric"
                                 placeholderTextColor={theme.textVeryLight}
                                 placeholder='0.00'
                                 maxLength={6}
                                 cursorColor={theme.primary}
+                                returnKeyType={secondaryMeasurement ? "next" : "done"}
+                                onSubmitEditing={() => {
+                                    if (secondaryMeasurement) {
+                                        value2Ref.current?.focus();
+                                    }
+                                }}
                             />
                         </Animated.View>
                     </View>
 
-                    
+                    {secondaryMeasurement && (
+                        <>
+                            <ThemedText style={{ color: theme.textGray, fontSize: 50, marginBottom: 15 }}>/</ThemedText>
+
+                            <View style={{ flex: 0.75 }}>
+                                <Text style={s.label}>VALUE 2</Text>
+                                <Animated.View style={[s.valueBox, { borderColor: showValueError ? theme.danger : theme.card, transform: [{ translateX: valueShakeAnimation }] }]}>
+                                    <TextInput
+                                        ref={value2Ref}
+                                        style={s.valueInput}
+                                        value={secondaryValue}
+                                        onChangeText={(text) => { setSecondaryValue(text); setShowValueError(false); }}
+                                        keyboardType="numeric"
+                                        placeholderTextColor={theme.textVeryLight}
+                                        placeholder='0.00'
+                                        maxLength={6}
+                                        cursorColor={theme.primary}
+                                    />
+                                </Animated.View>
+                            </View>
+                        </>
+                    )}
+
+                    <ThemedText style={s.unitText} type={'subtitle'}>{measurement?.measurement_unit.symbol}</ThemedText>
                 </View>
 
                 {/* ── Date & Time ── */}
@@ -141,9 +204,16 @@ export default function EditMeasurement() {
                 <Pressable
                     style={({ pressed }) => [s.saveBtn, { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 }]}
                     onPress={handleSave}
+                    disabled={isSaving}
                 >
-                    <Text style={s.saveBtnText}>Save Measurement</Text>
-                    <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                    {isSaving ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <>
+                            <Text style={s.saveBtnText}>Save Measurement</Text>
+                            <MaterialIcons name="save" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                        </>
+                    )}
                 </Pressable>
 
                 <Text style={[s.hipaaText, { color: theme.textLight }]}>

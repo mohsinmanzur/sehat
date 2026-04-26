@@ -24,6 +24,9 @@ export default function AddNewMeasurement() {
 
     const [selectedUnit, setSelectedUnit] = useState<MeasurementUnitDTO | null>(null);
     const [value, setValue] = useState('');
+    const [value2, setValue2] = useState('');
+    const value2Ref = useRef<TextInput>(null);
+
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     const [showSelectedUnitError, setShowSelectedUnitError] = useState(false);
@@ -74,13 +77,17 @@ export default function AddNewMeasurement() {
             errorShakeAnimation(valueShakeAnimation);
             return;
         }
+        if (selectedUnit?.measurement_group === 'Blood Pressure' && !value2) {
+            setShowValueError(true);
+            errorShakeAnimation(valueShakeAnimation);
+            return;
+        }
         setShowSelectedUnitError(false);
         setShowValueError(false);
 
         setisSaving(true);
 
-        try
-        {
+        try {
             let uploadresponse = null;
             if (scannedImage) {
                 uploadresponse = await backend.createandUploadMedicalDocument({
@@ -98,6 +105,16 @@ export default function AddNewMeasurement() {
                 created_at: selectedDate,
             })
 
+            if (selectedUnit?.measurement_group === 'Blood Pressure') {
+                await backend.createHealthMeasurement({
+                    patient_id: currentPatient?.id,
+                    document_id: uploadresponse?.id || null,
+                    unit_id: units.find((unit) => unit.unit_name === 'Diastolic' && unit.measurement_group === 'Blood Pressure')?.id,
+                    numeric_value: parseFloat(value2),
+                    created_at: selectedDate,
+                })
+            }
+
             router.back();
             Snackbar.show({
                 text: 'Measurement added successfully',
@@ -106,8 +123,7 @@ export default function AddNewMeasurement() {
             })
             setScannedImage(null);
         }
-        catch (error)
-        {
+        catch (error) {
             Snackbar.show({
                 text: `Failed to add measurement: ${error.message}`,
                 duration: Snackbar.LENGTH_SHORT,
@@ -115,8 +131,7 @@ export default function AddNewMeasurement() {
             });
             throw new Error(error);
         }
-        finally
-        {
+        finally {
             setisSaving(false);
         }
     };
@@ -151,9 +166,9 @@ export default function AddNewMeasurement() {
                 {/* ── Measurement Type ── */}
                 <Dropdown
                     label="MEASUREMENT TYPE"
-                    options={units.map((unit) => unit.unit_name)}
-                    value={selectedUnit?.unit_name}
-                    onChange={(value) => { setSelectedUnit(units.find((unit) => unit.unit_name === value) || null); setShowSelectedUnitError(false); }}
+                    options={[...new Set(units.map((unit) => unit.measurement_group))]}
+                    value={selectedUnit?.measurement_group}
+                    onChange={(value) => { setSelectedUnit(units.find((unit) => unit.measurement_group === value) || null); setShowSelectedUnitError(false); }}
                     error={showSelectedUnitError}
                     remainingStyles={{ transform: [{ translateX: dropdownShakeAnimation }] }}
                 />
@@ -166,15 +181,49 @@ export default function AddNewMeasurement() {
                             <TextInput
                                 style={s.valueInput}
                                 value={value}
-                                onChangeText={(text) => { setValue(text); setShowValueError(false); }}
-                                keyboardType="numeric"
+                                onChangeText={(text) => {
+                                    setValue(text);
+                                    setShowValueError(false);
+                                    if (text.length === 3 && selectedUnit?.measurement_group === 'Blood Pressure') {
+                                        value2Ref.current?.focus();
+                                    }
+                                }}
+                                keyboardType="phone-pad"
+                                returnKeyType={selectedUnit?.measurement_group === 'Blood Pressure' ? "next" : "done"}
+                                onSubmitEditing={() => {
+                                    if (selectedUnit?.measurement_group === 'Blood Pressure') {
+                                        value2Ref.current?.focus();
+                                    }
+                                }}
                                 placeholderTextColor={theme.textVeryLight}
-                                placeholder='0.00'
-                                maxLength={6}
+                                placeholder={selectedUnit?.measurement_group === 'Blood Pressure' ? '120' : '0'}
+                                maxLength={3}
                                 cursorColor={theme.primary}
                             />
                         </Animated.View>
                     </View>
+
+                    {selectedUnit?.measurement_group === 'Blood Pressure' &&
+                        <>
+                            <ThemedText style={{ color: theme.textGray, fontSize: 50, marginBottom: 15 }}>/</ThemedText>
+
+                            <View style={{ flex: 0.75 }}>
+                                <Animated.View style={[s.valueBox, { borderColor: showValueError ? theme.danger : theme.card, transform: [{ translateX: valueShakeAnimation }] }]}>
+                                    <TextInput
+                                        ref={value2Ref}
+                                        style={s.valueInput}
+                                        value={value2}
+                                        onChangeText={(text) => { setValue2(text); setShowValueError(false); }}
+                                        keyboardType="phone-pad"
+                                        placeholderTextColor={theme.textVeryLight}
+                                        placeholder='80'
+                                        maxLength={3}
+                                        cursorColor={theme.primary}
+                                    />
+                                </Animated.View>
+                            </View>
+                        </>
+                    }
 
                     <ThemedText style={s.unitText} type={'subtitle'}>{selectedUnit?.symbol}</ThemedText>
                 </View>
@@ -226,7 +275,7 @@ export default function AddNewMeasurement() {
                             onPress={handleSave}
                         >
                             {isSaving ? (
-                                    <ActivityIndicator color="#fff" />
+                                <ActivityIndicator color="#fff" />
                             ) : (
                                 <>
                                     <Text style={s.saveBtnText}>Save Measurement</Text>
@@ -242,7 +291,7 @@ export default function AddNewMeasurement() {
                         onPress={handleAddPhoto}
                     >
                         <MaterialIcons
-                            name= {scannedImage ? "check" : "add-a-photo"}
+                            name={scannedImage ? "check" : "add-a-photo"}
                             size={23}
                             color={theme.primary}
                         />
@@ -345,6 +394,7 @@ const styles = (theme: any) => StyleSheet.create({
     row: {
         flexDirection: 'row',
         gap: 12,
+        alignItems: 'flex-end'
     },
     col2: {
         flex: 1,

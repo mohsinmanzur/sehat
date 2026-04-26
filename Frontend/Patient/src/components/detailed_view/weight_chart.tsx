@@ -14,20 +14,24 @@ const PAD_Y = 20; // Increased Y padding to ensure highest labels don't get clip
 
 interface WeightChartProps {
     measurements: GetHealthMeasurement[];
+    secondaryMeasurements: (GetHealthMeasurement | null)[];
     color: string;
 }
 
-export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color }) => {
+export const WeightChart: React.FC<WeightChartProps> = ({ measurements, secondaryMeasurements, color }) => {
     const { theme } = useTheme();
 
     // measurements are newest-first from the API; reverse to oldest-first for chart
     const chronological = [...measurements].reverse();
+    const chronologicalSecondary = [...secondaryMeasurements].reverse();
 
     if (chronological.length < 2) {
         chronological[1] = chronological[0];
+        chronologicalSecondary[1] = chronologicalSecondary[0];
     }
 
     const values = chronological.map(d => d.numeric_value);
+    const secondaryValues = chronologicalSecondary.map(d => d?.numeric_value).filter(v => v !== undefined && v !== null) as number[];
     const minVal = Math.min(...values) - 0.5;
     const maxVal = Math.max(...values) + 0.5;
 
@@ -44,8 +48,8 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
         const d = new Date(dateStr);
         const today = new Date();
         return d.getDate() === today.getDate() &&
-               d.getMonth() === today.getMonth() &&
-               d.getFullYear() === today.getFullYear();
+            d.getMonth() === today.getMonth() &&
+            d.getFullYear() === today.getFullYear();
     };
 
     // Build x-axis labels: always show first, last ("TODAY"), and up to 2 evenly
@@ -103,7 +107,15 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
                 {points.map((pt, i) => {
                     const isFirst = i === 0;
                     const isLast = i === points.length - 1;
-                    const valueStr = chronological[i].numeric_value.toString();
+                    const primaryMeas = chronological[i];
+                    const secondaryMeas = chronologicalSecondary[i];
+
+                    const isDiastolic = primaryMeas?.measurement_unit?.unit_name?.toLowerCase() === 'diastolic';
+                    const displayFirst = isDiastolic && secondaryMeas ? secondaryMeas.numeric_value : primaryMeas?.numeric_value;
+                    const displaySecond = isDiastolic && secondaryMeas ? primaryMeas?.numeric_value : secondaryMeas?.numeric_value;
+
+                    const valueStr = displayFirst?.toString();
+                    const secondaryValueStr = displaySecond?.toString();
 
                     return (
                         <React.Fragment key={i}>
@@ -117,7 +129,7 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
                             ) : (
                                 <Circle cx={pt.x} cy={pt.y} r={3.5} fill={color || theme.primary} />
                             )}
-                            
+
                             {/* Show label above dot for first and last entries */}
                             <SvgText
                                 x={isFirst ? pt.x - 4 : pt.x + 4}
@@ -127,7 +139,7 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, color })
                                 fontWeight="bold"
                                 textAnchor={isFirst ? "start" : "end"} // Align nicely without clipping
                             >
-                                {valueStr}
+                                {secondaryValueStr !== undefined && secondaryValueStr !== null ? `${valueStr}/${secondaryValueStr}` : valueStr}
                             </SvgText>
                         </React.Fragment>
                     );
