@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
 import { HealthMeasurementService } from './health_measurement.service';
-import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { Measurement_Unit } from '../entities/measurement_unit.entity';
+import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from '../entities/health_measurement.entity';
 import { GetHealthMeasurement } from './dto/get-measurements.dto';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
@@ -13,11 +13,17 @@ export class HealthMeasurementController {
   constructor(private readonly healthMeasurementService: HealthMeasurementService) { }
 
   @Get()
-  async getMeasurements(@Query('patient_id') patient_id?: string, @Query('id') id?: string): Promise<GetHealthMeasurement[] | GetHealthMeasurement> {
+  async getHealthMeasurements(
+    @Query('patient_id') patient_id?: string,
+    @Query('id') id?: string
+  ): Promise<GetHealthMeasurement[] | GetHealthMeasurement | Health_Measurement[] | null> {
+    if (patient_id) {
+      return await this.healthMeasurementService.getHealthMeasurementsByPatient(patient_id);
+    }
     if (id) {
       return await this.healthMeasurementService.getMeasurementById(id);
     }
-    return await this.healthMeasurementService.getHealthMeasurementsByPatient(patient_id);
+    return await this.healthMeasurementService.getAllMeasurements();
   }
 
   @Post()
@@ -32,7 +38,7 @@ export class HealthMeasurementController {
 
   @Delete()
   async deleteHealthMeasurement(@Query('id') id: string): Promise<void> {
-    return await this.healthMeasurementService.deleteHealthMeasurement(id);
+    await this.healthMeasurementService.deleteHealthMeasurement(id);
   }
 
   @Post('unit')

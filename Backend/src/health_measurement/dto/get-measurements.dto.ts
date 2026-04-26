@@ -1,6 +1,6 @@
-import { Measurement_Unit } from 'src/entities/measurement_unit.entity';
-import { Patient } from 'src/entities/patient.entity';
-import { Medical_Document } from 'src/entities/medical_document.entity';
+import { Measurement_Unit } from '../../entities/measurement_unit.entity';
+import { Patient } from '../../entities/patient.entity';
+import { Medical_Document } from '../../entities/medical_document.entity';
 
 export type GetHealthMeasurement = {
     id: string;

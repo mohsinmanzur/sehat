@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Medical_Document } from 'src/entities/medical_document.entity';
+import { Medical_Document } from '../entities/medical_document.entity';
 import { CreateMedicalDocumentDto } from './dto/create-medicaldocument.dto';
 import { Repository } from 'typeorm';
 import { BlobServiceClient, ContainerClient, generateBlobSASQueryParameters, BlobSASPermissions, StorageSharedKeyCredential } from '@azure/storage-blob';
