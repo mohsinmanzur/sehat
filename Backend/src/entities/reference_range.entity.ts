@@ -28,6 +28,6 @@ export class Reference_Range {
     @Column({ nullable: true })
     max_age: number;
 
-    @Column({ nullable: true })
-    special_condition: string;
+    @Column({ nullable: true, type: 'text', array: true })
+    special_conditions: string[];
 }
