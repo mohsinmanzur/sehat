@@ -1,7 +1,6 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
-export class CreateReferenceRangeDto
-{
+export class CreateReferenceRangeDto {
     @IsUUID()
     @IsOptional()
     id?: string;
@@ -27,7 +26,8 @@ export class CreateReferenceRangeDto
     @IsOptional()
     max_age?: number;
 
-    @IsString()
+    @IsArray()
     @IsOptional()
-    special_condition?: string;
+    @IsString({ each: true })
+    special_conditions?: string[];
 }

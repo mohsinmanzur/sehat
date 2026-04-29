@@ -8,14 +8,16 @@ import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
 import { getRelativeTimeRange } from 'src/utils/date';
 import { ScalePressable } from 'src/components/ScalePressable';
-import { getTrendTitle } from 'src/helpers/detailed_view.helpers';
 import { HistoryRow } from 'src/components/detailed_view/history_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
 import { Header } from 'src/components/detailed_view/header';
 import { GhostElement } from 'src/components/GhostElement';
+import TargetRange from 'src/components/detailed_view/target_range';
+import { ReferenceRangeDTO } from 'src/types/dto';
+import { findBestReferenceRange } from 'src/helpers/detailed_view.helpers';
 
 export default function DetailedViewScreen() {
-    const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: any; primaryColor: string; secondaryColor: string }>();
+    const { data, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string; primaryColor: string; secondaryColor: string }>();
     const { currentPatient } = useCurrentPatient();
     const { theme } = useTheme();
 
@@ -23,6 +25,9 @@ export default function DetailedViewScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [allMeasurements, setAllMeasurements] = useState<GetHealthMeasurement[]>([]);
     const [diastolicMeasurements, setDiastolicMeasurements] = useState<(GetHealthMeasurement | null)[]>([]);
+
+    const [bestReferenceRange, setBestReferenceRange] = useState<ReferenceRangeDTO | null>();
+    const [diastolicReferenceRange, setDiastolicReferenceRange] = useState<ReferenceRangeDTO | null>();
 
     const measurement = React.useMemo(() => {
         if (!data) return null;
@@ -63,6 +68,16 @@ export default function DetailedViewScreen() {
 
             setAllMeasurements(filtered);
             setDiastolicMeasurements(alignedDiastolic);
+
+            const ranges = await backend.getReferenceRanges(measurement.measurement_unit.id);
+            setBestReferenceRange(findBestReferenceRange(measurement, ranges));
+
+            if (alignedDiastolic.length > 0 && alignedDiastolic[0]) {
+                const dRanges = await backend.getReferenceRanges(alignedDiastolic[0].measurement_unit.id);
+                setDiastolicReferenceRange(findBestReferenceRange(alignedDiastolic[0], dRanges));
+            } else {
+                setDiastolicReferenceRange(null);
+            }
         } catch (error) {
             console.error("Failed to fetch measurements", error);
         } finally {
@@ -133,15 +148,12 @@ export default function DetailedViewScreen() {
                         <GhostElement style={{ height: 68, width: 140, borderRadius: 8, marginBottom: 14 }} />
                     ) : (() => {
                         const primaryVal = allMeasurements[0]?.numeric_value;
-                        const diastolicItem = diastolicMeasurements[0];
-
-                        const displayFirst = primaryVal;
-                        const displaySecond = diastolicItem?.numeric_value;
+                        const diastolicItem = diastolicMeasurements[0]?.numeric_value;
 
                         return (
                             <View style={styles.currentRow}>
-                                <Text style={[styles.currentValue, { color: theme.text }]}>{displayFirst}</Text>
-                                {displaySecond !== undefined && displaySecond !== null && <Text style={[styles.currentValue, { color: theme.text, fontSize: 45 }]}>/{displaySecond}</Text>}
+                                <Text style={[styles.currentValue, { color: theme.text }]}>{primaryVal}</Text>
+                                {diastolicItem !== undefined && diastolicItem !== null && <Text style={[styles.currentValue, { color: theme.text, fontSize: 45 }]}>/{diastolicItem}</Text>}
                                 <Text style={[styles.currentUnit, { color: theme.text }]}>{measurement?.measurement_unit?.symbol}</Text>
                             </View>
                         );
@@ -152,7 +164,21 @@ export default function DetailedViewScreen() {
                     ) : (
                         stats && (
                             <View style={[styles.statsPill, { backgroundColor: theme.backgroundLight }]}>
-                                <ThemedText>Test</ThemedText>
+                                <Text>
+                                    <ThemedText style={{ fontFamily: 'PublicSans_700Bold' }}>Target: </ThemedText>
+                                    {bestReferenceRange ? (
+                                        <ThemedText>
+                                            {bestReferenceRange.min_value}
+                                            {diastolicReferenceRange && `/${diastolicReferenceRange.min_value}`}
+                                            {" - "}
+                                            {bestReferenceRange.max_value}
+                                            {diastolicReferenceRange && `/${diastolicReferenceRange.max_value}`}
+                                            {` ${measurement?.measurement_unit?.symbol}`}
+                                        </ThemedText>
+                                    ) : (
+                                        <ThemedText> - </ThemedText>
+                                    )}
+                                </Text>
                             </View>
                         )
                     )}
@@ -166,18 +192,16 @@ export default function DetailedViewScreen() {
                     ]}
                 >
                     <View style={styles.cardHeader}>
-                        <View>
-                            {isLoading ? (
-                                <GhostElement style={{ height: 20, width: 150, borderRadius: 4, marginBottom: 3 }} />
-                            ) : (<View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                                <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
-                                    {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
-                                </Text>
-                                <Text style={[styles.statsPillMain, { color: theme.text }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
-                                <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
-                            </View>
-                            )}
+                        {isLoading ? (
+                            <GhostElement style={{ height: 20, width: 150, borderRadius: 4, marginBottom: 3 }} />
+                        ) : (<View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                            <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
+                                {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
+                            </Text>
+                            <Text style={[styles.statsPillMain, { color: theme.text }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
+                            <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
                         </View>
+                        )}
                     </View>
 
                     {isLoading ? (
@@ -313,6 +337,7 @@ const styles = StyleSheet.create({
     card: {
         borderRadius: 20,
         padding: 20,
+        paddingTop: 17,
         marginBottom: 28,
         shadowOpacity: 0.06,
         shadowRadius: 12,

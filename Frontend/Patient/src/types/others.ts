@@ -27,6 +27,7 @@ export type GetHealthMeasurement = {
     numeric_value: number;
     created_at: string;
     updated_at: string;
+    special_conditions: string[];
     patient: {
         id: string;
         name: string;

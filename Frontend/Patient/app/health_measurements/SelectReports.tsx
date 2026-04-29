@@ -32,7 +32,7 @@ const SelectReportsScreen = () => {
             setIsLoading(true);
             const data = await backend.getMeasurementsByPatient(currentPatient!.id);
             setMeasurements(data || []);
-            setUnits(['All', ...Array.from(new Set(data?.map(d => d.measurement_unit.unit_name) || []))]);
+            setUnits(['All', ...Array.from(new Set(data?.map(d => d.measurement_unit.measurement_group) || []))]);
             setIsLoading(false);
         }
         getMeasurements();
@@ -51,7 +51,7 @@ const SelectReportsScreen = () => {
     return (
         <ThemedView safe style={styles.container}>
             <Header title="Share Reports" />
-            
+
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 <ThemedText style={styles.title}>Select Data to Share</ThemedText>
                 <ThemedText style={{ color: theme.textGray, marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
@@ -59,19 +59,26 @@ const SelectReportsScreen = () => {
                 </ThemedText>
 
                 {/* Filters */}
-                { isLoading ?
+                {isLoading ?
                     <View style={[styles.filterScroll, { flexDirection: 'row', gap: 10, paddingRight: 20 }]}>
                         <GhostElement style={{ width: 60, height: 32, borderRadius: 20 }} />
                         <GhostElement style={{ width: 120, height: 32, borderRadius: 20 }} />
                         <GhostElement style={{ width: 100, height: 32, borderRadius: 20 }} />
                     </View>
-                :
+                    :
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
                         {units.map(f => {
                             const isActive = activeFilter === f;
-                            const filteredMeasurements = measurements.filter(item => f === 'All' || item.measurement_unit.unit_name === f);
+                            const filteredMeasurements = measurements.filter(item => {
+                                const matchesFilter = f === 'All' || item.measurement_unit.measurement_group === f;
+                                if (!matchesFilter) return false;
+                                if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure') {
+                                    return item.measurement_unit.unit_name.toLowerCase() === 'systolic';
+                                }
+                                return true;
+                            });
                             const allFilteredelected = filteredMeasurements.length > 0 && filteredMeasurements.every(item => selectedReports.has(item.id));
-                            
+
                             const handleFilterPress = () => {
                                 if (isActive) {
                                     // if clicking the active filter, toggle selection for all items in this filter
@@ -96,11 +103,11 @@ const SelectReportsScreen = () => {
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                         {isActive && (
                                             <MaterialIcons
-                                                name={allFilteredelected ? "check-circle" : "check-circle-outline"} 
+                                                name={allFilteredelected ? "check-circle" : "check-circle-outline"}
                                                 size={16}
                                                 color="#fff"
                                                 style={{ marginBottom: -1 }}
-                                        />
+                                            />
                                         )}
                                         <ThemedText style={{ color: isActive ? '#fff' : theme.text, fontWeight: '600' }}>{f}</ThemedText>
                                     </View>
@@ -112,12 +119,12 @@ const SelectReportsScreen = () => {
 
 
                 {/* List Items */}
-                { isLoading ? 
+                {isLoading ?
                     <View style={styles.listContainer}>
                         {[1, 2, 3, 4, 5].map(key => (
                             <View key={key} style={[styles.listItem, { backgroundColor: theme.backgroundLight }]}>
                                 <GhostElement style={[styles.iconContainer, { backgroundColor: theme.backgroundDark }]} />
-                                
+
                                 <View style={styles.itemContent}>
                                     <View style={styles.valRow}>
                                         <GhostElement style={{ width: '40%', height: 20, borderRadius: 4, marginBottom: 4 }} />
@@ -127,17 +134,24 @@ const SelectReportsScreen = () => {
                             </View>
                         ))}
                     </View>
-                :
+                    :
                     <View style={styles.listContainer}>
-                        {measurements.filter(item => activeFilter === 'All' || item.measurement_unit.unit_name === activeFilter).map(item => {
+                        {measurements.filter(item => {
+                            const matchesFilter = activeFilter === 'All' || item.measurement_unit.measurement_group === activeFilter;
+                            if (!matchesFilter) return false;
+                            if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure') {
+                                return item.measurement_unit.unit_name.toLowerCase() === 'systolic';
+                            }
+                            return true;
+                        }).map(item => {
                             const isSelected = selectedReports.has(item.id);
-                            const unitIndex = units.indexOf(item.measurement_unit.unit_name) - 1; // subtract 1 to account for 'All' at index 0, aligning with Dashboard
+                            const unitIndex = units.indexOf(item.measurement_unit.measurement_group) - 1; // subtract 1 to account for 'All' at index 0, aligning with Dashboard
                             const primaryColor = theme.items[unitIndex % theme.items.length]?.primary || theme.primary;
                             const secondaryColor = theme.items[unitIndex % theme.items.length]?.secondary || theme.primarySoft;
-                            const iconName = iconMap[item.measurement_unit.unit_name] || 'activity';
+                            const iconName = iconMap[item.measurement_unit.measurement_group] || 'activity';
 
                             return (
-                                <ScalePressable 
+                                <ScalePressable
                                     key={item.id}
                                     style={[styles.listItem, { backgroundColor: theme.backgroundLight }]}
                                     activeOpacity={0.7}
@@ -146,21 +160,21 @@ const SelectReportsScreen = () => {
                                     <View style={[styles.iconContainer, { backgroundColor: secondaryColor }]}>
                                         <FontAwesome5 name={iconName} size={22} color={primaryColor} />
                                     </View>
-                                    
+
                                     <View style={styles.itemContent}>
                                         <View style={styles.valRow}>
                                             <ThemedText style={styles.itemValue}>{item.numeric_value}</ThemedText>
                                             <ThemedText style={styles.itemUnit}> {item.measurement_unit.symbol}</ThemedText>
                                         </View>
                                         <ThemedText style={styles.itemSubtext}>
-                                            {item.measurement_unit.unit_name} • {formatFullDateTime(item.created_at)}
+                                            {item.measurement_unit.measurement_group} • {formatFullDateTime(item.created_at)}
                                         </ThemedText>
                                     </View>
-                                    
-                                    <Ionicons 
-                                        name={isSelected ? "checkbox" : "square-outline"} 
-                                        size={24} 
-                                        color={isSelected ? theme.primary : theme.textGray} 
+
+                                    <Ionicons
+                                        name={isSelected ? "checkbox" : "square-outline"}
+                                        size={24}
+                                        color={isSelected ? theme.primary : theme.textGray}
                                     />
                                 </ScalePressable>
                             );
@@ -170,7 +184,7 @@ const SelectReportsScreen = () => {
             </ScrollView>
 
             {/* Bottom Bar */}
-            { selectedReports.size > 0 &&
+            {selectedReports.size > 0 &&
                 <View style={[styles.bottomBar]}>
                     <ScalePressable
                         style={[styles.proceedBtn, { backgroundColor: theme.primary }]}

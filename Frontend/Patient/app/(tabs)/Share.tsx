@@ -16,7 +16,7 @@ import { useGlobalContext } from "@context/GlobalContext";
 import { Snackbar } from "react-native-snackbar";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
-    
+
     const calculateTimeLeft = () => {
         const difference = new Date(expiresAt).getTime() - new Date().getTime();
         if (difference <= 0) return 'Expired';
@@ -38,8 +38,7 @@ export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date,
     return <ThemedText style={style}>{timeLeft}</ThemedText>;
 }
 
-export default function Share()
-{
+export default function Share() {
     const { theme } = useTheme();
     const { selectedReports, setSelectedReports } = useGlobalContext();
 
@@ -66,7 +65,7 @@ export default function Share()
             <View style={styles.templateContainer}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <ThemedText type={'h2'} style={{ marginRight: 10 }}>Select Reports</ThemedText>
-                
+
                     {selectedReports.size > 0 && (
                         <ScalePressable
                             style={styles.selectedReportsCountContainer}
@@ -76,30 +75,41 @@ export default function Share()
                             }}
                         >
                             <ThemedText style={styles.selectedReportsCount}>{selectedReports.size} Selected</ThemedText>
-                        
+
                             <FontAwesome5 name="times" color={theme.primary} size={13} style={{ marginTop: 1.3 }} />
                         </ScalePressable>
                     )}
                 </View>
 
-                <ScalePressable style={styles.selectReportsButton} onPress={() => router.navigate({ pathname: 'health_measurements/SelectReports' })}>
+                <ScalePressable style={[styles.selectReportsButton, { borderRadius: 50 }]} onPress={() => router.navigate({ pathname: 'health_measurements/SelectReports' })}>
                     <FontAwesome5
                         name="file-medical"
-                        color={ selectedReports.size > 0 ? theme.primary : theme.textLight}
+                        color={selectedReports.size > 0 ? theme.primary : theme.textLight}
                         size={21}
                         style={{ marginRight: 7 }}
                     />
                 </ScalePressable>
 
+                <Spacer height={20} />
+
+                <ScalePressable style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => setIsTimePickerVisible(true)}>
+                    <ThemedText type={'h2'}>
+                        Access Time:{" "}
+                    </ThemedText>
+
+                    <ThemedText type={'h2'} style={{ color: theme.textGray, fontFamily: 'Lexend_400Regular' }}>
+                        {selectedTime.days !== 0 ? selectedTime.days + 'D ' : ''}{selectedTime.hours !== 0 ? selectedTime.hours + 'H ' : ''}{selectedTime.minutes !== 0 ? selectedTime.minutes + 'M ' : ''}
+                        {selectedTime.days === 0 && selectedTime.hours === 0 && selectedTime.minutes === 0 && 'Unlimited Access'}
+                    </ThemedText>
+
+                    <FontAwesome5 name="pen" color={theme.textGray} size={12} />
+                </ScalePressable>
+
                 <Spacer height={30} />
 
-                <ThemedText type={'h2'} style={{ marginRight: 10 }}>
-                    Access Time
-                </ThemedText>
-            
-                <ScalePressable style={styles.selectReportsButton} onPress={() => setIsTimePickerVisible(true)}>
-                    <ThemedText type={'h3'} style={{ color: theme.textGray }}>
-                        {selectedTime.days !== 0 ? selectedTime.days + 'D' : ''} {selectedTime.hours !== 0 ? selectedTime.hours + 'H' : ''} {selectedTime.minutes !== 0 ? selectedTime.minutes + 'M' : ''}
+                <ScalePressable style={styles.shareButton}>
+                    <ThemedText type={'h3'} style={styles.revokeText}>
+                        Share
                     </ThemedText>
                 </ScalePressable>
             </View>
@@ -119,7 +129,7 @@ export default function Share()
                 <ThemedText type={'h1'} style={styles.title}>
                     Current Access
                 </ThemedText>
-                {access_grant_data.length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }}/>}
+                {access_grant_data.length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }} />}
             </View>
 
             {access_grant_data.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).map((item) => (
@@ -134,7 +144,7 @@ export default function Share()
                                 {item.doctor.specialization} • {item.doctor.associated_hospital}
                             </ThemedText>
 
-                            <View style = {styles.timeRow}>
+                            <View style={styles.timeRow}>
                                 <FontAwesome5 name="hourglass-half" color={theme.primary} size={11} />
                                 <CountdownTimer expiresAt={item.expires_at} style={styles.timeLeft} />
                             </View>
@@ -149,11 +159,11 @@ export default function Share()
                         {revokingId === item.id ? (
                             <ActivityIndicator color="#FFFFFF" style={{ paddingVertical: 2 }} />
                         ) : <>
-                                <FontAwesomeIcon icon={faCircleXmark} color='#FFFFFF' size={18} style={{ marginTop: 1 }} />
-                                <ThemedText type={'h3'} style={styles.revokeText}>
-                                    Revoke Access
-                                </ThemedText>
-                            </>
+                            <FontAwesomeIcon icon={faCircleXmark} color='#FFFFFF' size={18} style={{ marginTop: 1 }} />
+                            <ThemedText type={'h3'} style={styles.revokeText}>
+                                Revoke Access
+                            </ThemedText>
+                        </>
                         }
                     </ScalePressable>
                 </View>
@@ -249,8 +259,17 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
         backgroundColor: theme.card,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: 15,
         borderRadius: 16,
         marginTop: 20,
-    }
+    },
+    shareButton: {
+        flexDirection: 'row',
+        backgroundColor: theme.primary,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 15,
+        gap: 7
+    },
 })
