@@ -21,34 +21,28 @@ export class HealthMeasurementService {
     ) { }
 
     async getAllMeasurements(): Promise<HealthMeasurementType[] | null> {
-        const measurements = await this.healthMeasurementRepo.createQueryBuilder('hm')
-            .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
-            .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
-            .leftJoinAndMapOne('hm.medical_document', Medical_Document, 'medical_document', 'hm.document_id = medical_document.id')
-            .getMany();
+        const measurements = await this.healthMeasurementRepo.find({
+            relations: ['patient', 'measurement_unit', 'medical_document']
+        });
 
         return measurements as unknown as HealthMeasurementType[];
     }
 
     async HealthMeasurementTypesByPatient(patient_id: string): Promise<HealthMeasurementType[]> {
-        const measurements = await this.healthMeasurementRepo.createQueryBuilder('hm')
-            .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
-            .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
-            .leftJoinAndMapOne('hm.medical_document', Medical_Document, 'medical_document', 'hm.document_id = medical_document.id')
-            .where('hm.patient_id = :patient_id', { patient_id })
-            .orderBy('hm.created_at', 'DESC')
-            .getMany();
+        const measurements = await this.healthMeasurementRepo.find({
+            where: { patient_id },
+            relations: ['patient', 'measurement_unit', 'medical_document'],
+            order: { created_at: 'DESC' }
+        });
 
         return measurements as unknown as HealthMeasurementType[];
     }
 
     async getMeasurementById(id: string): Promise<HealthMeasurementType> {
-        const measurement = await this.healthMeasurementRepo.createQueryBuilder('hm')
-            .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
-            .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
-            .leftJoinAndMapOne('hm.medical_document', Medical_Document, 'medical_document', 'hm.document_id = medical_document.id')
-            .where('hm.id = :id', { id })
-            .getOne();
+        const measurement = await this.healthMeasurementRepo.findOne({
+            where: { id },
+            relations: ['patient', 'measurement_unit', 'medical_document']
+        });
 
         return measurement as unknown as HealthMeasurementType;
     }
@@ -83,17 +77,17 @@ export class HealthMeasurementService {
     }
 
     async getReferenceRangesByUnit(unit_id: string): Promise<ReferenceRangeType[]> {
-        const ranges = await this.referenceRangeRepo.createQueryBuilder('rr')
-            .leftJoinAndMapOne('rr.unit', Measurement_Unit, 'unit', 'rr.unit_id = unit.id')
-            .where('rr.unit_id = :unit_id', { unit_id })
-            .getMany();
+        const ranges = await this.referenceRangeRepo.find({
+            where: { unit_id },
+            relations: ['measurement_unit']
+        });
         return ranges as unknown as ReferenceRangeType[];
     }
 
     async getAllReferenceRanges(): Promise<ReferenceRangeType[]> {
-        const ranges = await this.referenceRangeRepo.createQueryBuilder('rr')
-            .leftJoinAndMapOne('rr.unit', Measurement_Unit, 'unit', 'rr.unit_id = unit.id')
-            .getMany();
+        const ranges = await this.referenceRangeRepo.find({
+            relations: ['measurement_unit']
+        });
         return ranges as unknown as ReferenceRangeType[];
     }
 }

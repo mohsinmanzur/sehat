@@ -24,23 +24,23 @@ export class MedicalDocumentService {
   }
 
   async getAllRecords(): Promise<Medical_Document[] | null> {
-    return await this.medicalDocumentRepo.createQueryBuilder('md')
-      .leftJoinAndMapOne('md.patient', Patient, 'patient', 'md.patient_id = patient.id')
-      .getMany();
+    return await this.medicalDocumentRepo.find({
+      relations: ['patient']
+    });
   }
 
   async getRecordsByPatientId(id: string): Promise<Medical_Document[] | null> {
-    return await this.medicalDocumentRepo.createQueryBuilder('md')
-      .leftJoinAndMapOne('md.patient', Patient, 'patient', 'md.patient_id = patient.id')
-      .where('md.patient_id = :id', { id })
-      .getMany();
+    return await this.medicalDocumentRepo.find({
+      where: { patient_id: id },
+      relations: ['patient']
+    });
   }
 
   async getRecordById(id: string): Promise<Medical_Document | null> {
-    return await this.medicalDocumentRepo.createQueryBuilder('md')
-      .leftJoinAndMapOne('md.patient', Patient, 'patient', 'md.patient_id = patient.id')
-      .where('md.id = :id', { id })
-      .getOne();
+    return await this.medicalDocumentRepo.findOne({
+      where: { id },
+      relations: ['patient']
+    });
   }
 
   async createRecord(body: CreateMedicalDocumentDto): Promise<Medical_Document> {
@@ -52,13 +52,20 @@ export class MedicalDocumentService {
     if (!id) throw new Error('Measurement ID is required to fetch document URL.');
 
     try {
-      const result = await this.medicalDocumentRepo.createQueryBuilder('md')
-        .innerJoin('Health_Measurement', 'hm', 'md.id = hm.document_id')
-        .where('hm.id = :measurementId', { measurementId: id })
-        .select('md.file_url', 'file_url')
-        .getRawOne();
+      const result = await this.medicalDocumentRepo.findOne({
+        where: {
+          health_measurements: {
+            id: id
+          }
+        },
+        select: {
+          file_url: true
+        }
+      });
 
-      return result?.file_url;
+      if (!result) throw new Error('No document found for the given measurement ID.');
+
+      return result.file_url;
     }
     catch (error) {
       throw new Error(error);
