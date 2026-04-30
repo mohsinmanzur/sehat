@@ -10,4 +10,5 @@ export type HealthMeasurementType = {
     patient: Patient;
     measurement_unit: Measurement_Unit;
     medical_document: Medical_Document | null;
+    special_conditions?: string[];
 };

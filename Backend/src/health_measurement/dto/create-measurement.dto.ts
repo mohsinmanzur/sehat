@@ -1,8 +1,7 @@
 import { Type } from "class-transformer";
-import { IsDate, IsNumber, IsOptional, IsUUID } from "class-validator";
+import { IsArray, IsDate, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
-export class CreateMeasurementDto
-{
+export class CreateMeasurementDto {
     @IsUUID()
     @IsOptional()
     id?: string;
@@ -19,6 +18,11 @@ export class CreateMeasurementDto
 
     @IsNumber()
     numeric_value: number;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    special_conditions?: string[];
 
     @Type(() => Date)
     @IsDate()

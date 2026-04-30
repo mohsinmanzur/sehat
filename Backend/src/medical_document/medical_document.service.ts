@@ -59,6 +59,7 @@ export class MedicalDocumentService {
           }
         },
         select: {
+          id: true,
           file_url: true
         }
       });
