@@ -1,12 +1,12 @@
 import { useTheme } from "@context/ThemeContext";
-import { GetHealthMeasurement } from "../../types/others";
 import { StyleSheet, Text, View } from "react-native";
 import { formatFullDateTime } from "src/utils/date";
 import { DeltaBadge } from "./delta_badge";
+import { HealthMeasurement } from "../../types/dtos";
 
-export const HistoryRow: React.FC<{ item: GetHealthMeasurement; secondaryItem?: GetHealthMeasurement | null; isLast: boolean; delta?: number, measurements: GetHealthMeasurement[], color?: string }> = ({ item, secondaryItem, isLast, delta, measurements, color }) => {
+export const HistoryRow: React.FC<{ item: HealthMeasurement; secondaryItem?: HealthMeasurement | null; isLast: boolean; delta?: number, measurements: HealthMeasurement[], color?: string }> = ({ item, secondaryItem, isLast, delta, measurements, color }) => {
     const { theme } = useTheme();
-    
+
     const isDiastolic = item.measurement_unit?.unit_name?.toLowerCase() === 'diastolic';
     const displayFirst = isDiastolic && secondaryItem ? secondaryItem.numeric_value : item.numeric_value;
     const displaySecond = isDiastolic && secondaryItem ? item.numeric_value : secondaryItem?.numeric_value;

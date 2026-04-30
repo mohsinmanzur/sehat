@@ -5,7 +5,7 @@ import { useTheme } from 'src/context/ThemeContext';
 import { Header } from 'src/components/dashboard';
 import { ThemedView } from 'src/components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GetHealthMeasurement } from 'src/types/others';
+import { HealthMeasurement } from '@types/dtos';
 import backend from 'src/services/Backend/backend.service';
 import { useFocusEffect } from 'expo-router';
 import { UpdatedMeasurementCard } from 'src/components/dashboard/UpdatedMeasurementCard';
@@ -21,7 +21,7 @@ const DashboardScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [measurements, setMeasurements] = useState<GetHealthMeasurement[]>([]);
+  const [measurements, setMeasurements] = useState<HealthMeasurement[]>([]);
   const [units, setUnits] = useState<string[]>([]);
 
   const fetchMeasurements = async () => {
@@ -30,7 +30,7 @@ const DashboardScreen: React.FC = () => {
         const data = await backend.getMeasurementsByPatient(currentPatient.id);
         setMeasurements(data || []);
 
-        const units = [...new Set(data.map((m: GetHealthMeasurement) => m.measurement_unit.measurement_group))].reverse();
+        const units = [...new Set(data.map((m: HealthMeasurement) => m.measurement_unit.measurement_group))].reverse();
         setUnits(units as string[]);
       } catch (error) {
         console.error("Error fetching measurements:", error);

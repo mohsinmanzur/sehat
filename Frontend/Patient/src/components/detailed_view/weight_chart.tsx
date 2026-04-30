@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet, Text, View } from "react-native";
-import { GetHealthMeasurement } from "../../types/others";
+import { HealthMeasurement } from "../../types/dtos";
 import { useTheme } from "@context/ThemeContext";
 import { buildAreaPath, buildSmoothPath, formatChartDate } from "src/helpers/detailed_view.helpers";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop, Text as SvgText } from "react-native-svg";
@@ -13,8 +13,8 @@ const PAD_X = 12;
 const PAD_Y = 20; // Increased Y padding to ensure highest labels don't get clipped
 
 interface WeightChartProps {
-    measurements: GetHealthMeasurement[];
-    secondaryMeasurements: (GetHealthMeasurement | null)[];
+    measurements: HealthMeasurement[];
+    secondaryMeasurements: (HealthMeasurement | null)[];
     color: string;
 }
 
@@ -59,7 +59,7 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, secondar
             return chronological.map((d, i) => {
                 const isLast = i === total - 1;
                 return {
-                    label: (isLast && isTodayDate(d.created_at)) ? 'TODAY' : formatChartDate(d.created_at),
+                    label: (isLast && isTodayDate(d.created_at!)) ? 'TODAY' : formatChartDate(d.created_at.toString()),
                     isToday: isLast,
                     x: toX(i),
                 };
@@ -75,7 +75,7 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, secondar
             const isLast = i === total - 1;
             const d = chronological[i];
             return {
-                label: (isLast && isTodayDate(d.created_at)) ? 'TODAY' : formatChartDate(d.created_at),
+                label: (isLast && isTodayDate(d.created_at)) ? 'TODAY' : formatChartDate(d.created_at.toString()),
                 isToday: isLast,
                 x: toX(i),
             };

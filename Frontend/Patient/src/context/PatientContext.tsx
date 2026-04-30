@@ -1,21 +1,21 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { PatientDTO } from '../types/dto';
+import type { Patient } from '../types/dtos';
 import { getObject, removeValue } from 'src/services/Storage/storage.service';
 import backend from 'src/services/Backend/backend.service';
 
 import { router } from 'expo-router';
 
 interface UserContextValue {
-    currentPatient: PatientDTO | null;
-    setCurrentPatient: (p: PatientDTO | null) => void;
+    currentPatient: Patient | null;
+    setCurrentPatient: (p: Patient | null) => void;
     isInitialized: boolean;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: ReactNode }> = ({children}) => {
-    
-    const [currentPatient, setCurrentPatient] = useState<PatientDTO | null>(null);
+export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+
+    const [currentPatient, setCurrentPatient] = useState<Patient | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
@@ -27,23 +27,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({children}) => {
 
         const loadCurrentPatient = async () => {
             setIsInitialized(false);
-            try
-            {
-                const patient = await getObject<PatientDTO | null>('currentPatient');
+            try {
+                const patient = await getObject<Patient | null>('currentPatient');
                 if (patient) {
                     setCurrentPatient(patient);
                 }
             }
-            catch (error)
-            {
+            catch (error) {
                 console.error('Failed to load patient from storage:', error);
             }
-            finally
-            {
+            finally {
                 setIsInitialized(true);
             }
         };
-    loadCurrentPatient();
+        loadCurrentPatient();
     }, []);
 
     return (

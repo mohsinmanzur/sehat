@@ -1,4 +1,4 @@
-export type PatientDTO = {
+export type Patient = {
     id?: string;
     name: string;
     email: string;
@@ -13,7 +13,7 @@ export type PatientDTO = {
     updated_at?: Date;
 };
 
-export type DoctorDTO = {
+export type Doctor = {
     id?: string;
     name: string;
     email: string;
@@ -27,9 +27,9 @@ export type DoctorDTO = {
     updated_at?: Date;
 }
 
-export type MedicalDocumentDTO = {
+export type MedicalDocument = {
     id?: string;
-    patient_id: string;
+    patient: Patient;
     file_name: string;
     file_url: string;
     record_type: 'lab_report' | 'prescription' | 'imaging' | 'other';
@@ -39,33 +39,27 @@ export type MedicalDocumentDTO = {
     updated_at?: Date;
 };
 
-export type HealthMeasurementDTO = {
+export type HealthMeasurement = {
     id?: string;
-    document_id?: string;
-    patient_id: string;
-    unit_id: string;
+    medical_document?: MedicalDocument;
+    patient: Patient;
+    measurement_unit: MeasurementUnit;
     numeric_value: number;
     created_at?: Date;
     updated_at?: Date;
     special_conditions?: string[];
 };
 
-export type UpdateHealthMeasurementDTO = {
-    numeric_value?: number;
-    created_at?: Date;
-    special_conditions?: string[];
-};
-
-export type MeasurementUnitDTO = {
+export type MeasurementUnit = {
     id?: string;
     unit_name: string;
     symbol: string;
     measurement_group: string;
 };
 
-export type ReferenceRangeDTO = {
+export type ReferenceRange = {
     id?: string;
-    unit_id: string;
+    measurement_unit: MeasurementUnit;
     min_value: number;
     max_value: number;
     target_gender?: 'male' | 'female' | 'other';
@@ -74,9 +68,9 @@ export type ReferenceRangeDTO = {
     special_conditions?: string[];
 }
 
-export type AIAnalysisDTO = {
+export type AIAnalysis = {
     id?: string;
-    document_id: string;
+    medical_document: MedicalDocument;
     anomaly_detected: boolean;
     suggested_text?: string;
     severity_score: number;
@@ -84,11 +78,11 @@ export type AIAnalysisDTO = {
     updated_at?: Date;
 }
 
-export type AccessGrantDTO = {
+export type AccessGrant = {
     id?: string;
-    doctor_id: string;
-    patient_id: string;
-    measurement_id?: string;
+    doctor: Doctor;
+    patient: Patient;
+    health_measurement?: HealthMeasurement;
     access_token?: string;
     permission: 'view_only' | 'emergency' | 'full_access';
     is_revoked?: boolean;

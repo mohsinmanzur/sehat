@@ -5,14 +5,14 @@ import { Colors } from "@theme/colors";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ScalePressable } from "../ScalePressable";
-import { GetHealthMeasurement } from "../../types/others";
 import { router } from "expo-router";
 import { LineChart } from 'react-native-wagmi-charts'; // 1. Import Wagmi Charts
+import { HealthMeasurement } from "../../types/dtos";
 
 interface UpdatedMeasurementCardProps {
     id: string;
-    item: GetHealthMeasurement;
-    secondaryItem?: GetHealthMeasurement;
+    item: HealthMeasurement;
+    secondaryItem?: HealthMeasurement;
     iconName: string;
     primaryColor: string;
     secondaryColor: string;

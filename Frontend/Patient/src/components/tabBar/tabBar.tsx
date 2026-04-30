@@ -1,7 +1,7 @@
 import { useTheme } from "@context/ThemeContext";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { View, TouchableOpacity, Text, StyleSheet, Dimensions, Platform } from "react-native"
+import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from "react-native"
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Animated, { useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
