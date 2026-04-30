@@ -10,7 +10,7 @@ export class AI_Analysis {
     @JoinColumn({ name: 'document_id' })
     medical_document: Medical_Document;
 
-    @Column('uuid')
+    @Column('uuid', { default: '00000000-0000-0000-0000-000000000000' })
     document_id: string;
 
     @Column({ default: false })
