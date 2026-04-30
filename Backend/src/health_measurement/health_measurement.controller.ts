@@ -3,10 +3,9 @@ import { HealthMeasurementService } from './health_measurement.service';
 import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { Measurement_Unit } from '../entities/measurement_unit.entity';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
-import { Health_Measurement } from '../entities/health_measurement.entity';
-import { GetHealthMeasurement } from './types/health_measurement.type';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
-import { Reference_Range } from '../entities/reference_range.entity';
+import { HealthMeasurementType } from './types/health_measurement.type';
+import { ReferenceRangeType } from './types/reference_range.type';
 
 @Controller('health-measurement')
 export class HealthMeasurementController {
@@ -16,9 +15,9 @@ export class HealthMeasurementController {
   async getHealthMeasurements(
     @Query('patient_id') patient_id?: string,
     @Query('id') id?: string
-  ): Promise<GetHealthMeasurement[] | GetHealthMeasurement | Health_Measurement[] | null> {
+  ): Promise<HealthMeasurementType[] | HealthMeasurementType | null> {
     if (patient_id) {
-      return await this.healthMeasurementService.getHealthMeasurementsByPatient(patient_id);
+      return await this.healthMeasurementService.HealthMeasurementTypesByPatient(patient_id);
     }
     if (id) {
       return await this.healthMeasurementService.getMeasurementById(id);
@@ -27,12 +26,12 @@ export class HealthMeasurementController {
   }
 
   @Post()
-  async createHealthMeasurement(@Body() measurement: CreateMeasurementDto): Promise<Health_Measurement> {
+  async createHealthMeasurement(@Body() measurement: CreateMeasurementDto): Promise<HealthMeasurementType> {
     return await this.healthMeasurementService.createHealthMeasurement(measurement);
   }
 
   @Put()
-  async updateHealthMeasurement(@Query('id') id: string, @Body() measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
+  async updateHealthMeasurement(@Query('id') id: string, @Body() measurement: UpdateMeasurementDto): Promise<HealthMeasurementType> {
     return await this.healthMeasurementService.updateHealthMeasurement(id, measurement);
   }
 
@@ -52,7 +51,7 @@ export class HealthMeasurementController {
   }
 
   @Get('reference-ranges')
-  async getReferenceRanges(@Query('unit_id') unit_id?: string): Promise<Reference_Range[] | null> {
+  async getReferenceRanges(@Query('unit_id') unit_id?: string): Promise<ReferenceRangeType[] | null> {
     if (unit_id) {
       return await this.healthMeasurementService.getReferenceRangesByUnit(unit_id);
     }

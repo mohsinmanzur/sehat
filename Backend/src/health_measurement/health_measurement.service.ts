@@ -20,8 +20,14 @@ export class HealthMeasurementService {
         @InjectRepository(Reference_Range) private referenceRangeRepo: Repository<Reference_Range>
     ) { }
 
-    async getAllMeasurements(): Promise<Health_Measurement[] | null> {
-        return await this.healthMeasurementRepo.find();
+    async getAllMeasurements(): Promise<HealthMeasurementType[] | null> {
+        const measurements = await this.healthMeasurementRepo.createQueryBuilder('hm')
+            .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
+            .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
+            .leftJoinAndMapOne('hm.medical_document', Medical_Document, 'medical_document', 'hm.document_id = medical_document.id')
+            .getMany();
+
+        return measurements as unknown as HealthMeasurementType[];
     }
 
     async HealthMeasurementTypesByPatient(patient_id: string): Promise<HealthMeasurementType[]> {
@@ -47,9 +53,10 @@ export class HealthMeasurementService {
         return measurement as unknown as HealthMeasurementType;
     }
 
-    async createHealthMeasurement(measurement: CreateMeasurementDto): Promise<Health_Measurement> {
+    async createHealthMeasurement(measurement: CreateMeasurementDto): Promise<HealthMeasurementType> {
         const newMeasurement = this.healthMeasurementRepo.create(measurement);
-        return await this.healthMeasurementRepo.save(newMeasurement);
+        const saved = await this.healthMeasurementRepo.save(newMeasurement);
+        return await this.getMeasurementById(saved.id);
     }
 
     async updateHealthMeasurement(id: string, measurement: UpdateMeasurementDto): Promise<HealthMeasurementType> {
