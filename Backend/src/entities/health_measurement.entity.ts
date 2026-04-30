@@ -20,7 +20,7 @@ export class Health_Measurement {
     @JoinColumn({ name: 'patient_id' })
     patient: Patient;
 
-    @Column('uuid')
+    @Column('uuid', { default: '00000000-0000-0000-0000-000000000000' })
     patient_id: string;
 
     @ManyToOne(() => Measurement_Unit, (unit) => unit.health_measurements)
