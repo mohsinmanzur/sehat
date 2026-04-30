@@ -13,15 +13,16 @@ export class Reference_Range {
     @Column('uuid')
     unit_id: string;
 
-    @Column()
+    @Column({ default: 0 })
     min_value: number;
 
-    @Column()
+    @Column({ default: 0 })
     max_value: number;
 
     @Column({
         enum: ['male', 'female', 'other'],
-        nullable: true
+        nullable: true,
+        enumName: 'gender_enum'
     })
     target_gender: string;
 

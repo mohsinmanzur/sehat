@@ -23,7 +23,11 @@ export class Patient {
     @Column()
     email: string;
 
-    @Column({ enum: ['male', 'female', 'other'], default: 'male' })
+    @Column({
+        enum: ['male', 'female', 'other'],
+        default: 'other',
+        enumName: 'gender_enum'
+    })
     gender: string;
 
     @Column({ nullable: true, default: '000-000-0000' })

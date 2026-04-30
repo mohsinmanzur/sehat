@@ -19,6 +19,6 @@ export class Measurement_Unit {
     @Column()
     symbol: string;
 
-    @Column()
+    @Column({ default: 'None' })
     measurement_group: string;
 }
