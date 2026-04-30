@@ -8,8 +8,9 @@ import { Patient } from '../entities/patient.entity';
 import { Medical_Document } from '../entities/medical_document.entity';
 import { Repository } from 'typeorm';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
-import { GetHealthMeasurement } from './dto/get-measurements.dto';
+import { HealthMeasurementType } from './types/health_measurement.type';
 import { Reference_Range } from '../entities/reference_range.entity';
+import { ReferenceRangeType } from './types/reference_range.type';
 
 @Injectable()
 export class HealthMeasurementService {
@@ -23,7 +24,7 @@ export class HealthMeasurementService {
         return await this.healthMeasurementRepo.find();
     }
 
-    async getHealthMeasurementsByPatient(patient_id: string): Promise<GetHealthMeasurement[]> {
+    async HealthMeasurementTypesByPatient(patient_id: string): Promise<HealthMeasurementType[]> {
         const measurements = await this.healthMeasurementRepo.createQueryBuilder('hm')
             .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
             .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
@@ -32,10 +33,10 @@ export class HealthMeasurementService {
             .orderBy('hm.created_at', 'DESC')
             .getMany();
 
-        return measurements as unknown as GetHealthMeasurement[];
+        return measurements as unknown as HealthMeasurementType[];
     }
 
-    async getMeasurementById(id: string): Promise<GetHealthMeasurement> {
+    async getMeasurementById(id: string): Promise<HealthMeasurementType> {
         const measurement = await this.healthMeasurementRepo.createQueryBuilder('hm')
             .leftJoinAndMapOne('hm.patient', Patient, 'patient', 'hm.patient_id = patient.id')
             .leftJoinAndMapOne('hm.measurement_unit', Measurement_Unit, 'measurement_unit', 'hm.unit_id = measurement_unit.id')
@@ -43,7 +44,7 @@ export class HealthMeasurementService {
             .where('hm.id = :id', { id })
             .getOne();
 
-        return measurement as unknown as GetHealthMeasurement;
+        return measurement as unknown as HealthMeasurementType;
     }
 
     async createHealthMeasurement(measurement: CreateMeasurementDto): Promise<Health_Measurement> {
@@ -51,13 +52,14 @@ export class HealthMeasurementService {
         return await this.healthMeasurementRepo.save(newMeasurement);
     }
 
-    async updateHealthMeasurement(id: string, measurement: UpdateMeasurementDto): Promise<Health_Measurement> {
+    async updateHealthMeasurement(id: string, measurement: UpdateMeasurementDto): Promise<HealthMeasurementType> {
         const existingRecord = await this.healthMeasurementRepo.findOneBy({ id });
         if (!existingRecord) {
             throw new Error('Health measurement not found');
         }
         Object.assign(existingRecord, measurement);
-        return await this.healthMeasurementRepo.save(existingRecord);
+        await this.healthMeasurementRepo.save(existingRecord);
+        return await this.getMeasurementById(id);
     }
 
     async deleteHealthMeasurement(id: string): Promise<void> {
@@ -73,11 +75,18 @@ export class HealthMeasurementService {
         return await this.measurementUnitRepo.find();
     }
 
-    async getReferenceRangesByUnit(unit_id: string): Promise<Reference_Range[]> {
-        return await this.referenceRangeRepo.find({ where: { unit_id } });
+    async getReferenceRangesByUnit(unit_id: string): Promise<ReferenceRangeType[]> {
+        const ranges = await this.referenceRangeRepo.createQueryBuilder('rr')
+            .leftJoinAndMapOne('rr.unit', Measurement_Unit, 'unit', 'rr.unit_id = unit.id')
+            .where('rr.unit_id = :unit_id', { unit_id })
+            .getMany();
+        return ranges as unknown as ReferenceRangeType[];
     }
 
-    async getAllReferenceRanges(): Promise<Reference_Range[]> {
-        return await this.referenceRangeRepo.find();
+    async getAllReferenceRanges(): Promise<ReferenceRangeType[]> {
+        const ranges = await this.referenceRangeRepo.createQueryBuilder('rr')
+            .leftJoinAndMapOne('rr.unit', Measurement_Unit, 'unit', 'rr.unit_id = unit.id')
+            .getMany();
+        return ranges as unknown as ReferenceRangeType[];
     }
 }

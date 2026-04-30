@@ -1,9 +1,21 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Medical_Document } from "./medical_document.entity";
+import { Health_Measurement } from "./health_measurement.entity";
+import { Access_Grant } from "./access_grant.entity";
 
 @Entity()
 export class Patient {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @OneToMany(() => Medical_Document, (doc) => doc.patient)
+    medical_documents: Medical_Document[];
+
+    @OneToMany(() => Health_Measurement, (measurement) => measurement.patient)
+    health_measurements: Health_Measurement[];
+
+    @OneToMany(() => Access_Grant, (grant) => grant.patient)
+    access_grants: Access_Grant[];
 
     @Column()
     name: string;

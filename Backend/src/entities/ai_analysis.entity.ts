@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ForeignKey, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Medical_Document } from "./medical_document.entity";
 
 @Entity()
@@ -6,7 +6,10 @@ export class AI_Analysis {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ForeignKey(() => Medical_Document)
+    @ManyToOne(() => Medical_Document, (doc) => doc.ai_analyses)
+    @JoinColumn({ name: 'document_id' })
+    medical_document: Medical_Document;
+
     @Column('uuid')
     document_id: string;
 

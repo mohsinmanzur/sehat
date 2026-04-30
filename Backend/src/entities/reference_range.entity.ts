@@ -1,4 +1,4 @@
-import { Column, Entity, ForeignKey, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Measurement_Unit } from "./measurement_unit.entity";
 
 @Entity()
@@ -6,7 +6,10 @@ export class Reference_Range {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ForeignKey(() => Measurement_Unit)
+    @ManyToOne(() => Measurement_Unit, (unit) => unit.reference_ranges)
+    @JoinColumn({ name: 'unit_id' })
+    measurement_unit: Measurement_Unit;
+
     @Column('uuid')
     unit_id: string;
 

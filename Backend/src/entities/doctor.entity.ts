@@ -1,9 +1,13 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Access_Grant } from "./access_grant.entity";
 
 @Entity()
 export class Doctor {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @OneToMany(() => Access_Grant, (grant) => grant.doctor)
+    access_grants: Access_Grant[];
 
     @Column()
     name: string;

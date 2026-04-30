@@ -4,7 +4,7 @@ import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { Measurement_Unit } from '../entities/measurement_unit.entity';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from '../entities/health_measurement.entity';
-import { GetHealthMeasurement } from './dto/get-measurements.dto';
+import { GetHealthMeasurement } from './types/health_measurement.type';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { Reference_Range } from '../entities/reference_range.entity';
 
