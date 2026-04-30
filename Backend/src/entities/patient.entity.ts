@@ -30,7 +30,7 @@ export class Patient {
     })
     gender: string;
 
-    @Column({ nullable: true, default: '000-000-0000' })
+    @Column({ nullable: true })
     phone: string;
 
     @Column()

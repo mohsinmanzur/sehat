@@ -22,7 +22,7 @@ export class Doctor {
     })
     gender: string;
 
-    @Column({ default: '0000000000' })
+    @Column()
     phone: string;
 
     @Column()
