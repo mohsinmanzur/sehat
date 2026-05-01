@@ -10,7 +10,7 @@ import LoadingScreen from 'src/components/LoadingScreen';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
 import { Colors } from '@theme/colors';
-import { HealthMeasurement } from '../../src/types/dtos';
+import { HealthMeasurement } from '../../src/types/types';
 
 export default function EditMeasurement() {
 

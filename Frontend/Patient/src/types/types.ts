@@ -82,9 +82,15 @@ export type AccessGrant = {
     id?: string;
     doctor: Doctor;
     patient: Patient;
-    health_measurement?: HealthMeasurement;
+    measurement_ids?: string[];
     access_token?: string;
     permission: 'view_only' | 'emergency' | 'full_access';
     is_revoked?: boolean;
     expires_at: Date;
+}
+
+export type ShareMeasurementDTO = {
+    doctorEmail: string;
+    measurement_ids?: string[];
+    permission?: 'view_only' | 'emergency' | 'full_access';
 }

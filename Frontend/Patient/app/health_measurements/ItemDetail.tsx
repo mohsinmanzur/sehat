@@ -6,7 +6,7 @@ import { useTheme } from 'src/context/ThemeContext';
 import { ThemedView } from 'src/components';
 import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
-import { HealthMeasurement } from '../../src/types/dtos';
+import { HealthMeasurement } from '../../src/types/types';
 import { GhostElement } from 'src/components/GhostElement';
 
 export default function HealthMeasurementDetailScreen() {

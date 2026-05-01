@@ -1,8 +1,9 @@
-import { HealthMeasurementDTO, MeasurementUnitDTO, ReferenceRangeDTO, UpdateHealthMeasurementDTO } from "../../types/dto";
 import * as SecureStore from 'expo-secure-store';
-import { PatientDTO } from "../../types/dto";
-import { GetHealthMeasurement, UploadMedicalDocument } from "../../types/others";
+import { AccessGrant, HealthMeasurement, MeasurementUnit, Patient, ReferenceRange, ShareMeasurementDTO } from "../../types/types";
+import { UpdateHealthMeasurement } from "../../types/updatetypes";
+import { HealthMeasurementDTO, MeasurementUnitDTO, ReferenceRangeDTO } from "../../types/parameters";
 import { removeValue } from "../Storage/storage.service";
+import { UploadMedicalDocument } from '../../types/others';
 
 enum allowedMethods {
     GET,
@@ -149,7 +150,7 @@ class Backend {
         return data;
     }
 
-    async registerPatient(patientInfo: PatientDTO) {
+    async registerPatient(patientInfo: Patient) {
         const response = await this.request('/auth/register', allowedMethods.POST, patientInfo);
         if (!response.ok) {
             throw new Error(`Error in registering patient: ${response.status} ${response.statusText}: ${await response.text()}`);
@@ -184,7 +185,7 @@ class Backend {
         const response = await this.request('/patient', allowedMethods.GET);
 
         if (!response.ok) {
-            throw new Error(`Error in fetching patients: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in fetching patients: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
@@ -194,7 +195,7 @@ class Backend {
         const response = await this.request(`/patient/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
-            throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
@@ -204,7 +205,7 @@ class Backend {
         const response = await this.request(`/patient/?email=${email}`, allowedMethods.GET);
 
         if (!response.ok) {
-            throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
         const data = await response.json();
         return data;
@@ -214,7 +215,7 @@ class Backend {
         const response = await this.request(`/patient/?name=${name}`, allowedMethods.GET);
 
         if (!response.ok) {
-            throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in fetching patient: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
@@ -223,7 +224,7 @@ class Backend {
     // =========================
     // Health Measurements
     // =========================
-    async getMeasurementsByPatient(patientId: string): Promise<GetHealthMeasurement[]> {
+    async getMeasurementsByPatient(patientId: string): Promise<HealthMeasurement[]> {
         const response = await this.request(`/health-measurement/?patient_id=${patientId}`, allowedMethods.GET);
 
         if (!response.ok) {
@@ -233,17 +234,17 @@ class Backend {
         return await response.json();
     }
 
-    async getMeasurementById(id: string): Promise<GetHealthMeasurement> {
+    async getMeasurementById(id: string): Promise<HealthMeasurement> {
         const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.GET);
 
         if (!response.ok) {
-            throw new Error(`Error in fetching health measurement: ${response.status} ${response.statusText}`);
+            throw new Error(`Error in fetching health measurement: ${response.status} ${response.statusText}: ${await response.text()}`);
         }
 
         return await response.json();
     }
 
-    async createHealthMeasurement(measurement: HealthMeasurementDTO) {
+    async createHealthMeasurement(measurement: HealthMeasurement) {
         const response = await this.request('/health-measurement', allowedMethods.POST, measurement);
         if (!response.ok) {
             throw new Error(`Error in creating health measurement ${response.status} ${response.statusText}: ${await response.text()}`);
@@ -251,7 +252,7 @@ class Backend {
         return await response.json();
     }
 
-    async updateHealthMeasurement(id: string, measurement: UpdateHealthMeasurementDTO) {
+    async updateHealthMeasurement(id: string, measurement: UpdateHealthMeasurement) {
         const response = await this.request(`/health-measurement/?id=${id}`, allowedMethods.PUT, measurement);
         if (!response.ok) {
             throw new Error(`Error in updating health measurement ${response.status} ${response.statusText}: ${await response.text()}`);
@@ -274,7 +275,7 @@ class Backend {
         return await response.json();
     }
 
-    async getMeasurementUnits(): Promise<MeasurementUnitDTO[]> {
+    async getMeasurementUnits(): Promise<MeasurementUnit[]> {
         const response = await this.request('/health-measurement/unit', allowedMethods.GET);
         if (!response.ok) {
             throw new Error(`Error in fetching measurement units ${response.status} ${response.statusText}: ${await response.text()}`);
@@ -338,10 +339,36 @@ class Backend {
     // =========================
     // Reference Ranges
     // =========================
-    async getReferenceRanges(unit_id?: string): Promise<ReferenceRangeDTO[]> {
+    async getReferenceRanges(unit_id?: string): Promise<ReferenceRange[]> {
         const response = await this.request(`/health-measurement/reference-ranges${unit_id ? `/?unit_id=${unit_id}` : ''}`, allowedMethods.GET);
         if (!response.ok) {
             throw new Error(`Error in fetching reference ranges ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+    // =========================
+    // Sharing
+    // =========================
+    async shareMeasurement(patientId: string, shareData: ShareMeasurementDTO): Promise<AccessGrant> {
+        const response = await this.request(`/share/?patient_id=${patientId}`, allowedMethods.POST, shareData);
+        if (!response.ok) {
+            throw new Error(`Error in sharing measurement: ${response.status} ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async getPatientShares(patientId: string): Promise<AccessGrant[]> {
+        const response = await this.request(`/share/shares?patient_id=${patientId}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching shares: ${response.status} ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async revokeShare(patientId: string, shareId: string): Promise<AccessGrant> {
+        const response = await this.request(`/share/revoke?patient_id=${patientId}&share_id=${shareId}`, allowedMethods.POST);
+        if (!response.ok) {
+            throw new Error(`Error in revoking share: ${response.status} ${await response.text()}`);
         }
         return await response.json();
     }

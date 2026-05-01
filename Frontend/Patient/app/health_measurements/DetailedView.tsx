@@ -11,7 +11,7 @@ import { HistoryRow } from 'src/components/detailed_view/history_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
 import { Header } from 'src/components/detailed_view/header';
 import { GhostElement } from 'src/components/GhostElement';
-import { ReferenceRange, HealthMeasurement } from 'src/types/dtos';
+import { ReferenceRange, HealthMeasurement } from '@types/types';
 import { findBestReferenceRange } from 'src/helpers/detailed_view.helpers';
 
 export default function DetailedViewScreen() {

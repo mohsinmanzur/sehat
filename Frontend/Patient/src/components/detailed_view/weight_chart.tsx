@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet, Text, View } from "react-native";
-import { HealthMeasurement } from "../../types/dtos";
+import { HealthMeasurement } from "../../types/types";
 import { useTheme } from "@context/ThemeContext";
 import { buildAreaPath, buildSmoothPath, formatChartDate } from "src/helpers/detailed_view.helpers";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop, Text as SvgText } from "react-native-svg";

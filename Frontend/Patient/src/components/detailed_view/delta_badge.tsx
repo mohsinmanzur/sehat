@@ -1,5 +1,5 @@
 import { useTheme } from "@context/ThemeContext";
-import { HealthMeasurement } from "../../types/dtos";
+import { HealthMeasurement } from "../../types/types";
 import { StyleSheet, Text, View } from "react-native";
 
 export const DeltaBadge: React.FC<{ delta?: number, unit: string, measurements: HealthMeasurement[], color?: string }> = ({ delta, unit, measurements, color }) => {

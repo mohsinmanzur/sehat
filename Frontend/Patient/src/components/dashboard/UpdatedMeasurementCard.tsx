@@ -7,7 +7,7 @@ import { ThemedText } from "../ThemedText";
 import { ScalePressable } from "../ScalePressable";
 import { router } from "expo-router";
 import { LineChart } from 'react-native-wagmi-charts'; // 1. Import Wagmi Charts
-import { HealthMeasurement } from "../../types/dtos";
+import { HealthMeasurement } from "../../types/types";
 
 interface UpdatedMeasurementCardProps {
     id: string;

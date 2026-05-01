@@ -2,7 +2,7 @@ import { useTheme } from "@context/ThemeContext";
 import { StyleSheet, Text, View } from "react-native";
 import { formatFullDateTime } from "src/utils/date";
 import { DeltaBadge } from "./delta_badge";
-import { HealthMeasurement } from "../../types/dtos";
+import { HealthMeasurement } from "../../types/types";
 
 export const HistoryRow: React.FC<{ item: HealthMeasurement; secondaryItem?: HealthMeasurement | null; isLast: boolean; delta?: number, measurements: HealthMeasurement[], color?: string }> = ({ item, secondaryItem, isLast, delta, measurements, color }) => {
     const { theme } = useTheme();

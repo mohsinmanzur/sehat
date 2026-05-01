@@ -14,7 +14,7 @@ import { errorShakeAnimation } from 'src/animations/animations';
 import { ScalePressable } from 'src/components/ScalePressable';
 import { useGlobalContext } from 'src/context/GlobalContext';
 import { Snackbar } from 'react-native-snackbar';
-import { MeasurementUnit } from '../src/types/dtos';
+import { MeasurementUnit } from '../src/types/types';
 
 export default function AddNewMeasurement() {
     const { theme } = useTheme();

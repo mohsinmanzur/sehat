@@ -1,0 +1,28 @@
+export type MeasurementUnitDTO = {
+    id?: string;
+    unit_name: string;
+    symbol: string;
+    measurement_group: string;
+};
+
+export type HealthMeasurementDTO = {
+    id?: string;
+    document_id?: string;
+    patient_id: string;
+    unit_id: string;
+    numeric_value: number;
+    special_conditions?: string[];
+    created_at?: Date;
+    updated_at?: Date;
+};
+
+export type ReferenceRangeDTO = {
+    id?: string;
+    unit_id: string;
+    min_value: number;
+    max_value: number;
+    target_gender?: 'male' | 'female' | 'other';
+    min_age?: number;
+    max_age?: number;
+    special_conditions?: string[];
+};

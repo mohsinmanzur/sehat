@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Patient } from '../types/dtos';
+import type { Patient } from '../types/types';
 import { getObject, removeValue } from 'src/services/Storage/storage.service';
 import backend from 'src/services/Backend/backend.service';
 
