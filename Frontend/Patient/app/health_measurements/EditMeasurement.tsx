@@ -10,7 +10,7 @@ import LoadingScreen from 'src/components/LoadingScreen';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
 import { errorShakeAnimation } from 'src/animations/animations';
 import { Colors } from '@theme/colors';
-import { GetHealthMeasurement } from '../../src/types/others';
+import { HealthMeasurement } from '../../src/types/dtos';
 
 export default function EditMeasurement() {
 
@@ -18,8 +18,8 @@ export default function EditMeasurement() {
     const { data, data2 } = useLocalSearchParams<{ data: string, data2?: string }>();
     const { theme } = useTheme();
 
-    const [measurement, setMeasurement] = useState<GetHealthMeasurement | null>(null);
-    const [secondaryMeasurement, setSecondaryMeasurement] = useState<GetHealthMeasurement | null>(null);
+    const [measurement, setMeasurement] = useState<HealthMeasurement | null>(null);
+    const [secondaryMeasurement, setSecondaryMeasurement] = useState<HealthMeasurement | null>(null);
 
     const [value, setValue] = useState<string>('');
     const [secondaryValue, setSecondaryValue] = useState<string>('');
@@ -36,7 +36,7 @@ export default function EditMeasurement() {
 
     useEffect(() => {
         if (data) {
-            const parsed = JSON.parse(data) as GetHealthMeasurement;
+            const parsed = JSON.parse(data) as HealthMeasurement;
             setMeasurement(parsed);
             setValue(parsed.numeric_value.toString());
             if (parsed.created_at) {
@@ -44,7 +44,7 @@ export default function EditMeasurement() {
             }
         }
         if (data2) {
-            const parsed2 = JSON.parse(data2) as GetHealthMeasurement;
+            const parsed2 = JSON.parse(data2) as HealthMeasurement;
             setSecondaryMeasurement(parsed2);
             setSecondaryValue(parsed2.numeric_value.toString());
         }

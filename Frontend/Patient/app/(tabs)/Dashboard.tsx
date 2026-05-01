@@ -5,7 +5,7 @@ import { useTheme } from 'src/context/ThemeContext';
 import { Header } from 'src/components/dashboard';
 import { ThemedView } from 'src/components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HealthMeasurement } from '@types/dtos';
+import { HealthMeasurement } from '../../src/types/dtos';
 import backend from 'src/services/Backend/backend.service';
 import { useFocusEffect } from 'expo-router';
 import { UpdatedMeasurementCard } from 'src/components/dashboard/UpdatedMeasurementCard';

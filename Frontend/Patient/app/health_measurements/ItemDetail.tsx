@@ -6,7 +6,7 @@ import { useTheme } from 'src/context/ThemeContext';
 import { ThemedView } from 'src/components';
 import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
-import { GetHealthMeasurement } from '../../src/types/others';
+import { HealthMeasurement } from '../../src/types/dtos';
 import { GhostElement } from 'src/components/GhostElement';
 
 export default function HealthMeasurementDetailScreen() {
@@ -18,8 +18,8 @@ export default function HealthMeasurementDetailScreen() {
     const [secureUrlLoading, setSecureUrlLoading] = useState(true);
     const [imageRatio, setImageRatio] = useState<number>(3 / 4);
 
-    let measurement: GetHealthMeasurement | null = null;
-    let secondaryMeasurement: GetHealthMeasurement | null = null;
+    let measurement: HealthMeasurement | null = null;
+    let secondaryMeasurement: HealthMeasurement | null = null;
     try {
         measurement = JSON.parse(data);
         if (data2) {

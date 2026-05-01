@@ -12,7 +12,7 @@ import backend from "src/services/Backend/backend.service";
 const ProfileScreen: React.FC = () => {
 
     const { theme } = useTheme();
-    const { currentPatient, setCurrentPatient } = useCurrentPatient();
+    const { setCurrentPatient } = useCurrentPatient();
 
     const styles = styleSheet(theme);
 
@@ -30,7 +30,7 @@ const ProfileScreen: React.FC = () => {
     return (
         <ThemedView safe>
             <Pressable style={styles.backButton} onPress={router.back}>
-                <Ionicons name="arrow-back" color={theme.textGray} size={20}/>
+                <Ionicons name="arrow-back" color={theme.textGray} size={20} />
             </Pressable>
 
             <ScalePressable style={styles.logoutButtton} onPress={handleLogout}>

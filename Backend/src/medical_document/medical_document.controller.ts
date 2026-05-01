@@ -22,7 +22,7 @@ export class MedicalDocumentController {
   }
 
   @Get('document-url')
-  async getDocumentUrlFromMeasurementId(@Query('id') id: string): Promise<{ file_url: string }> {
+  async getDocumentUrlFromMeasurementId(@Query('id') id: string): Promise<{ file_url: string | null }> {
     try {
       const file_url = await this.medicalDocumentService.getDocumentUrlFromMeasurementId(id);
       return { file_url };

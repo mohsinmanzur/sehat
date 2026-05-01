@@ -7,7 +7,6 @@ import { ThemedText, ThemedView } from 'src/components';
 import DatePicker from 'react-native-date-picker';
 import { Dropdown } from 'src/components/common/Dropdown';
 import backend from 'src/services/Backend/backend.service';
-import { MeasurementUnitDTO } from '../src/types/dto';
 import LoadingScreen from 'src/components/LoadingScreen';
 import { useCurrentPatient } from '@context/PatientContext';
 import { formatOrdinalDate, formatTime } from 'src/utils/date';
@@ -15,6 +14,7 @@ import { errorShakeAnimation } from 'src/animations/animations';
 import { ScalePressable } from 'src/components/ScalePressable';
 import { useGlobalContext } from 'src/context/GlobalContext';
 import { Snackbar } from 'react-native-snackbar';
+import { MeasurementUnit } from '../src/types/dtos';
 
 export default function AddNewMeasurement() {
     const { theme } = useTheme();
@@ -22,7 +22,7 @@ export default function AddNewMeasurement() {
     const { scannedImage, setScannedImage } = useGlobalContext();
     const router = useRouter();
 
-    const [selectedUnit, setSelectedUnit] = useState<MeasurementUnitDTO | null>(null);
+    const [selectedUnit, setSelectedUnit] = useState<MeasurementUnit | null>(null);
     const [value, setValue] = useState('');
     const [value2, setValue2] = useState('');
     const value2Ref = useRef<TextInput>(null);
@@ -36,7 +36,7 @@ export default function AddNewMeasurement() {
     const [isSaving, setisSaving] = useState(false);
 
     const [pickerOpen, setPickerOpen] = useState<'date' | 'time' | null>(null);
-    const [units, setUnits] = useState<MeasurementUnitDTO[]>([]);
+    const [units, setUnits] = useState<MeasurementUnit[]>([]);
 
     const valueShakeAnimation = useRef(new Animated.Value(0)).current;
     const dropdownShakeAnimation = useRef(new Animated.Value(0)).current;

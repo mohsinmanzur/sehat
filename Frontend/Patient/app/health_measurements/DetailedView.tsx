@@ -1,5 +1,4 @@
 import { useTheme } from '@context/ThemeContext';
-import { GetHealthMeasurement } from 'src/types/others';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Animated, RefreshControl } from 'react-native';
@@ -12,8 +11,7 @@ import { HistoryRow } from 'src/components/detailed_view/history_row';
 import { WeightChart } from 'src/components/detailed_view/weight_chart';
 import { Header } from 'src/components/detailed_view/header';
 import { GhostElement } from 'src/components/GhostElement';
-import TargetRange from 'src/components/detailed_view/target_range';
-import { ReferenceRangeDTO } from 'src/types/dto';
+import { ReferenceRange, HealthMeasurement } from 'src/types/dtos';
 import { findBestReferenceRange } from 'src/helpers/detailed_view.helpers';
 
 export default function DetailedViewScreen() {
@@ -23,16 +21,16 @@ export default function DetailedViewScreen() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [allMeasurements, setAllMeasurements] = useState<GetHealthMeasurement[]>([]);
-    const [diastolicMeasurements, setDiastolicMeasurements] = useState<(GetHealthMeasurement | null)[]>([]);
+    const [allMeasurements, setAllMeasurements] = useState<HealthMeasurement[]>([]);
+    const [diastolicMeasurements, setDiastolicMeasurements] = useState<(HealthMeasurement | null)[]>([]);
 
-    const [bestReferenceRange, setBestReferenceRange] = useState<ReferenceRangeDTO | null>();
-    const [diastolicReferenceRange, setDiastolicReferenceRange] = useState<ReferenceRangeDTO | null>();
+    const [bestReferenceRange, setBestReferenceRange] = useState<ReferenceRange | null>();
+    const [diastolicReferenceRange, setDiastolicReferenceRange] = useState<ReferenceRange | null>();
 
     const measurement = React.useMemo(() => {
         if (!data) return null;
         try {
-            return JSON.parse(data) as GetHealthMeasurement;
+            return JSON.parse(data) as HealthMeasurement;
         } catch (e) {
             console.error("Failed to parse measurement data", e);
             return null;
@@ -46,7 +44,7 @@ export default function DetailedViewScreen() {
             let filtered = results.filter(m =>
                 m.measurement_unit?.measurement_group.toLowerCase() === measurement?.measurement_unit?.measurement_group.toLowerCase()
             );
-            let alignedDiastolic: (GetHealthMeasurement | null)[] = [];
+            let alignedDiastolic: (HealthMeasurement | null)[] = [];
 
             if (measurement?.measurement_unit?.measurement_group.toLowerCase() === 'blood pressure') {
                 const diastolicRaw = filtered.filter(m =>
@@ -235,7 +233,7 @@ export default function DetailedViewScreen() {
                                 ))}
                             </View>
                         ) : (
-                            allMeasurements.map((item: GetHealthMeasurement, idx) => {
+                            allMeasurements.map((item: HealthMeasurement, idx) => {
                                 const nextItem = allMeasurements[idx + 1];
                                 const delta = nextItem ? item.numeric_value - nextItem.numeric_value : undefined;
                                 const isLast = idx === allMeasurements.length - 1;

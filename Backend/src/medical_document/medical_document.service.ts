@@ -48,7 +48,7 @@ export class MedicalDocumentService {
     return await this.medicalDocumentRepo.save(rec);
   }
 
-  async getDocumentUrlFromMeasurementId(id: string): Promise<string> {
+  async getDocumentUrlFromMeasurementId(id: string): Promise<string | null> {
     if (!id) throw new Error('Measurement ID is required to fetch document URL.');
 
     try {
@@ -64,9 +64,7 @@ export class MedicalDocumentService {
         }
       });
 
-      if (!result) throw new Error('No document found for the given measurement ID.');
-
-      return result.file_url;
+      return result?.file_url || null;
     }
     catch (error) {
       throw new Error(error);
