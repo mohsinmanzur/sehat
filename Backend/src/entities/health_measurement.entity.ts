@@ -30,8 +30,6 @@ export class Health_Measurement {
     @Column('uuid')
     unit_id: string;
 
-    @OneToMany(() => Access_Grant, (grant) => grant.health_measurement)
-    access_grants: Access_Grant[];
 
     @Column()
     numeric_value: number;

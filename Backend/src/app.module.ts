@@ -11,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { MedicalDocumentModule } from './medical_document/medical_document.module';
 import { HealthMeasurementModule } from './health_measurement/health_measurement.module';
 import { DoctorModule } from './doctor/doctor.module';
+import { ShareModule } from './share/share.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { DoctorModule } from './doctor/doctor.module';
     MedicalDocumentModule,
     HealthMeasurementModule,
     DoctorModule,
+    ShareModule,
   ],
   controllers: [AppController],
   providers: [

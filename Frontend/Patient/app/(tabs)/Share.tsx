@@ -107,7 +107,7 @@ export default function Share() {
 
                 <Spacer height={30} />
 
-                <ScalePressable style={styles.shareButton}>
+                <ScalePressable disabled={selectedReports.size === 0} style={[styles.shareButton, selectedReports.size === 0 && { backgroundColor: theme.primaryDark }]}>
                     <ThemedText type={'h3'} style={styles.revokeText}>
                         Share
                     </ThemedText>

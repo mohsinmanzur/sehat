@@ -22,12 +22,8 @@ export class Access_Grant {
     @Column('uuid')
     patient_id: string;
 
-    @ManyToOne(() => Health_Measurement, (measurement) => measurement.access_grants)
-    @JoinColumn({ name: 'measurement_id' })
-    health_measurement: Health_Measurement;
-
-    @Column('uuid', { nullable: true })
-    measurement_id: string;
+    @Column('uuid', { array: true, nullable: true })
+    measurement_ids: string[];
 
     @Column()
     access_token: string;

@@ -4,8 +4,6 @@ import { Measurement_Unit } from '../entities/measurement_unit.entity';
 import { CreateMeasurementUnitDto } from './dto/create-unit.dto';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { Health_Measurement } from '../entities/health_measurement.entity';
-import { Patient } from '../entities/patient.entity';
-import { Medical_Document } from '../entities/medical_document.entity';
 import { Repository } from 'typeorm';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { HealthMeasurementType } from './types/health_measurement.type';
