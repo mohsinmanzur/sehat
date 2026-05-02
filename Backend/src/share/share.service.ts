@@ -4,7 +4,6 @@ import { Access_Grant } from '../entities/access_grant.entity';
 import { Repository } from 'typeorm';
 import { ShareMeasurementDto } from './dto/share-measurement.dto';
 import { DoctorService } from '../doctor/doctor.service';
-import { v4 as uuidv4 } from 'uuid';
 import { AccessGrantType } from './types/access_grant.type';
 import { Doctor } from 'src/entities/doctor.entity';
 
@@ -28,7 +27,7 @@ export class ShareService {
             measurement_ids: shareDto.measurement_ids,
             permission: shareDto.permission || 'view_only',
             access_token: Math.floor(100000 + Math.random() * 900000).toString(),
-            expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+            expires_at: shareDto.expires_at,
         });
 
         await this.accessGrantRepo.save(accessGrant);
@@ -40,7 +39,7 @@ export class ShareService {
 
     async getPatientShares(patientId: string): Promise<AccessGrantType[]> {
         return await this.accessGrantRepo.find({
-            where: { patient_id: patientId },
+            where: { patient_id: patientId, is_revoked: false },
             relations: ['doctor', 'patient']
         });
     }

@@ -1,8 +1,7 @@
 import { useTheme } from "@context/ThemeContext";
 import React, { useState, useEffect } from "react";
 import { Colors } from "../../src/constants/colors";
-import { access_grant_data } from "../../src/constants/sample-data";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from "react-native";
 import { Spacer, ThemedText, ThemedTextInput, ThemedView } from "src/components";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -16,6 +15,7 @@ import { useGlobalContext } from "@context/GlobalContext";
 import { Snackbar } from "react-native-snackbar";
 import backend from "src/services/Backend/backend.service";
 import { useCurrentPatient } from "@context/PatientContext";
+import { AccessGrant } from "../../src/types/types";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
 
@@ -49,26 +49,82 @@ export default function Share() {
 
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
 
+    const [recipientEmail, setRecipientEmail] = useState('');
+    const [currentAccessGrants, setCurrentAccessGrants] = useState<AccessGrant[]>([]);
+
     const [revokingId, setRevokingId] = useState<string | null>(null);
     const [isShareLoading, setIsShareLoading] = useState(false);
 
     const [selectedTime, setSelectedTime] = useState({ days: 0, hours: 1, minutes: 0 });
 
+    const [refreshing, setRefreshing] = useState(false);
+
+    const loadShares = () => {
+        return backend.getPatientShares(currentPatient.id).then((data) => {
+            setCurrentAccessGrants(data);
+        });
+    };
+
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
+        loadShares().finally(() => setRefreshing(false));
+    }, [currentPatient.id]);
+
+    useEffect(() => {
+        loadShares();
+    }, [])
+
     const handleShare = () => {
         setIsShareLoading(true);
-        backend.shareMeasurement(currentPatient.id,)
-        setIsShareLoading(false);
+
+        const expiresAt = new Date();
+        if (selectedTime.days === 0 && selectedTime.hours === 0 && selectedTime.minutes === 0) {
+            expiresAt.setFullYear(expiresAt.getFullYear() + 100); // 100 years for "Unlimited"
+        } else {
+            expiresAt.setDate(expiresAt.getDate() + selectedTime.days);
+            expiresAt.setHours(expiresAt.getHours() + selectedTime.hours);
+            expiresAt.setMinutes(expiresAt.getMinutes() + selectedTime.minutes);
+        }
+
+        backend.shareMeasurement(currentPatient.id, {
+            measurement_ids: Array.from(selectedReports),
+            permission: 'view_only',
+            doctorEmail: recipientEmail,
+            expires_at: expiresAt
+        }).then(() => {
+            setIsShareLoading(false);
+            setRecipientEmail('');
+            setSelectedReports(new Set());
+            loadShares();
+            Snackbar.show({ text: 'Reports shared successfully', duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.primarySoft, textColor: theme.primary });
+        }).catch((error: any) => {
+            setIsShareLoading(false);
+            Snackbar.show({ text: `Failed to share reports: ${error.message}`, duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.danger, textColor: theme.text });
+        });
     }
 
-    const handleRevokeAccess = (id: string) => {
+    const handleRevokeAccess = async (id: string) => {
         setRevokingId(id);
-        setTimeout(() => {
+
+        try {
+            await backend.revokeShare(currentPatient.id, id);
+            loadShares();
+            Snackbar.show({ text: 'Access revoked successfully', duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.primarySoft, textColor: theme.primary });
+        } catch (error: any) {
+            Snackbar.show({ text: `Failed to revoke access: ${error.message}`, duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.danger, textColor: theme.text });
+        } finally {
             setRevokingId(null);
-        }, 2000);
+        }
     }
 
     return (
-        <ThemedView safe scroll style={styles.container} showsVerticalScrollIndicator={false}>
+        <ThemedView
+            safe
+            scroll
+            style={styles.container}
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} progressBackgroundColor={theme.backgroundLight} />}
+        >
             <ThemedText type={'h1'} style={styles.title}>
                 Share Health Records
             </ThemedText>
@@ -117,6 +173,8 @@ export default function Share() {
                 <ThemedTextInput
                     placeholder="Recipient email (optional)"
                     style={{ width: '100%', borderRadius: 10 }}
+                    value={recipientEmail}
+                    onChangeText={setRecipientEmail}
                 />
 
                 <ScalePressable
@@ -149,20 +207,24 @@ export default function Share() {
                 <ThemedText type={'h1'} style={styles.title}>
                     Current Access
                 </ThemedText>
-                {access_grant_data.length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }} />}
+                {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }} />}
             </View>
 
-            {access_grant_data.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).map((item) => (
+            {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).map((item) => (
                 <View key={item.id} style={styles.accessView}>
                     <View style={styles.accessDoctorInfoRow}>
-                        <View style={styles.doctorIconContainer}>
-                            <SvgXml xml={doctorSvg} />
+                        <View style={[styles.doctorIconContainer, !item.doctor && { backgroundColor: theme.card }]}>
+                            {item.doctor ? (
+                                <SvgXml xml={doctorSvg} />
+                            ) : (
+                                <FontAwesome5 name="globe" color={theme.primary} size={27} />
+                            )}
                         </View>
                         <View style={{ flex: 1, paddingRight: 20 }}>
-                            <ThemedText type={'h3'} numberOfLines={1} ellipsizeMode="tail">{item.doctor.name}</ThemedText>
-                            <ThemedText style={styles.doctorInfo} numberOfLines={1} ellipsizeMode="tail">
+                            <ThemedText type={'h3'} numberOfLines={1} ellipsizeMode="tail">{item.doctor ? item.doctor.name : 'Anyone With Access'}</ThemedText>
+                            {item.doctor && <ThemedText style={styles.doctorInfo} numberOfLines={1} ellipsizeMode="tail">
                                 {item.doctor.specialization} • {item.doctor.associated_hospital}
-                            </ThemedText>
+                            </ThemedText>}
 
                             <View style={styles.timeRow}>
                                 <FontAwesome5 name="hourglass-half" color={theme.primary} size={11} />
@@ -219,6 +281,8 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
         height: 55,
         width: 55,
         overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     doctorInfo: {
         fontSize: 12.5,

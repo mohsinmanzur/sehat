@@ -80,7 +80,7 @@ export type AIAnalysis = {
 
 export type AccessGrant = {
     id?: string;
-    doctor: Doctor;
+    doctor?: Doctor;
     patient: Patient;
     measurement_ids?: string[];
     access_token?: string;
@@ -93,4 +93,5 @@ export type ShareMeasurementDTO = {
     doctorEmail: string;
     measurement_ids?: string[];
     permission?: 'view_only' | 'emergency' | 'full_access';
+    expires_at: Date;
 }

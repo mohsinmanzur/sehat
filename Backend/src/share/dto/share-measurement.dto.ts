@@ -1,4 +1,5 @@
-import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsDate, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class ShareMeasurementDto {
     @IsOptional()
@@ -13,4 +14,9 @@ export class ShareMeasurementDto {
     @IsOptional()
     @IsString()
     permission?: string;
+
+    @IsNotEmpty()
+    @IsDate()
+    @Type(() => Date)
+    expires_at: Date;
 }
