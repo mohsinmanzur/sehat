@@ -6,6 +6,7 @@ import { ShareMeasurementDto } from './dto/share-measurement.dto';
 import { DoctorService } from '../doctor/doctor.service';
 import { v4 as uuidv4 } from 'uuid';
 import { AccessGrantType } from './types/access_grant.type';
+import { Doctor } from 'src/entities/doctor.entity';
 
 @Injectable()
 export class ShareService {
@@ -16,17 +17,17 @@ export class ShareService {
     ) { }
 
     async shareMeasurement(patientId: string, shareDto: ShareMeasurementDto): Promise<AccessGrantType | null> {
-        const doctor = await this.doctorService.getDoctorByEmail(shareDto.doctorEmail);
-        if (!doctor) {
-            throw new NotFoundException('Doctor with this email not found');
+        let doctor: Doctor | undefined;
+        if (shareDto.doctorEmail) {
+            doctor = await this.doctorService.getDoctorByEmail(shareDto.doctorEmail) || undefined;
         }
 
         const accessGrant = this.accessGrantRepo.create({
             patient_id: patientId,
-            doctor_id: doctor.id,
+            doctor_id: doctor?.id,
             measurement_ids: shareDto.measurement_ids,
             permission: shareDto.permission || 'view_only',
-            access_token: uuidv4(),
+            access_token: Math.floor(100000 + Math.random() * 900000).toString(),
             expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         });
 

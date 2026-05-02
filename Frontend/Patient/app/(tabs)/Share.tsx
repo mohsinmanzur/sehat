@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Colors } from "../../src/constants/colors";
 import { access_grant_data } from "../../src/constants/sample-data";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Spacer, ThemedText, ThemedView } from "src/components";
+import { Spacer, ThemedText, ThemedTextInput, ThemedView } from "src/components";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCircleXmark } from '@fortawesome/free-solid-svg-icons';
@@ -14,6 +14,8 @@ import { CustomTimePickerModal } from "src/components";
 import { router } from "expo-router";
 import { useGlobalContext } from "@context/GlobalContext";
 import { Snackbar } from "react-native-snackbar";
+import backend from "src/services/Backend/backend.service";
+import { useCurrentPatient } from "@context/PatientContext";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
 
@@ -41,13 +43,22 @@ export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date,
 export default function Share() {
     const { theme } = useTheme();
     const { selectedReports, setSelectedReports } = useGlobalContext();
+    const { currentPatient } = useCurrentPatient();
 
     const styles = StylesFunc(theme);
 
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
 
     const [revokingId, setRevokingId] = useState<string | null>(null);
+    const [isShareLoading, setIsShareLoading] = useState(false);
+
     const [selectedTime, setSelectedTime] = useState({ days: 0, hours: 1, minutes: 0 });
+
+    const handleShare = () => {
+        setIsShareLoading(true);
+        backend.shareMeasurement(currentPatient.id,)
+        setIsShareLoading(false);
+    }
 
     const handleRevokeAccess = (id: string) => {
         setRevokingId(id);
@@ -62,7 +73,7 @@ export default function Share() {
                 Share Health Records
             </ThemedText>
 
-            <View style={styles.templateContainer}>
+            <View style={[styles.templateContainer, { gap: 20 }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <ThemedText type={'h2'} style={{ marginRight: 10 }}>Select Reports</ThemedText>
 
@@ -90,8 +101,6 @@ export default function Share() {
                     />
                 </ScalePressable>
 
-                <Spacer height={20} />
-
                 <ScalePressable style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }} onPress={() => setIsTimePickerVisible(true)}>
                     <ThemedText type={'h2'}>
                         Access Time:{" "}
@@ -105,12 +114,23 @@ export default function Share() {
                     <FontAwesome5 name="pen" color={theme.textGray} size={12} />
                 </ScalePressable>
 
-                <Spacer height={30} />
+                <ThemedTextInput
+                    placeholder="Recipient email (optional)"
+                    style={{ width: '100%', borderRadius: 10 }}
+                />
 
-                <ScalePressable disabled={selectedReports.size === 0} style={[styles.shareButton, selectedReports.size === 0 && { backgroundColor: theme.primaryDark }]}>
-                    <ThemedText type={'h3'} style={styles.revokeText}>
-                        Share
-                    </ThemedText>
+                <ScalePressable
+                    disabled={selectedReports.size === 0 || isShareLoading}
+                    onPress={handleShare}
+                    style={[styles.shareButton, selectedReports.size === 0 && { backgroundColor: theme.primaryDark }]}
+                >
+                    {isShareLoading ? (
+                        <ActivityIndicator size="small" color={theme.text} style={{ padding: 2 }} />
+                    ) : (
+                        <ThemedText type={'h3'} style={styles.revokeText}>
+                            Share
+                        </ThemedText>
+                    )}
                 </ScalePressable>
             </View>
 
@@ -261,7 +281,6 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
         alignItems: 'center',
         padding: 15,
         borderRadius: 16,
-        marginTop: 20,
     },
     shareButton: {
         flexDirection: 'row',
@@ -270,6 +289,7 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 15,
+        marginTop: 10,
         gap: 7
     },
 })

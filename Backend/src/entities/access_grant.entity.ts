@@ -1,7 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Patient } from "./patient.entity";
 import { Doctor } from "./doctor.entity";
-import { Health_Measurement } from "./health_measurement.entity";
 
 @Entity()
 export class Access_Grant {
@@ -12,7 +11,7 @@ export class Access_Grant {
     @JoinColumn({ name: 'doctor_id' })
     doctor: Doctor;
 
-    @Column('uuid')
+    @Column('uuid', { nullable: true })
     doctor_id: string;
 
     @ManyToOne(() => Patient, (patient) => patient.access_grants)

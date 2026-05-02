@@ -1,9 +1,9 @@
 import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class ShareMeasurementDto {
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    doctorEmail: string;
+    doctorEmail?: string;
 
     @IsOptional()
     @IsArray()
