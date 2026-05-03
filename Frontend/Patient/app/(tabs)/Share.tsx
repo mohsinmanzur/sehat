@@ -10,7 +10,7 @@ import { SvgXml } from "react-native-svg";
 import { doctorSvg } from "../../src/constants/avatars";
 import { ScalePressable } from "src/components/ScalePressable";
 import { CustomTimePickerModal } from "src/components";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useGlobalContext } from "@context/GlobalContext";
 import { Snackbar } from "react-native-snackbar";
 import backend from "src/services/Backend/backend.service";
@@ -59,8 +59,8 @@ export default function Share() {
 
     const [refreshing, setRefreshing] = useState(false);
 
-    const loadShares = () => {
-        return backend.getPatientShares(currentPatient.id).then((data) => {
+    const loadShares = async () => {
+        await backend.getPatientShares(currentPatient.id).then((data) => {
             setCurrentAccessGrants(data);
         });
     };
@@ -70,9 +70,11 @@ export default function Share() {
         loadShares().finally(() => setRefreshing(false));
     }, [currentPatient.id]);
 
-    useEffect(() => {
-        loadShares();
-    }, [])
+    useFocusEffect(
+        React.useCallback(() => {
+            loadShares();
+        }, [currentPatient.id])
+    );
 
     const handleShare = () => {
         setIsShareLoading(true);
@@ -180,12 +182,12 @@ export default function Share() {
                 <ScalePressable
                     disabled={selectedReports.size === 0 || isShareLoading}
                     onPress={handleShare}
-                    style={[styles.shareButton, selectedReports.size === 0 && { backgroundColor: theme.primaryDark }]}
+                    style={[styles.shareButton, selectedReports.size === 0 && { backgroundColor: theme.card }]}
                 >
                     {isShareLoading ? (
                         <ActivityIndicator size="small" color={theme.text} style={{ padding: 2 }} />
                     ) : (
-                        <ThemedText type={'h3'} style={styles.revokeText}>
+                        <ThemedText type={'h3'} style={[{ color: '#FFF' }, selectedReports.size === 0 && { color: theme.textLight }]}>
                             Share
                         </ThemedText>
                     )}
@@ -257,7 +259,7 @@ export default function Share() {
                             <ActivityIndicator color="#FFFFFF" style={{ paddingVertical: 2 }} />
                         ) : <>
                             <FontAwesomeIcon icon={faCircleXmark} color='#FFFFFF' size={18} style={{ marginTop: 1 }} />
-                            <ThemedText type={'h3'} style={styles.revokeText}>
+                            <ThemedText type={'h3'} style={{ color: '#FFFFFF' }}>
                                 Revoke Access
                             </ThemedText>
                         </>
@@ -331,9 +333,6 @@ const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
         padding: 15,
         marginTop: 15,
         gap: 7
-    },
-    revokeText: {
-        color: '#FFFFFF',
     },
     templateContainer: {
         backgroundColor: theme.backgroundLight,

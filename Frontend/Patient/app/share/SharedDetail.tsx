@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { ThemedText, ThemedView } from "src/components";
 import { Header } from "src/components/detailed_view/header";
 import { useTheme } from 'src/context/ThemeContext';
@@ -10,32 +10,61 @@ import { HealthMeasurement } from '../../src/types/types';
 import { iconMap } from '../../src/constants/general';
 import { formatFullDateTime } from 'src/utils/date';
 import { ScalePressable } from 'src/components/ScalePressable';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useGlobalContext } from '@context/GlobalContext';
 import { router } from 'expo-router';
 import { GhostElement } from 'src/components/GhostElement';
 import { useLocalSearchParams } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { Snackbar } from 'react-native-snackbar';
 
 const SharedDetailScreen = () => {
     const { id } = useLocalSearchParams<{ id: string }>();
+    const { currentPatient } = useCurrentPatient();
     const { theme } = useTheme();
-    const { selectedReports, setSelectedReports } = useGlobalContext();
 
     const [measurements, setMeasurements] = useState<HealthMeasurement[]>([]);
     const [units, setUnits] = useState<string[]>([]);
     const [activeFilter, setActiveFilter] = useState('All');
     const [isLoading, setIsLoading] = useState(true);
+    const [isRevokeLoading, setIsRevokeLoading] = useState(false);
 
+    const handleRevokeAccess = async () => {
+        setIsRevokeLoading(true);
+
+        try {
+            await backend.revokeShare(currentPatient.id, id);
+            router.back();
+            Snackbar.show({ text: 'Access revoked successfully', duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.primarySoft, textColor: theme.primary });
+        } catch (error: any) {
+            Snackbar.show({ text: `Failed to revoke access: ${error.message}`, duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.danger, textColor: theme.text });
+        } finally {
+            setIsRevokeLoading(false);
+        }
+    }
 
     React.useMemo(() => {
 
         const getMeasurements = async () => {
             const temp = await backend.getMeasurementsForShare(id);
             setMeasurements(temp);
+
+            const unitSet = new Set<string>(['All']);
+            temp.forEach(measurement => {
+                const group = measurement.measurement_unit.measurement_group;
+
+                if (group !== 'Blood Pressure') {
+                    unitSet.add(group);
+                }
+                else {
+                    unitSet.add("Blood Pressure");
+                }
+            });
+
+            setUnits(Array.from(unitSet));
         }
 
         try {
-            getMeasurements();
+            if (id) getMeasurements();
         }
         catch (e) {
             console.error("Failed to parse sharedMeasurementIds", e);
@@ -45,24 +74,14 @@ const SharedDetailScreen = () => {
         }
     }, [id]);
 
-    const toggleSelection = (id: string) => {
-        const next = new Set(selectedReports);
-        if (next.has(id)) {
-            next.delete(id);
-        } else {
-            next.add(id);
-        }
-        setSelectedReports(next);
-    };
-
     return (
         <ThemedView safe style={styles.container}>
-            <Header title="Share Reports" />
+            <Header title="Shared Reports" />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                <ThemedText style={styles.title}>Select Data to Share</ThemedText>
+                <ThemedText style={styles.title}>Health Records</ThemedText>
                 <ThemedText style={{ color: theme.textGray, marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
-                    Choose the specific health measurements you want to include in this report.
+                    These are the records you've shared.
                 </ThemedText>
 
                 {/* Filters */}
@@ -76,46 +95,13 @@ const SharedDetailScreen = () => {
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
                         {units.map(f => {
                             const isActive = activeFilter === f;
-                            const filteredMeasurements = measurements.filter(item => {
-                                const matchesFilter = f === 'All' || item.measurement_unit.measurement_group === f;
-                                if (!matchesFilter) return false;
-                                if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure') {
-                                    return item.measurement_unit.unit_name.toLowerCase() === 'systolic';
-                                }
-                                return true;
-                            });
-                            const allFilteredelected = filteredMeasurements.length > 0 && filteredMeasurements.every(item => selectedReports.has(item.id));
-
-                            const handleFilterPress = () => {
-                                if (isActive) {
-                                    // if clicking the active filter, toggle selection for all items in this filter
-                                    const next = new Set(selectedReports);
-                                    if (allFilteredelected) {
-                                        filteredMeasurements.forEach(item => next.delete(item.id));
-                                    } else {
-                                        filteredMeasurements.forEach(item => next.add(item.id));
-                                    }
-                                    setSelectedReports(next);
-                                } else {
-                                    setActiveFilter(f);
-                                }
-                            };
-
                             return (
                                 <ScalePressable
                                     key={f}
                                     style={[styles.filterChip, { backgroundColor: isActive ? theme.primary : theme.backgroundLight }]}
-                                    onPress={handleFilterPress}
+                                    onPress={() => setActiveFilter(f)}
                                 >
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        {isActive && (
-                                            <MaterialIcons
-                                                name={allFilteredelected ? "check-circle" : "check-circle-outline"}
-                                                size={16}
-                                                color="#fff"
-                                                style={{ marginBottom: -1 }}
-                                            />
-                                        )}
                                         <ThemedText style={{ color: isActive ? '#fff' : theme.text, fontWeight: '600' }}>{f}</ThemedText>
                                     </View>
                                 </ScalePressable>
@@ -151,7 +137,6 @@ const SharedDetailScreen = () => {
                             }
                             return true;
                         }).map(item => {
-                            const isSelected = selectedReports.has(item.id);
                             const unitIndex = units.indexOf(item.measurement_unit.measurement_group) - 1; // subtract 1 to account for 'All' at index 0, aligning with Dashboard
                             const primaryColor = theme.items[unitIndex % theme.items.length]?.primary || theme.primary;
                             const secondaryColor = theme.items[unitIndex % theme.items.length]?.secondary || theme.primarySoft;
@@ -162,7 +147,7 @@ const SharedDetailScreen = () => {
                                     key={item.id}
                                     style={[styles.listItem, { backgroundColor: theme.backgroundLight }]}
                                     activeOpacity={0.7}
-                                    onPress={() => toggleSelection(item.id)}
+                                    onPress={() => { router.push({ pathname: `/health_measurements/ItemDetail`, params: { id: item.id, data: JSON.stringify(item), primaryColor, secondaryColor } }) }}
                                 >
                                     <View style={[styles.iconContainer, { backgroundColor: secondaryColor }]}>
                                         <FontAwesome5 name={iconName} size={22} color={primaryColor} />
@@ -177,30 +162,27 @@ const SharedDetailScreen = () => {
                                             {item.measurement_unit.measurement_group} • {formatFullDateTime(item.created_at)}
                                         </ThemedText>
                                     </View>
-
-                                    <Ionicons
-                                        name={isSelected ? "checkbox" : "square-outline"}
-                                        size={24}
-                                        color={isSelected ? theme.primary : theme.textGray}
-                                    />
                                 </ScalePressable>
                             );
                         })}
                     </View>
                 }
             </ScrollView>
-
-            {/* Bottom Bar */}
-            {selectedReports.size > 0 &&
-                <View style={[styles.bottomBar]}>
-                    <ScalePressable
-                        style={[styles.proceedBtn, { backgroundColor: theme.primary }]}
-                        onPress={() => { router.back() }}
-                    >
-                        <Ionicons name="arrow-forward" size={23} color="#fff" />
-                    </ScalePressable>
-                </View>
-            }
+            <ScalePressable
+                style={[styles.revokeButtonContainer, isRevokeLoading && { backgroundColor: '#a01717' }]}
+                onPress={handleRevokeAccess}
+                disabled={isRevokeLoading}
+            >
+                {isRevokeLoading ? (
+                    <ActivityIndicator color="#FFFFFF" style={{ paddingVertical: 2 }} />
+                ) : <>
+                    <FontAwesomeIcon icon={faCircleXmark} color='#FFFFFF' size={18} style={{ marginTop: 1 }} />
+                    <ThemedText type={'h3'} style={{ color: '#FFFFFF' }}>
+                        Revoke Access
+                    </ThemedText>
+                </>
+                }
+            </ScalePressable>
         </ThemedView>
     );
 }
@@ -219,18 +201,6 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         marginBottom: 8,
     },
-    selectAllCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    selectAllText: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
     filterScroll: {
         marginBottom: 20,
         flexGrow: 0,
@@ -243,21 +213,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 20,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        marginBottom: 16,
-        gap: 10
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-    },
-    selectPageRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     listContainer: {
         gap: 12,
@@ -297,31 +252,23 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#6b7280',
     },
-    bottomBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+    revokeButtonContainer: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        backgroundColor: '#BA1A1A',
+        borderRadius: 16,
         alignItems: 'center',
-        paddingHorizontal: 30,
-        paddingVertical: 40,
-    },
-    selectedCount: {
-        fontSize: 16,
-        fontWeight: '800',
-    },
-    selectedCountSub: {
-        fontSize: 14,
-        color: '#6b7280',
-    },
-    proceedBtn: {
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 100,
+        justifyContent: 'center',
+        padding: 15,
+        marginTop: 15,
+        gap: 7,
+        position: 'absolute',
+        bottom: 50,
+        left: 30,
+        right: 30,
         elevation: 1,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
     },
 });
 
