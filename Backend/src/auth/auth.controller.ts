@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, NotFoundException, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, NotFoundException, Post, PreconditionFailedException, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
@@ -73,7 +73,7 @@ export class AuthController {
 
     const doctor = await this.doctorService.getDoctorByEmail(email);
 
-    if (!doctor) throw new NotFoundException('Please register this doctor first at /auth/doctor/register');
+    if (!doctor) throw new PreconditionFailedException('Please register this doctor first at /auth/doctor/register');
 
     return await this.authService.signTokens(doctor.id);
   }
