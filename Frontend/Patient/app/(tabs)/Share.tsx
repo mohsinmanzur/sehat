@@ -162,7 +162,7 @@ export default function Share() {
                         Access Time:{" "}
                     </ThemedText>
 
-                    <ThemedText type={'h2'} style={{ color: theme.textGray, fontFamily: 'Lexend_400Regular' }}>
+                    <ThemedText type={'h3'} style={{ color: theme.textGray, fontFamily: 'Lexend_400Regular' }}>
                         {selectedTime.days !== 0 ? selectedTime.days + 'D ' : ''}{selectedTime.hours !== 0 ? selectedTime.hours + 'H ' : ''}{selectedTime.minutes !== 0 ? selectedTime.minutes + 'M ' : ''}
                         {selectedTime.days === 0 && selectedTime.hours === 0 && selectedTime.minutes === 0 && 'Unlimited Access'}
                     </ThemedText>
@@ -210,6 +210,12 @@ export default function Share() {
                 {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }} />}
             </View>
 
+            {currentAccessGrants.length === 0 && (
+                <ThemedText style={{ fontSize: 15, color: theme.textGray, paddingHorizontal: 20, textAlign: 'center', marginTop: 20 }}>
+                    No reports currently shared.
+                </ThemedText>
+            )}
+
             {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).map((item) => (
                 <View key={item.id} style={styles.accessView}>
                     <View style={styles.accessDoctorInfoRow}>
@@ -222,13 +228,19 @@ export default function Share() {
                         </View>
                         <View style={{ flex: 1, paddingRight: 20 }}>
                             <ThemedText type={'h3'} numberOfLines={1} ellipsizeMode="tail">{item.doctor ? item.doctor.name : 'Anyone With Access'}</ThemedText>
-                            {item.doctor && <ThemedText style={styles.doctorInfo} numberOfLines={1} ellipsizeMode="tail">
-                                {item.doctor.specialization} • {item.doctor.associated_hospital}
-                            </ThemedText>}
+                            {item.doctor && item.doctor?.specialization || item.doctor?.associated_hospital &&
+                                <ThemedText style={styles.doctorInfo} numberOfLines={1} ellipsizeMode="tail">
+                                    {item.doctor.specialization && `${item.doctor.specialization} • `}{item.doctor.associated_hospital}
+                                </ThemedText>
+                            }
 
                             <View style={styles.timeRow}>
                                 <FontAwesome5 name="hourglass-half" color={theme.primary} size={11} />
-                                <CountdownTimer expiresAt={item.expires_at} style={styles.timeLeft} />
+                                {
+                                    new Date(item.expires_at).getFullYear() - new Date().getFullYear() > 50 ?
+                                        <ThemedText style={styles.timeLeft}>Unlimited Access</ThemedText> :
+                                        <CountdownTimer expiresAt={item.expires_at} style={styles.timeLeft} />
+                                }
                             </View>
                         </View>
                     </View>
@@ -249,11 +261,12 @@ export default function Share() {
                         }
                     </ScalePressable>
                 </View>
-            ))}
+            ))
+            }
 
             <Spacer height={180} />
 
-        </ThemedView>
+        </ThemedView >
     )
 }
 
