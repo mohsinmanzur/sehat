@@ -79,7 +79,7 @@ Allows patients to share their health measurements securely.
 
 | Method | Endpoint | Description | Request Details | Output Details |
 |--------|----------|-------------|-----------------|----------------|
-| `GET`  | `/share/shares` | Gets all active shares for a patient. | **Query:** `patient_id` (required) | `[ { "id": "uuid", "patient_id": "uuid", "doctor_id": "uuid", "measurement_ids": "uuid[]", "permission": "string", "created_at": "string(ISO)", "updated_at": "string(ISO)" } ]` |
+| `GET`  | `/share/shares` | Retrieves the health measurements associated with a specific share grant. | **Query:** `share_id` (required) | `[ { "id": "uuid", "patient_id": "uuid", "unit_id": "uuid", "numeric_value": "number", "created_at": "string(ISO)", "updated_at": "string(ISO)", "patient": {...}, "measurement_unit": {...} } ]` |
 | `POST` | `/share` | Shares a measurement. | **Query:** `patient_id` (required) **Body:** `{ "doctorEmail": "string", "measurement_ids?": "uuid[]", "permission?": "string" }` | `{ "id": "uuid", "patient_id": "uuid", "doctor_id": "uuid", "measurement_ids": "uuid[]", "permission": "string", "created_at": "string(ISO)", "updated_at": "string(ISO)" }` |
 | `POST` | `/share/revoke` | Revokes an existing share. | **Query:** `patient_id` (required), `share_id` (required) | `void` |
 
