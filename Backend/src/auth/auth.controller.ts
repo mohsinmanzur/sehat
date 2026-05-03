@@ -12,22 +12,20 @@ import { CreateDoctorDTO } from '../doctor/dto/create-doctor.dto';
 
 @Public()
 @Controller('auth')
-export class AuthController
-{
+export class AuthController {
   constructor
-  (
-    private readonly authService: AuthService,
-    private readonly emailService: EmailService,
-    private readonly patientService: PatientService,
-    private readonly doctorService: DoctorService,
-    private readonly otpService: OtpService,
-    private readonly googleAuthService: GoogleAuthService
-  ) {}
+    (
+      private readonly authService: AuthService,
+      private readonly emailService: EmailService,
+      private readonly patientService: PatientService,
+      private readonly doctorService: DoctorService,
+      private readonly otpService: OtpService,
+      private readonly googleAuthService: GoogleAuthService
+    ) { }
 
   @Post('requestcode')
   @HttpCode(200)
-  async requestCode(@Body() body: { email: string; })
-  {
+  async requestCode(@Body() body: { email: string; }) {
     if (!body.email) throw new UnauthorizedException('Email is required');
     return {
       status: 'Code successfully not sent - OTP system is currently disabled for development'
@@ -42,9 +40,12 @@ export class AuthController
 
   @Post('verifycode')
   @HttpCode(202)
-  async verifyCode(@Body() dto: { email: string; code: string })
-  {
+  async verifyCode(@Body() dto: { email: string; code: string }) {
     const { email, code } = dto;
+
+    if (!email) throw new Error('email not provided');
+    if (!code) throw new Error('code not provided');
+
     if (code != '000000') // Backdoor for testing - bypass OTP verification if code is 000000
     {
       await this.otpService.verify(email, code, 5); // 5 attempts max
@@ -59,9 +60,12 @@ export class AuthController
 
   @Post('doctor/verifycode')
   @HttpCode(202)
-  async verifyDoctorCode(@Body() dto: { email: string; code: string })
-  {
+  async verifyDoctorCode(@Body() dto: { email: string; code: string }) {
     const { email, code } = dto;
+
+    if (!email) throw new Error('email not provided');
+    if (!code) throw new Error('code not provided');
+
     if (code != '000000') // Backdoor for testing - bypass OTP verification if code is 000000
     {
       await this.otpService.verify(email, code, 5); // 5 attempts max
@@ -76,8 +80,7 @@ export class AuthController
 
   @Post('doctor/register')
   @HttpCode(201)
-  async registerDoctor(@Body() doctorInfo: CreateDoctorDTO)
-  {
+  async registerDoctor(@Body() doctorInfo: CreateDoctorDTO) {
     const existingDoctor = await this.doctorService.getDoctorByEmail(doctorInfo.email);
     if (existingDoctor) throw new UnauthorizedException('Email already registered. Please login instead.');
 
@@ -86,8 +89,7 @@ export class AuthController
   }
 
   @Post('doctor/verifyaccount')
-  async verifyDoctorAccount(@Body() body: { email: string; })
-  {
+  async verifyDoctorAccount(@Body() body: { email: string; }) {
     if (!body.email) throw new UnauthorizedException('Email is required');
     const doctor = await this.doctorService.getDoctorByEmail(body.email);
     if (!doctor) throw new NotFoundException('Doctor not found');
@@ -99,8 +101,7 @@ export class AuthController
 
   @Post('register')
   @HttpCode(201)
-  async register(@Body() patientInfo: CreatePatientDto)
-  {
+  async register(@Body() patientInfo: CreatePatientDto) {
     const existingPatient = await this.patientService.getPatientByEmail(patientInfo.email);
     if (existingPatient) throw new UnauthorizedException('Email already registered. Please login instead.');
 
@@ -110,20 +111,18 @@ export class AuthController
 
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
-  refresh(@Req() req)
-  {
+  refresh(@Req() req) {
     return this.authService.refresh(req.user.id);
   }
 
   @Post('google')
-  async googleLogin(@Body('idToken') idToken: string)
-  {
+  async googleLogin(@Body('idToken') idToken: string) {
     // 1. Verify the frontend's token and retrieve/create the user
     const userDetails = await this.googleAuthService.verifyGoogleToken(idToken);
-    
+
     // 2. Generate your backend's internal JWT (using @nestjs/jwt)
     //const appToken = this.jwtService.sign({ userId: userDetails.id });
-    
+
     // 3. Return the payload to the React Native app
     return {
       message: 'Authentication successful',
