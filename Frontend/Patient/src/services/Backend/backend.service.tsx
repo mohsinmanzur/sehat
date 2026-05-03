@@ -365,6 +365,14 @@ class Backend {
         return await response.json();
     }
 
+    async getMeasurementsForShare(shareId: string): Promise<HealthMeasurement[]> {
+        const response = await this.request(`/share/shared-measurements?share_id=${shareId}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching shared measurements: ${response.status} ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
     async revokeShare(patientId: string, shareId: string): Promise<AccessGrant> {
         const response = await this.request(`/share/revoke?patient_id=${patientId}&share_id=${shareId}`, allowedMethods.POST);
         if (!response.ok) {

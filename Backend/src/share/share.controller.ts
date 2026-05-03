@@ -16,6 +16,11 @@ export class ShareController {
     }
 
     @Get('shares')
+    async getPatientShares(@Query('patient_id') patientId: string) {
+        return await this.shareService.getPatientShares(patientId);
+    }
+
+    @Get('shared-measurements')
     async getSharedMeasurements(@Query('share_id') shareId: string): Promise<HealthMeasurementType[]> {
         return await this.shareService.getSharedMeasurements(shareId);
     }

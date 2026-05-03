@@ -41,6 +41,13 @@ export class ShareService {
         });
     }
 
+    async getPatientShares(patientId: string): Promise<AccessGrantType[]> {
+        return await this.accessGrantRepo.find({
+            where: { patient_id: patientId, is_revoked: false },
+            relations: ['doctor', 'patient']
+        });
+    }
+
     async getSharedMeasurements(shareId: string): Promise<HealthMeasurementType[]> {
         const grant = await this.accessGrantRepo.findOne({
             where: { id: shareId, is_revoked: false },

@@ -28,12 +28,20 @@ const SharedDetailScreen = () => {
 
 
     React.useMemo(() => {
+
+        const getMeasurements = async () => {
+            const temp = await backend.getMeasurementsForShare(id);
+            setMeasurements(temp);
+        }
+
         try {
-            const temp = await backend.getPatientShares()
+            getMeasurements();
         }
         catch (e) {
             console.error("Failed to parse sharedMeasurementIds", e);
-            return new Set<string>();
+        }
+        finally {
+            setIsLoading(false);
         }
     }, [id]);
 
