@@ -1,17 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Access_Grant } from '../entities/access_grant.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ShareMeasurementDto } from './dto/share-measurement.dto';
 import { DoctorService } from '../doctor/doctor.service';
 import { AccessGrantType } from './types/access_grant.type';
 import { Doctor } from 'src/entities/doctor.entity';
+import { Health_Measurement } from 'src/entities/health_measurement.entity';
+import { HealthMeasurementType } from 'src/health_measurement/types/health_measurement.type';
 
 @Injectable()
 export class ShareService {
     constructor(
         @InjectRepository(Access_Grant)
         private accessGrantRepo: Repository<Access_Grant>,
+        @InjectRepository(Health_Measurement)
+        private healthMeasurementRepo: Repository<Health_Measurement>,
         private doctorService: DoctorService
     ) { }
 
@@ -37,10 +41,17 @@ export class ShareService {
         });
     }
 
-    async getPatientShares(patientId: string): Promise<AccessGrantType[]> {
-        return await this.accessGrantRepo.find({
-            where: { patient_id: patientId, is_revoked: false },
+    async getSharedMeasurements(shareId: string): Promise<HealthMeasurementType[]> {
+        const grant = await this.accessGrantRepo.findOne({
+            where: { id: shareId, is_revoked: false },
             relations: ['doctor', 'patient']
+        });
+
+        if (!grant) throw new Error('No share found with this ID!');
+
+        return await this.healthMeasurementRepo.find({
+            where: { id: In(grant.measurement_ids) },
+            relations: ['patient', 'measurement_unit', 'medical_document']
         });
     }
 

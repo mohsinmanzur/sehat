@@ -22,7 +22,6 @@ export default function HealthMeasurementsLayout() {
             <Stack.Screen name="ItemDetail" options={{ headerShown: false }} />
             <Stack.Screen name="EditMeasurement" options={{ headerShown: false }} />
             <Stack.Screen name="Scan" options={{ headerShown: false }} />
-            <Stack.Screen name="SelectReports" options={{ headerShown: false }} />
         </Stack>
     )
 }

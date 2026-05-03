@@ -14,12 +14,12 @@ Handles patient and doctor registration, login (via OTP or Google), and session 
 | Method | Endpoint | Description | Request Details | Output Details |
 |--------|----------|-------------|-----------------|----------------|
 | `POST` | `/auth/requestcode` | Requests a login OTP for a user. | **Body:** `{ "email": "string" }` | `{ "status": "string" }` |
-| `POST` | `/auth/verifycode` | Verifies the OTP for patient login. | **Body:** `{ "email": "string", "code": "string" }` | `{ "access_token": "string", "refresh_token": "string" }` |
-| `POST` | `/auth/register` | Registers a new patient. | **Body:** `{ "name": "string", "email": "string", "gender": "male/female/other", "date_of_birth": "string(ISO Date)", "phone?": "string", "blood_group?": "string", "emergency_contacts?": "[{ key: value }]", "reward_points?": "number", "is_research_opt_in?": "boolean" }` | `{ "access_token": "string", "refresh_token": "string" }` |
-| `POST` | `/auth/doctor/register` | Registers a new doctor. | **Body:** `{ "name": "string", "email": "string", "gender": "male/female/other", "phone": "string", "license_number": "string", "associated_hospital?": "string", "specialization?": "string" }` | `{ "access_token": "string", "refresh_token": "string" }` |
-| `POST` | `/auth/doctor/verifycode`| Verifies the OTP for doctor login. | **Body:** `{ "email": "string", "code": "string" }` | `{ "access_token": "string", "refresh_token": "string" }` |
+| `POST` | `/auth/verifycode` | Verifies the OTP for patient login. | **Body:** `{ "email": "string", "code": "string" }` | `{ "id": "uuid", "jwtToken": "string", "refreshToken": "string" }` |
+| `POST` | `/auth/register` | Registers a new patient. | **Body:** `{ "name": "string", "email": "string", "gender": "male/female/other", "date_of_birth": "string(ISO Date)", "phone?": "string", "blood_group?": "string", "emergency_contacts?": "[{ key: value }]", "reward_points?": "number", "is_research_opt_in?": "boolean" }` | `{ "id": "uuid", "jwtToken": "string", "refreshToken": "string" }` |
+| `POST` | `/auth/doctor/register` | Registers a new doctor. | **Body:** `{ "name": "string", "email": "string", "gender": "male/female/other", "phone": "string", "license_number": "string", "associated_hospital?": "string", "specialization?": "string" }` | `{ "id": "uuid", "jwtToken": "string", "refreshToken": "string" }` |
+| `POST` | `/auth/doctor/verifycode`| Verifies the OTP for doctor login. | **Body:** `{ "email": "string", "code": "string" }` | `{ "id": "uuid", "jwtToken": "string", "refreshToken": "string" }` |
 | `POST` | `/auth/doctor/verifyaccount`| Verifies a doctor's account. | **Body:** `{ "email": "string" }` | `{ "status": "string" }` |
-| `POST` | `/auth/refresh` | Refreshes the authentication token. | **Headers:** Requires Refresh Token in Authorization header | `{ "access_token": "string", "refresh_token": "string" }` |
+| `POST` | `/auth/refresh` | Refreshes the authentication token. | **Headers:** Requires Refresh Token in Authorization header | `{ "id": "uuid", "jwt": "string" }` |
 | `POST` | `/auth/google` | Handles Google OAuth login. | **Body:** `{ "idToken": "string" }` | `{ "message": "string", "user": { "id": "uuid", "name": "string", "email": "string", ... } }` |
 
 > [!NOTE]  

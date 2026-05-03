@@ -6,7 +6,7 @@ import { Header } from "src/components/detailed_view/header";
 import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
-import { GetHealthMeasurement } from '../../src/types/others';
+import { HealthMeasurement } from '../../src/types/types';
 import { iconMap } from '../../src/constants/general';
 import { formatFullDateTime } from 'src/utils/date';
 import { ScalePressable } from 'src/components/ScalePressable';
@@ -20,7 +20,7 @@ const SelectReportsScreen = () => {
     const { currentPatient } = useCurrentPatient();
     const { selectedReports, setSelectedReports } = useGlobalContext();
 
-    const [measurements, setMeasurements] = useState<GetHealthMeasurement[]>([]);
+    const [measurements, setMeasurements] = useState<HealthMeasurement[]>([]);
     const [units, setUnits] = useState<string[]>([]);
 
     const [activeFilter, setActiveFilter] = useState('All');

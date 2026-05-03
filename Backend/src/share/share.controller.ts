@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ShareService } from './share.service';
 import { ShareMeasurementDto } from './dto/share-measurement.dto';
+import { HealthMeasurementType } from 'src/health_measurement/types/health_measurement.type';
 
 @Controller('share')
 export class ShareController {
@@ -15,8 +16,8 @@ export class ShareController {
     }
 
     @Get('shares')
-    async getPatientShares(@Query('patient_id') patientId: string) {
-        return await this.shareService.getPatientShares(patientId);
+    async getSharedMeasurements(@Query('share_id') shareId: string): Promise<HealthMeasurementType[]> {
+        return await this.shareService.getSharedMeasurements(shareId);
     }
 
     @Post('revoke')

@@ -148,7 +148,7 @@ export default function Share() {
                     )}
                 </View>
 
-                <ScalePressable style={[styles.selectReportsButton, { borderRadius: 50 }]} onPress={() => router.navigate({ pathname: 'health_measurements/SelectReports' })}>
+                <ScalePressable style={[styles.selectReportsButton, { borderRadius: 50 }]} onPress={() => router.navigate({ pathname: 'share/SelectReports' })}>
                     <FontAwesome5
                         name="file-medical"
                         color={selectedReports.size > 0 ? theme.primary : theme.textLight}
@@ -207,17 +207,20 @@ export default function Share() {
                 <ThemedText type={'h1'} style={styles.title}>
                     Current Access
                 </ThemedText>
-                {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).length > 0 && <View style={{ padding: 5, backgroundColor: '#70D3B2', borderRadius: 50, marginTop: 17 }} />}
             </View>
 
-            {currentAccessGrants.length === 0 && (
+            {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).length === 0 && (
                 <ThemedText style={{ fontSize: 15, color: theme.textGray, paddingHorizontal: 20, textAlign: 'center', marginTop: 20 }}>
                     No reports currently shared.
                 </ThemedText>
             )}
 
             {currentAccessGrants.filter((item) => new Date(item.expires_at).getTime() - new Date().getTime() > 0).map((item) => (
-                <View key={item.id} style={styles.accessView}>
+                <ScalePressable
+                    key={item.id}
+                    style={styles.accessView}
+                    onPress={() => router.navigate({ pathname: 'share/SharedDetail', params: { id: item.id } })}
+                >
                     <View style={styles.accessDoctorInfoRow}>
                         <View style={[styles.doctorIconContainer, !item.doctor && { backgroundColor: theme.card }]}>
                             {item.doctor ? (
@@ -260,7 +263,7 @@ export default function Share() {
                         </>
                         }
                     </ScalePressable>
-                </View>
+                </ScalePressable>
             ))
             }
 
