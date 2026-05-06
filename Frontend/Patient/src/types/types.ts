@@ -41,9 +41,12 @@ export type MedicalDocument = {
 
 export type HealthMeasurement = {
     id?: string;
+    document_id?: string;
     medical_document?: MedicalDocument;
-    patient: Patient;
-    measurement_unit: MeasurementUnit;
+    patient_id?: string;
+    patient?: Patient;
+    unit_id?: string;
+    measurement_unit?: MeasurementUnit;
     numeric_value: number;
     created_at?: Date;
     updated_at?: Date;

@@ -63,7 +63,9 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
         <Stack.Screen name="health_measurements" options={{ headerShown: false }} />
         <Stack.Screen name="AddNew" options={{ presentation: 'modal', animation: 'slide_from_bottom', headerShown: false }} />
-        <Stack.Screen name="Profile" options={{ animation: 'none' }} />
+        <Stack.Screen name="NewShare" options={{ presentation: 'modal', animation: 'slide_from_bottom', headerShown: false }} />
+        <Stack.Screen name="profile" options={{ animation: 'none' }} />
+        <Stack.Screen name="share" options={{ headerShown: false, presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
       </Stack>
       <Toast />
     </>

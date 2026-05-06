@@ -14,6 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useGlobalContext } from '@context/GlobalContext';
 import { router } from 'expo-router';
 import { GhostElement } from 'src/components/GhostElement';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SelectReportsScreen = () => {
     const { theme } = useTheme();
@@ -26,6 +27,8 @@ const SelectReportsScreen = () => {
     const [activeFilter, setActiveFilter] = useState('All');
 
     const [isLoading, setIsLoading] = useState(true);
+
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         const getMeasurements = async () => {
@@ -185,7 +188,7 @@ const SelectReportsScreen = () => {
 
             {/* Bottom Bar */}
             {selectedReports.size > 0 &&
-                <View style={[styles.bottomBar]}>
+                <View style={[styles.bottomBar, { bottom: insets.bottom + 15 }]}>
                     <ScalePressable
                         style={[styles.proceedBtn, { backgroundColor: theme.primary }]}
                         onPress={() => { router.back() }}
@@ -212,18 +215,6 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         marginBottom: 8,
     },
-    selectAllCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    selectAllText: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
     filterScroll: {
         marginBottom: 20,
         flexGrow: 0,
@@ -236,21 +227,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 20,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        marginBottom: 16,
-        gap: 10
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-    },
-    selectPageRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     listContainer: {
         gap: 12,
@@ -292,22 +268,10 @@ const styles = StyleSheet.create({
     },
     bottomBar: {
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         flexDirection: 'row',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        paddingHorizontal: 30,
-        paddingVertical: 40,
-    },
-    selectedCount: {
-        fontSize: 16,
-        fontWeight: '800',
-    },
-    selectedCountSub: {
-        fontSize: 14,
-        color: '#6b7280',
+        right: 25
     },
     proceedBtn: {
         alignItems: 'center',

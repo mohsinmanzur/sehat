@@ -370,44 +370,6 @@ const styles = (theme: any) => StyleSheet.create({
         alignItems: 'center',
         marginRight: 16,
     },
-    /* ── Dropdown ── */
-    dropdown: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: theme.card,
-        borderRadius: 14,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-    },
-    dropdownText: {
-        fontSize: 15,
-        fontFamily: 'Lexend_600SemiBold',
-        color: theme.text,
-    },
-    dropdownList: {
-        backgroundColor: theme.card,
-        borderRadius: 14,
-        marginTop: 4,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: theme.primarySoft,
-    },
-    dropdownItem: {
-        paddingHorizontal: 16,
-        paddingVertical: 13,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: theme.backgroundDark,
-    },
-    dropdownItemActive: {
-        backgroundColor: theme.primarySoft,
-    },
-    dropdownItemText: {
-        fontSize: 14,
-        fontFamily: 'Lexend_600SemiBold',
-        color: theme.text,
-    },
-
     /* ── Row layout ── */
     row: {
         flexDirection: 'row',
@@ -416,9 +378,6 @@ const styles = (theme: any) => StyleSheet.create({
     },
     col2: {
         flex: 1,
-    },
-    colUnit: {
-        width: 90,
     },
 
     /* ── Value box ── */
@@ -435,16 +394,6 @@ const styles = (theme: any) => StyleSheet.create({
         fontFamily: 'Lexend_800ExtraBold',
         color: theme.text,
         padding: 0,
-    },
-    unitBox: {
-        backgroundColor: theme.backgroundDark,
-        borderRadius: 14,
-        paddingHorizontal: 12,
-        paddingVertical: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-        marginTop: 29,
     },
     unitText: {
         fontSize: 15,
@@ -488,10 +437,6 @@ const styles = (theme: any) => StyleSheet.create({
     },
 
     /* ── Options Pills ── */
-    optionsContainer: {
-        marginTop: 20,
-        marginBottom: 8,
-    },
     optionsRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',

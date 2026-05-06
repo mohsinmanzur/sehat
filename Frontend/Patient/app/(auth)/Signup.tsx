@@ -47,8 +47,7 @@ const SignupScreen: React.FC = () => {
 
         setIsLoading(true);
 
-        try
-        {
+        try {
             const patientTokens = await backend.registerPatient({
                 name: name,
                 email: patientEmail,
@@ -57,7 +56,7 @@ const SignupScreen: React.FC = () => {
                 is_research_opt_in: betaOptIn,
                 gender: gender
             });
-            
+
             const patient = await backend.getPatientById(patientTokens.id);
 
             setCurrentPatient(patient);
@@ -65,8 +64,7 @@ const SignupScreen: React.FC = () => {
 
             router.replace('/(tabs)/Dashboard');
         }
-        catch (error)
-        {
+        catch (error) {
             console.log('Signup error:', error.message);
             Toast.show({
                 type: 'error',
@@ -76,89 +74,88 @@ const SignupScreen: React.FC = () => {
                 visibilityTime: 3000,
             });
         }
-        finally
-        {
+        finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <ThemedView style = {{ flex: 1, backgroundColor: theme.backgroundLight }} keyboardAvoid safe>
-            <ScrollView 
-                style = {{ flex: 1, width: '100%'  }}
+        <ThemedView style={{ flex: 1, backgroundColor: theme.backgroundLight }} keyboardAvoid safe>
+            <ScrollView
+                style={{ flex: 1, width: '100%' }}
                 contentContainerStyle={{ paddingHorizontal: 20 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 <Spacer height={40} />
-                
+
                 <ThemedText type={'title'}>Let's start your health{'\u00A0'}journey.</ThemedText>
                 <ThemedText type={'subtitle'} style={[styles.tagline, { color: theme.textGray }]}>We'll keep your data private and clinical.</ThemedText>
-            
+
                 <Spacer height={20} />
 
                 <ThemedText type={'h2'}>🙍 What should we call you?</ThemedText>
-                <ThemedTextInput 
+                <ThemedTextInput
                     placeholder=" Enter your name"
                     value={name}
                     onChangeText={(text) => { setName(text); setNameError(false); }}
                     style={{ width: '100%', paddingVertical: 16, marginTop: 10, borderColor: nameError ? theme.danger : theme.card, borderWidth: 1, borderRadius: 10 }}
                 />
 
-            {/* Gender Selection */}
-            <ThemedText type={'h2'} style={{ marginTop: 30 }}>⚧️ Gender</ThemedText>
-            <View style={{ flexDirection: 'row', gap: 15, marginTop: 10 }}>
-                <Pressable 
-                    onPress={() => { setGender('male'); setGenderError(false); }}
-                    style={(pressed) => ({ 
-                        flex: 1, 
-                        padding: 15, 
-                        borderRadius: 10, 
-                        borderWidth: 1, 
-                        borderColor: genderError ? theme.danger : gender === 'male' ? theme.primary : theme.card, 
-                        backgroundColor: gender === 'male' ? theme.primarySoft : theme.card, 
-                        alignItems: 'center',
-                        opacity: pressed ? 0.7 : 1
-                    })}
-                >
-                    <Ionicons name="male" size={28} color={gender === 'male' ? theme.primary : theme.textGray} />
-                    <ThemedText style={{ marginTop: 8, color: gender === 'male' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Male</ThemedText>
-                </Pressable>
+                {/* Gender Selection */}
+                <ThemedText type={'h2'} style={{ marginTop: 30 }}>⚧️ Gender</ThemedText>
+                <View style={{ flexDirection: 'row', gap: 15, marginTop: 10 }}>
+                    <Pressable
+                        onPress={() => { setGender('male'); setGenderError(false); }}
+                        style={(pressed) => ({
+                            flex: 1,
+                            padding: 15,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: genderError ? theme.danger : gender === 'male' ? theme.primary : theme.card,
+                            backgroundColor: gender === 'male' ? theme.primarySoft : theme.card,
+                            alignItems: 'center',
+                            opacity: pressed ? 0.7 : 1
+                        })}
+                    >
+                        <Ionicons name="male" size={28} color={gender === 'male' ? theme.primary : theme.textGray} />
+                        <ThemedText style={{ marginTop: 8, color: gender === 'male' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Male</ThemedText>
+                    </Pressable>
 
-                <Pressable 
-                    onPress={() => { setGender('female'); setGenderError(false); }}
-                    style={(pressed) => ({ 
-                        flex: 1, 
-                        padding: 15, 
-                        borderRadius: 10, 
-                        borderWidth: 1, 
-                        borderColor: genderError ? theme.danger : gender === 'female' ? theme.primary : theme.card, 
-                        backgroundColor: gender === 'female' ? theme.primarySoft : theme.card, 
-                        alignItems: 'center',
-                        opacity: pressed ? 0.7 : 1
-                    })}
-                >
-                    <Ionicons name="female" size={28} color={gender === 'female' ? theme.primary : theme.textGray} />
-                    <ThemedText style={{ marginTop: 8, color: gender === 'female' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Female</ThemedText>
-                </Pressable>
+                    <Pressable
+                        onPress={() => { setGender('female'); setGenderError(false); }}
+                        style={(pressed) => ({
+                            flex: 1,
+                            padding: 15,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: genderError ? theme.danger : gender === 'female' ? theme.primary : theme.card,
+                            backgroundColor: gender === 'female' ? theme.primarySoft : theme.card,
+                            alignItems: 'center',
+                            opacity: pressed ? 0.7 : 1
+                        })}
+                    >
+                        <Ionicons name="female" size={28} color={gender === 'female' ? theme.primary : theme.textGray} />
+                        <ThemedText style={{ marginTop: 8, color: gender === 'female' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Female</ThemedText>
+                    </Pressable>
 
-                <Pressable 
-                    onPress={() => { setGender('other'); setGenderError(false); }}
-                    style={(pressed) => ({ 
-                        flex: 1, 
-                        padding: 15, 
-                        borderRadius: 10, 
-                        borderWidth: 1, 
-                        borderColor: genderError ? theme.danger : gender === 'other' ? theme.primary : theme.card, 
-                        backgroundColor: gender === 'other' ? theme.primarySoft : theme.card, 
-                        alignItems: 'center',
-                        opacity: pressed ? 0.7 : 1
-                    })}
-                >
-                    <Ionicons name="male-female" size={28} color={gender === 'other' ? theme.primary : theme.textGray} />
-                    <ThemedText style={{ marginTop: 8, color: gender === 'other' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Other</ThemedText>
-                </Pressable>
-            </View>
+                    <Pressable
+                        onPress={() => { setGender('other'); setGenderError(false); }}
+                        style={(pressed) => ({
+                            flex: 1,
+                            padding: 15,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: genderError ? theme.danger : gender === 'other' ? theme.primary : theme.card,
+                            backgroundColor: gender === 'other' ? theme.primarySoft : theme.card,
+                            alignItems: 'center',
+                            opacity: pressed ? 0.7 : 1
+                        })}
+                    >
+                        <Ionicons name="male-female" size={28} color={gender === 'other' ? theme.primary : theme.textGray} />
+                        <ThemedText style={{ marginTop: 8, color: gender === 'other' ? theme.primary : theme.textGray, fontFamily: 'PublicSans_600SemiBold' }}>Other</ThemedText>
+                    </Pressable>
+                </View>
 
                 <ThemedText type={'h2'} style={{ marginTop: 30 }}>🗓️ Date of Birth</ThemedText>
                 <DatePicker
@@ -180,7 +177,7 @@ const SignupScreen: React.FC = () => {
                     error={bloodGroupError}
                 />
                 <View style={{ backgroundColor: theme.card, padding: 30, borderRadius: 30, marginVertical: 50 }}>
-                    <View  style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
                         <Ionicons name='flask-sharp' size={17} color={'#9A3200'} />
                         <ThemedText style={{ fontFamily: 'PublicSans_800ExtraBold', fontSize: 12, color: '#9A3200' }}>BETA PROGRAM</ThemedText>
                     </View>
@@ -214,31 +211,31 @@ const SignupScreen: React.FC = () => {
                 </View>
 
                 <ThemedButton
-                    style = {[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
+                    style={[styles.continueButton, { backgroundColor: isLoading ? theme.primaryDark : theme.primary, shadowColor: theme.primary }]}
                     onPress={handlePress}
                     disabled={isLoading}
                 >
                     {isLoading ? (
-                        <ActivityIndicator color = {theme.backgroundLight} style = {{ padding: 9.5 }}/> 
+                        <ActivityIndicator color={theme.backgroundLight} style={{ padding: 9.5 }} />
                     ) : (
                         <>
-                            <ThemedText style = {{ color: theme.backgroundLight, padding: 7, fontFamily: 'PublicSans_800ExtraBold', fontSize: 18 }}>Create my Health Profile</ThemedText>
-                            <Ionicons name="arrow-forward" size={19} color={theme.backgroundLight} /> 
+                            <ThemedText style={{ color: theme.backgroundLight, padding: 7, fontFamily: 'PublicSans_800ExtraBold', fontSize: 18 }}>Create my Health Profile</ThemedText>
+                            <Ionicons name="arrow-forward" size={19} color={theme.backgroundLight} />
                         </>
                     )}
                 </ThemedButton>
 
-                <Text style = {{ textAlign: 'center', paddingHorizontal: 20, paddingVertical: 15 }}>
-                    <ThemedText type = {'default'} style = {{ color: theme.textGray, fontSize: 12 }}>
+                <Text style={{ textAlign: 'center', paddingHorizontal: 20, paddingVertical: 15 }}>
+                    <ThemedText type={'default'} style={{ color: theme.textGray, fontSize: 12 }}>
                         By joining, you agree to our{' '}
                     </ThemedText>
-                    <ThemedText type = {'default'} style = {{ color: theme.primary, fontSize: 12 }}>
+                    <ThemedText type={'default'} style={{ color: theme.primary, fontSize: 12 }}>
                         Terms{'\u00A0'}of{'\u00A0'}Service
                     </ThemedText>
-                    <ThemedText type = {'default'} style = {{ color: theme.textGray, fontSize: 12 }}>
+                    <ThemedText type={'default'} style={{ color: theme.textGray, fontSize: 12 }}>
                         {' '}and{' '}
                     </ThemedText>
-                    <ThemedText type = {'default'} style = {{ color: theme.primary, fontSize: 12 }}>
+                    <ThemedText type={'default'} style={{ color: theme.primary, fontSize: 12 }}>
                         Privacy{'\u00A0'}Policy
                     </ThemedText>
                     .
@@ -266,7 +263,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2, // Keeps the shadow soft
         shadowRadius: 6,
-        
+
         // Android Shadow (shadowColor tint requires Android 9+)
         elevation: 6,
     },

@@ -192,14 +192,14 @@ export default function DetailedViewScreen() {
                     <View style={styles.cardHeader}>
                         {isLoading ? (
                             <GhostElement style={{ height: 20, width: 150, borderRadius: 4, marginBottom: 3 }} />
-                        ) : (<View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                        ) : stats ? (<View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                             <Text style={[styles.statsPillIcon, { color: primaryColor || theme.primary }]}>
                                 {stats.isNeutral ? '•' : (stats.isDown ? '↘' : '↗')}
                             </Text>
                             <Text style={[styles.statsPillMain, { color: theme.text }]}> {stats.diff} {measurement?.measurement_unit?.symbol}</Text>
                             <Text style={[styles.statsPillSub, { color: theme.textGray }]}>  over {stats.timeRange}</Text>
                         </View>
-                        )}
+                        ) : null}
                     </View>
 
                     {isLoading ? (

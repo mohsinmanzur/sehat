@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { ThemedText, ThemedView } from "src/components";
+import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
+import { Spacer, ThemedText, ThemedView } from "src/components";
 import { Header } from "src/components/detailed_view/header";
 import { useTheme } from 'src/context/ThemeContext';
 import backend from 'src/services/Backend/backend.service';
 import { useCurrentPatient } from '@context/PatientContext';
-import { HealthMeasurement } from '../../src/types/types';
+import { AccessGrant, HealthMeasurement } from '../../src/types/types';
 import { iconMap } from '../../src/constants/general';
 import { formatFullDateTime } from 'src/utils/date';
 import { ScalePressable } from 'src/components/ScalePressable';
@@ -14,13 +14,16 @@ import { router } from 'expo-router';
 import { GhostElement } from 'src/components/GhostElement';
 import { useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faCameraAlt, faCameraRetro, faCircleXmark, faCopy, faQrcode, faVideoCamera } from '@fortawesome/free-solid-svg-icons';
 import { Snackbar } from 'react-native-snackbar';
+import * as Clipboard from 'expo-clipboard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SharedDetailScreen = () => {
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const { data } = useLocalSearchParams<{ data: string }>();
     const { currentPatient } = useCurrentPatient();
     const { theme } = useTheme();
+    const insets = useSafeAreaInsets();
 
     const [measurements, setMeasurements] = useState<HealthMeasurement[]>([]);
     const [units, setUnits] = useState<string[]>([]);
@@ -28,24 +31,12 @@ const SharedDetailScreen = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isRevokeLoading, setIsRevokeLoading] = useState(false);
 
-    const handleRevokeAccess = async () => {
-        setIsRevokeLoading(true);
-
-        try {
-            await backend.revokeShare(currentPatient.id, id);
-            router.back();
-            Snackbar.show({ text: 'Access revoked successfully', duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.primarySoft, textColor: theme.primary });
-        } catch (error: any) {
-            Snackbar.show({ text: `Failed to revoke access: ${error.message}`, duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.danger, textColor: theme.text });
-        } finally {
-            setIsRevokeLoading(false);
-        }
-    }
-
-    React.useMemo(() => {
-
+    const share: AccessGrant | null = React.useMemo(() => {
         const getMeasurements = async () => {
-            const temp = await backend.getMeasurementsForShare(id);
+
+            const parsed: AccessGrant = JSON.parse(data);
+
+            const temp: HealthMeasurement[] = await backend.getMeasurementsForShare(parsed.id);
             setMeasurements(temp);
 
             const unitSet = new Set<string>(['All']);
@@ -59,20 +50,35 @@ const SharedDetailScreen = () => {
                     unitSet.add("Blood Pressure");
                 }
             });
-
             setUnits(Array.from(unitSet));
         }
 
         try {
-            if (id) getMeasurements();
+            if (data) getMeasurements();
+            return JSON.parse(data);
         }
         catch (e) {
             console.error("Failed to parse sharedMeasurementIds", e);
+            return null;
         }
         finally {
             setIsLoading(false);
         }
-    }, [id]);
+    }, [data]);
+
+    const handleRevokeAccess = async () => {
+        setIsRevokeLoading(true);
+
+        try {
+            await backend.revokeShare(currentPatient.id, share.id);
+            router.back();
+            Snackbar.show({ text: 'Access revoked successfully', duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.primarySoft, textColor: theme.primary });
+        } catch (error: any) {
+            Snackbar.show({ text: `Failed to revoke access: ${error.message}`, duration: Snackbar.LENGTH_SHORT, backgroundColor: theme.danger, textColor: theme.text });
+        } finally {
+            setIsRevokeLoading(false);
+        }
+    }
 
     return (
         <ThemedView safe style={styles.container}>
@@ -80,9 +86,76 @@ const SharedDetailScreen = () => {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 <ThemedText style={styles.title}>Health Records</ThemedText>
-                <ThemedText style={{ color: theme.textGray, marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
+                <ThemedText style={{ color: theme.textGray, fontSize: 14, lineHeight: 20 }}>
                     These are the records you've shared.
                 </ThemedText>
+
+                <Spacer height={20} />
+
+                {/* Access Card */}
+                <ScalePressable
+                    onPress={async () => {
+                        if (share?.access_token) {
+                            await Clipboard.setStringAsync(share.access_token);
+                            Snackbar.show({
+                                text: 'Access code copied to clipboard!',
+                                duration: Snackbar.LENGTH_SHORT,
+                                backgroundColor: theme.primarySoft,
+                                textColor: theme.primary
+                            });
+                        }
+                    }}
+                    style={{ backgroundColor: theme.backgroundLight, padding: 20, borderRadius: 15 }}
+                >
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+
+                        <View>
+                            <ThemedText style={{ color: theme.textGray, fontSize: 13, marginBottom: -3 }}>
+                                ACCESS CODE
+                            </ThemedText>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 15 }}>
+                                <ThemedText type={'h1'} style={{ color: theme.primary, fontSize: 35, letterSpacing: 2 }}>
+                                    {share?.access_token?.substring(0, 3)} {share?.access_token?.substring(3)}
+                                </ThemedText>
+                                <FontAwesomeIcon icon={faCopy} size={18} color={theme.textGray} />
+                            </View>
+                        </View>
+
+                        <ScalePressable
+                            onPress={() => router.push('/share/ScanQR')}
+                            style={{ padding: 10, marginRight: 5, marginTop: 15, backgroundColor: theme.primarySoft, borderRadius: 10 }}
+                        >
+                            <FontAwesomeIcon icon={faQrcode} size={24} color={theme.primary} />
+                        </ScalePressable>
+
+                    </View>
+
+                    <ThemedText style={{ color: theme.textGray, fontSize: 13, marginTop: 20 }}>
+                        SHAREABLE URL
+                    </ThemedText>
+                    <ScalePressable
+                        style={{ padding: 12, backgroundColor: theme.card, borderRadius: 10, marginTop: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                        onPress={async () => {
+                            if (share?.access_token) {
+                                await Clipboard.setStringAsync(share.access_token);
+                                Snackbar.show({
+                                    text: 'Link copied to clipboard!',
+                                    duration: Snackbar.LENGTH_SHORT,
+                                    backgroundColor: theme.primarySoft,
+                                    textColor: theme.primary
+                                });
+                            }
+                        }}
+                    >
+                        <ThemedText numberOfLines={1} style={{ color: theme.textGray, width: '90%' }}>
+                            https://stitch.withgoogle.com/projects/844583902641196270
+                        </ThemedText>
+                        <FontAwesomeIcon icon={faCopy} size={18} color={theme.textGray} />
+                    </ScalePressable>
+                </ScalePressable>
+
+                <Spacer height={25} />
 
                 {/* Filters */}
                 {isLoading ?
@@ -169,7 +242,7 @@ const SharedDetailScreen = () => {
                 }
             </ScrollView>
             <ScalePressable
-                style={[styles.revokeButtonContainer, isRevokeLoading && { backgroundColor: '#a01717' }]}
+                style={[styles.revokeButtonContainer, { bottom: insets.bottom + 30 }, isRevokeLoading && { backgroundColor: '#a01717' }]}
                 onPress={handleRevokeAccess}
                 disabled={isRevokeLoading}
             >
@@ -262,7 +335,6 @@ const styles = StyleSheet.create({
         marginTop: 15,
         gap: 7,
         position: 'absolute',
-        bottom: 50,
         left: 30,
         right: 30,
         elevation: 1,

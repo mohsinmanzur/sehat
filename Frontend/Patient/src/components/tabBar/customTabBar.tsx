@@ -4,10 +4,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@context/ThemeContext';
 import { Colors } from '@theme/colors';
-import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  useSharedValue,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Shadow } from 'react-native-shadow-2';
 import { ScalePressable } from '../ScalePressable';
+import { useEffect } from 'react';
 
 export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
@@ -20,11 +28,56 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
   const mode = useColorScheme();
 
+  // 0 = Dashboard (Home), 1 = Shares
+  const isSharesTab = state.index === 1;
+
+  // Morph progress: 0 = add icon, 1 = share icon
+  const morphProgress = useSharedValue(isSharesTab ? 1 : 0);
+
+  useEffect(() => {
+    morphProgress.value = withTiming(isSharesTab ? 1 : 0, {
+      duration: 300,
+      easing: Easing.inOut(Easing.cubic),
+    });
+  }, [isSharesTab]);
+
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: withSpring(state.index * TAB_ITEM_WIDTH, { duration: 100 }) }]
     };
   });
+
+  // Add icon fades/scales out as morphProgress goes 0 → 1
+  const addIconStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(morphProgress.value, [0, 0.5, 1], [1, 0, 0]),
+      transform: [
+        { scale: interpolate(morphProgress.value, [0, 1], [1, 0.4]) } as { scale: number },
+        { rotate: `${interpolate(morphProgress.value, [0, 1], [0, 90])}deg` } as { rotate: string },
+      ],
+      position: 'absolute' as const,
+    };
+  });
+
+  // Share icon fades/scales in as morphProgress goes 0 → 1
+  const shareIconStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(morphProgress.value, [0, 0.5, 1], [0, 0, 1]),
+      transform: [
+        { scale: interpolate(morphProgress.value, [0, 1], [0.4, 1]) } as { scale: number },
+        { rotate: `${interpolate(morphProgress.value, [0, 1], [-90, 0])}deg` } as { rotate: string },
+      ],
+      position: 'absolute' as const,
+    };
+  });
+
+  const handleFabPress = () => {
+    if (isSharesTab) {
+      router.push('/NewShare');
+    } else {
+      router.push('/AddNew');
+    }
+  };
 
   const foregroundColor = '#ffffff';
 
@@ -85,8 +138,13 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
         {/* Floating Action Button */}
         <BlurView intensity={10} tint={'default'} style={[styles.actionButton, mode === 'light' && { backgroundColor: theme.textGray + 60 }]}>
-          <ScalePressable style={styles.actionButtonInner} onPress={() => router.push('/AddNew')}>
-            <MaterialIcons name="add" size={30} color={foregroundColor} />
+          <ScalePressable style={styles.actionButtonInner} onPress={handleFabPress}>
+            <Animated.View style={addIconStyle}>
+              <MaterialIcons name="add" size={30} color={foregroundColor} />
+            </Animated.View>
+            <Animated.View style={shareIconStyle}>
+              <MaterialIcons name="share" size={24} color={foregroundColor} />
+            </Animated.View>
           </ScalePressable>
         </BlurView>
       </View>
