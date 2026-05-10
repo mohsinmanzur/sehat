@@ -48,6 +48,21 @@ export class ShareService {
         });
     }
 
+    async getSharedById(shareId: string): Promise<AccessGrantType> {
+        const grant = await this.accessGrantRepo.findOne({
+            where: { id: shareId, is_revoked: false },
+            relations: ['doctor', 'patient']
+        });
+        if (!grant) throw new Error('No share found with this ID!');
+
+        const measurements = await this.healthMeasurementRepo.find({
+            where: { id: In(grant.measurement_ids) },
+            relations: ['patient', 'measurement_unit', 'medical_document']
+        });
+        grant['measurements'] = measurements;
+        return grant;
+    }
+
     async getSharedMeasurements(shareId: string): Promise<HealthMeasurementType[]> {
         const grant = await this.accessGrantRepo.findOne({
             where: { id: shareId, is_revoked: false },

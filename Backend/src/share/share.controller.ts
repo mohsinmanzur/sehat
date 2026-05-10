@@ -3,6 +3,7 @@ import { ShareService } from './share.service';
 import { ShareMeasurementDto } from './dto/share-measurement.dto';
 import { HealthMeasurementType } from 'src/health_measurement/types/health_measurement.type';
 import { ShareGateway } from './websocket/websocket';
+import { AccessGrantType } from './types/access_grant.type';
 
 @Controller('share')
 export class ShareController {
@@ -27,6 +28,11 @@ export class ShareController {
     @Get('shared-measurements')
     async getSharedMeasurements(@Query('share_id') shareId: string): Promise<HealthMeasurementType[]> {
         return await this.shareService.getSharedMeasurements(shareId);
+    }
+
+    @Get('shared-by-id')
+    async getSharedById(@Query('share_id') shareId: string): Promise<AccessGrantType> {
+        return await this.shareService.getSharedById(shareId);
     }
 
     @Post('revoke')
