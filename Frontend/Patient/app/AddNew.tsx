@@ -326,7 +326,7 @@ export default function AddNewMeasurement() {
 
 const styles = (theme: any) => StyleSheet.create({
     root: {
-        backgroundColor: theme.backgroundLight,
+        backgroundColor: theme.backgroundDark,
     },
     header: {
         flexDirection: 'row',
@@ -335,7 +335,7 @@ const styles = (theme: any) => StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 10,
         paddingBottom: 14,
-        backgroundColor: theme.backgroundLight,
+        backgroundColor: theme.backgroundDark,
     },
     headerIcon: {
         width: 36,

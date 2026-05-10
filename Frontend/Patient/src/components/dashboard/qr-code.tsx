@@ -30,7 +30,6 @@ export const QRCodeCard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     style={{ backgroundColor: theme.backgroundLight }}
                     padding={0}
                     pieceCornerType='rounded'
-                    logo={require('../../../assets/Splash.png')}
                     color={theme.text}
                     size={250}
                     pieceLiquidRadius={3}

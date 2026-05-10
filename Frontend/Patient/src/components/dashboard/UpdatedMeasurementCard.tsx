@@ -40,45 +40,41 @@ export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ 
         <View style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 15, maxWidth: '48%', elevation: 0 }} >
             <ScalePressable
                 key={id}
-                style={{ flex: 1 }}
+                style={[styles.container]}
                 disabled={!item}
                 onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(item), primaryColor, secondaryColor } })}
             >
-                <View style={[styles.container, { marginLeft: 0 }]} >
+                {/* Top Row */}
+                <View style={styles.topRow}>
+                    <FontAwesome5 name={iconName} size={24} color={primaryColor} />
 
-                    {/* Top Row */}
-                    <View style={styles.topRow}>
-                        <FontAwesome5 name={iconName} size={24} color={primaryColor} />
-
-                        {/* Chart*/}
-                        <View
-                            style={{ width: '50%', height: 0, marginTop: -15, alignItems: 'flex-end' }}
-                            onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}
-                        >
-                            {chartWidth > 0 && (
-                                <LineChart.Provider data={chartData}>
-                                    <LineChart width={chartWidth} height={90}>
-                                        <LineChart.Path color={primaryColor} width={3} />
-                                    </LineChart>
-                                </LineChart.Provider>
-                            )}
-                        </View>
-                    </View>
-
-                    {/* Title and Value */}
-                    <View style={styles.titleRow}>
-                        <ThemedText type={'title'} style={styles.value}>{item.numeric_value}</ThemedText>
-                        {secondaryItem && (
-                            <ThemedText type={'title'} style={[styles.value, { fontSize: 22 }]}>/{secondaryItem.numeric_value}</ThemedText>
+                    {/* Chart*/}
+                    <View
+                        style={{ width: '50%', height: 0, marginTop: -15, alignItems: 'flex-end' }}
+                        onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}
+                    >
+                        {chartWidth > 0 && (
+                            <LineChart.Provider data={chartData}>
+                                <LineChart width={chartWidth} height={90}>
+                                    <LineChart.Path color={primaryColor} width={3} />
+                                </LineChart>
+                            </LineChart.Provider>
                         )}
-                        <ThemedText type={'subtitle'} style={styles.unit}> {item.measurement_unit.symbol}</ThemedText>
                     </View>
-
-                    <ThemedText type={'subtitle'} style={styles.title}>
-                        {item.measurement_unit.measurement_group}
-                    </ThemedText>
-
                 </View>
+
+                {/* Title and Value */}
+                <View style={styles.titleRow}>
+                    <ThemedText type={'title'} style={[styles.value]}>{item.numeric_value}</ThemedText>
+                    {secondaryItem && (
+                        <ThemedText numberOfLines={1} ellipsizeMode="tail" type={'title'} style={[styles.value, { fontSize: 22 }]}>/{secondaryItem.numeric_value}</ThemedText>
+                    )}
+                    <ThemedText numberOfLines={1} ellipsizeMode="tail" type={'subtitle'} style={[styles.unit, { flexShrink: 1 }]}> {item.measurement_unit.symbol}</ThemedText>
+                </View>
+
+                <ThemedText numberOfLines={1} ellipsizeMode="tail" type={'subtitle'}>
+                    {item.measurement_unit.measurement_group}
+                </ThemedText>
             </ScalePressable>
         </View>
     )
@@ -107,8 +103,5 @@ const StylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     unit: {
         marginLeft: 3,
         fontFamily: 'PublicSans_300Light',
-    },
-    title: {
-
     }
 })

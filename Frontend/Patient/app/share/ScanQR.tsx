@@ -1,33 +1,29 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Animated, Pressable, Dimensions } from 'react-native';
+import { StyleSheet, View, Animated, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { ThemedButton, ThemedText, ThemedView } from "src/components";
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@context/ThemeContext';
 import { Colors } from '@theme/colors';
-import Svg, { Defs, Rect, Mask } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Snackbar } from 'react-native-snackbar';
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const SQUARE_SIZE = SCREEN_W * 0.72; // 72% of screen width
+import { ScalePressable } from 'src/components/ScalePressable';
 
 export default function ScanQR() {
     const [permission, requestPermission] = useCameraPermissions();
     const [isActive, setIsActive] = useState(false);
     const [hasScanned, setHasScanned] = useState(false);
     const [torchOn, setTorchOn] = useState(false);
+    const [qrBounds, setQrBounds] = useState<BarcodeScanningResult['bounds'] | null>(null);
 
     const fadeAnim = useRef(new Animated.Value(1)).current;
-    const scanLineAnim = useRef(new Animated.Value(0)).current;
     const successAnim = useRef(new Animated.Value(0)).current;
 
     const { theme } = useTheme();
     const insets = useSafeAreaInsets();
     const styles = styleSheet(theme, insets);
 
-    // Hint text fade out
     useEffect(() => {
         if (isActive) {
             fadeAnim.setValue(1);
@@ -40,28 +36,6 @@ export default function ScanQR() {
         }
     }, [isActive, fadeAnim]);
 
-    // Scan line animation — loops vertically inside the square
-    useEffect(() => {
-        if (!isActive || hasScanned) return;
-
-        const loop = Animated.loop(
-            Animated.sequence([
-                Animated.timing(scanLineAnim, {
-                    toValue: 1,
-                    duration: 2000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scanLineAnim, {
-                    toValue: 0,
-                    duration: 2000,
-                    useNativeDriver: true,
-                }),
-            ])
-        );
-        loop.start();
-        return () => loop.stop();
-    }, [isActive, hasScanned, scanLineAnim]);
-
     useEffect(() => {
         if (permission && !permission.granted && permission.canAskAgain) {
             requestPermission();
@@ -72,21 +46,24 @@ export default function ScanQR() {
         useCallback(() => {
             setIsActive(true);
             setHasScanned(false);
+            setQrBounds(null);
             return () => setIsActive(false);
         }, [])
     );
 
-    const handleBarCodeScanned = ({ type, data }: BarcodeScanningResult) => {
+    const handleBarCodeScanned = ({ bounds }: BarcodeScanningResult) => {
+        if (bounds) {
+            setQrBounds(bounds);
+        }
+
         if (hasScanned) return;
         setHasScanned(true);
 
-        // Flash success animation
         Animated.sequence([
             Animated.timing(successAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
             Animated.timing(successAnim, { toValue: 0, duration: 400, delay: 600, useNativeDriver: true }),
         ]).start();
 
-        // Pass the scanned QR data back and navigate away
         Snackbar.show({
             text: `QR Scanned!`,
             duration: Snackbar.LENGTH_SHORT,
@@ -94,15 +71,12 @@ export default function ScanQR() {
             textColor: theme.primary,
         });
 
-        // Navigate to SharedDetail with the scanned access token
         setTimeout(() => {
             router.back();
         }, 800);
     };
 
-    if (!permission) {
-        return <View />;
-    }
+    if (!permission) return <View />;
 
     if (!permission.granted) {
         return (
@@ -118,114 +92,65 @@ export default function ScanQR() {
         );
     }
 
-    const scanLineTranslateY = scanLineAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, SQUARE_SIZE - 4],
-    });
-
-    const successOpacity = successAnim;
-
     return (
         <CameraView
             style={styles.camera}
             facing="back"
             enableTorch={torchOn}
             barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-            onBarcodeScanned={hasScanned ? undefined : handleBarCodeScanned}
+            onBarcodeScanned={handleBarCodeScanned}
         >
-            {/* ── Dark overlay with square cutout ── */}
-            <View style={StyleSheet.absoluteFill}>
-                <Svg height="100%" width="100%">
-                    <Defs>
-                        <Mask id="qrmask" x="0" y="0" height="100%" width="100%">
-                            <Rect height="100%" width="100%" fill="#fff" />
-                            {/* Square hole */}
-                            <Rect
-                                x={(SCREEN_W - SQUARE_SIZE) / 2}
-                                y="20%"
-                                width={SQUARE_SIZE}
-                                height={SQUARE_SIZE}
-                                rx={20}
-                                fill="#000"
-                            />
-                        </Mask>
-                    </Defs>
-                    <Rect
-                        height="100%"
-                        width="100%"
-                        fill="rgba(0, 0, 0, 0.65)"
-                        mask="url(#qrmask)"
-                    />
-                </Svg>
-            </View>
-
-            {/* ── Viewfinder overlay ── */}
-            <View style={styles.viewfinderWrapper}>
-                <View style={styles.viewfinder}>
-
-                    {/* Animated scan line */}
-                    {!hasScanned && (
-                        <Animated.View
-                            style={[
-                                styles.scanLine,
-                                { transform: [{ translateY: scanLineTranslateY }] }
-                            ]}
-                        />
-                    )}
-
-                    {/* Success flash */}
-                    <Animated.View
-                        style={[
-                            StyleSheet.absoluteFillObject,
-                            styles.successFlash,
-                            { opacity: successOpacity }
-                        ]}
-                    />
-
-                    {/* Corner brackets */}
+            {/* Dynamic QR Bounding Box Overlay */}
+            {qrBounds && (
+                <View
+                    style={[
+                        styles.dynamicBoundingBox,
+                        {
+                            left: qrBounds.origin.x,
+                            top: qrBounds.origin.y,
+                            width: qrBounds.size.width,
+                            height: qrBounds.size.height,
+                        }
+                    ]}
+                >
+                    <Animated.View style={[StyleSheet.absoluteFillObject, styles.successFlash, { opacity: successAnim }]} />
                     <View style={[styles.corner, styles.topLeft]} />
                     <View style={[styles.corner, styles.topRight]} />
                     <View style={[styles.corner, styles.bottomLeft]} />
                     <View style={[styles.corner, styles.bottomRight]} />
                 </View>
+            )}
 
-                {/* Hint text below the square */}
-                <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
+            <View style={styles.overlayContainer}>
+                <Animated.View style={{ opacity: fadeAnim, marginTop: 'auto', marginBottom: 120 }}>
                     <ThemedText style={styles.hintText}>Point your camera at a QR code</ThemedText>
                 </Animated.View>
             </View>
 
-            {/* ── Top bar: close + torch ── */}
-            <Pressable
-                onPress={router.back}
-                style={({ pressed }) => [styles.crossButton, { opacity: pressed ? 0.5 : 1 }]}
-            >
+            <ScalePressable onPress={router.back} style={styles.crossButton}>
                 <Ionicons name="close" size={32} color="#FFFFFF" />
-            </Pressable>
+            </ScalePressable>
 
-            <TouchableOpacity
-                style={styles.torchButton}
-                onPress={() => setTorchOn(prev => !prev)}
-                activeOpacity={0.7}
-            >
+            <ScalePressable style={styles.torchButton} onPress={() => setTorchOn(prev => !prev)}>
                 <Ionicons
                     name={torchOn ? 'flash' : 'flash-outline'}
                     size={26}
                     color={torchOn ? theme.primary : '#FFFFFF'}
                 />
-            </TouchableOpacity>
+            </ScalePressable>
 
-            {/* ── Label at the very top ── */}
             <View style={styles.topLabel}>
                 <ThemedText style={styles.topLabelText}>Scan QR Code</ThemedText>
             </View>
 
-            {/* ── Re-scan button shown after a scan ── */}
             {hasScanned && (
                 <View style={styles.rescanContainer}>
                     <TouchableOpacity
                         style={[styles.rescanButton, { backgroundColor: theme.primary }]}
-                        onPress={() => setHasScanned(false)}
+                        onPress={() => {
+                            setHasScanned(false);
+                            setQrBounds(null);
+                        }}
                         activeOpacity={0.8}
                     >
                         <Ionicons name="scan-outline" size={20} color="#FFFFFF" />
@@ -255,69 +180,54 @@ const styleSheet = (theme: typeof Colors.dark, insets: any) => StyleSheet.create
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
     },
-    // Viewfinder sits centred in the screen
-    viewfinderWrapper: {
+    overlayContainer: {
         ...StyleSheet.absoluteFillObject,
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingTop: '20%',
+        justifyContent: 'flex-end',
+        zIndex: 1,
     },
-    viewfinder: {
-        width: SQUARE_SIZE,
-        height: SQUARE_SIZE,
-        overflow: 'hidden',
-        borderRadius: 20,
-    },
-    scanLine: {
+    dynamicBoundingBox: {
         position: 'absolute',
-        left: 8,
-        right: 8,
-        height: 2.5,
-        borderRadius: 2,
-        backgroundColor: theme.primary,
-        shadowColor: theme.primary,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.9,
-        shadowRadius: 6,
-        elevation: 4,
+        zIndex: 2,
+        borderRadius: 12,
     },
     successFlash: {
-        borderRadius: 20,
-        backgroundColor: 'rgba(0, 230, 118, 0.25)',
+        borderRadius: 12,
+        backgroundColor: 'rgba(0, 230, 118, 0.4)',
     },
     corner: {
         position: 'absolute',
-        width: 32,
-        height: 32,
-        borderColor: '#FFFFFF',
+        width: 24,
+        height: 24,
+        borderColor: theme.primary,
     },
     topLeft: {
         top: 0,
         left: 0,
         borderTopWidth: 4,
         borderLeftWidth: 4,
-        borderTopLeftRadius: 20,
+        borderTopLeftRadius: 12,
     },
     topRight: {
         top: 0,
         right: 0,
         borderTopWidth: 4,
         borderRightWidth: 4,
-        borderTopRightRadius: 20,
+        borderTopRightRadius: 12,
     },
     bottomLeft: {
         bottom: 0,
         left: 0,
         borderBottomWidth: 4,
         borderLeftWidth: 4,
-        borderBottomLeftRadius: 20,
+        borderBottomLeftRadius: 12,
     },
     bottomRight: {
         bottom: 0,
         right: 0,
         borderBottomWidth: 4,
         borderRightWidth: 4,
-        borderBottomRightRadius: 20,
+        borderBottomRightRadius: 12,
     },
     hintText: {
         color: '#FFFFFF',
@@ -325,11 +235,16 @@ const styleSheet = (theme: typeof Colors.dark, insets: any) => StyleSheet.create
         fontWeight: '500',
         textAlign: 'center',
         opacity: 0.85,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
     },
     crossButton: {
         position: 'absolute',
         top: insets.top + 9,
         left: 16,
+        zIndex: 10,
     },
     torchButton: {
         position: 'absolute',
@@ -339,6 +254,7 @@ const styleSheet = (theme: typeof Colors.dark, insets: any) => StyleSheet.create
         height: 44,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 10,
     },
     topLabel: {
         position: 'absolute',
@@ -346,11 +262,15 @@ const styleSheet = (theme: typeof Colors.dark, insets: any) => StyleSheet.create
         left: 0,
         right: 0,
         alignItems: 'center',
+        zIndex: 9,
     },
     topLabelText: {
         color: '#FFFFFF',
         fontSize: 17,
         fontWeight: '700',
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
     },
     rescanContainer: {
         position: 'absolute',
@@ -358,6 +278,7 @@ const styleSheet = (theme: typeof Colors.dark, insets: any) => StyleSheet.create
         left: 0,
         right: 0,
         alignItems: 'center',
+        zIndex: 10,
     },
     rescanButton: {
         flexDirection: 'row',
