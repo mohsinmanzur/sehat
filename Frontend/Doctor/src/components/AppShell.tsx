@@ -17,6 +17,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useMemo, useState } from 'react';
 import Logo from './Logo';
+import { getShareMeasurements } from '../services/shareService';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,6 +37,12 @@ const pageMeta: Record<string, { eyebrow: string; title: string }> = {
   '/settings': { eyebrow: 'Welcome back', title: 'Settings' },
 };
 
+const toArray = (payload: any) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { darkMode, toggleTheme } = useTheme();
   const { doctorName, logout } = useAuth();
@@ -44,6 +51,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const [open, setOpen] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
+
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [patientOtp, setPatientOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [otpMessage, setOtpMessage] = useState('');
 
   const currentMeta = useMemo(() => {
     return pageMeta[location.pathname] || {
@@ -58,7 +71,73 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   const openOtpModal = () => {
-    window.dispatchEvent(new CustomEvent('open-patient-otp-modal'));
+    setOtpModalOpen(true);
+    setPatientOtp('');
+    setOtpError('');
+    setOtpMessage('');
+  };
+
+  const closeOtpModal = () => {
+    setOtpModalOpen(false);
+    setPatientOtp('');
+    setOtpError('');
+    setOtpMessage('');
+    setOtpLoading(false);
+  };
+
+  const startSessionFromOtp = async () => {
+    const cleanOtp = patientOtp.trim();
+
+    if (!cleanOtp) {
+      setOtpError('Please enter the patient OTP first.');
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      setOtpError('');
+      setOtpMessage('');
+
+      const data = await getShareMeasurements(cleanOtp);
+      const sharedMeasurements = toArray(data);
+
+      if (sharedMeasurements.length === 0) {
+        setOtpError('No shared data found for this OTP.');
+        return;
+      }
+
+      const firstItem = sharedMeasurements[0];
+
+      const patientId =
+        firstItem?.patient_id ||
+        firstItem?.patient?.id ||
+        '';
+
+      const patientName =
+        firstItem?.patient?.name ||
+        'Shared Patient';
+
+      if (!patientId) {
+        setOtpError('Shared data was found, but patient ID is missing.');
+        return;
+      }
+
+      localStorage.setItem('activeShareId', cleanOtp);
+      localStorage.setItem('selectedPatientId', patientId);
+      localStorage.setItem('selectedPatientName', patientName);
+
+      setOtpMessage('Session started successfully.');
+
+      setTimeout(() => {
+        closeOtpModal();
+        navigate('/overview');
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setOtpError('Invalid OTP or session could not be started.');
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
   const alerts = [
@@ -167,6 +246,95 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
       {showAlerts && <div className="alerts-overlay" onClick={() => setShowAlerts(false)} />}
+
+      {otpModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(2, 6, 23, 0.72)',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 300,
+            padding: 16,
+          }}
+          onClick={closeOtpModal}
+        >
+          <div
+            className="card"
+            style={{
+              width: 'min(100%, 540px)',
+              padding: 24,
+              borderRadius: 28,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 12,
+                alignItems: 'flex-start',
+                marginBottom: 18,
+              }}
+            >
+              <div>
+                <h2 className="section-title" style={{ fontSize: 34 }}>
+                  Enter Patient OTP
+                </h2>
+                <p className="section-subtitle">
+                  Enter the OTP/session code shared by the patient to start access.
+                </p>
+              </div>
+
+              <button
+                className="btn btn-secondary"
+                onClick={closeOtpModal}
+                style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <label style={{ fontWeight: 800, display: 'block', marginBottom: 8 }}>
+              Patient OTP
+            </label>
+
+            <input
+              className="input"
+              placeholder="Enter patient OTP"
+              value={patientOtp}
+              onChange={(e) => setPatientOtp(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') startSessionFromOtp();
+              }}
+              autoFocus
+            />
+
+            {otpError && (
+              <div className="panel" style={{ padding: 14, marginTop: 14, color: 'tomato' }}>
+                {otpError}
+              </div>
+            )}
+
+            {otpMessage && (
+              <div className="panel" style={{ padding: 14, marginTop: 14 }}>
+                {otpMessage}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={startSessionFromOtp} disabled={otpLoading}>
+                {otpLoading ? 'Starting...' : 'Start Session'}
+              </button>
+
+              <button className="btn btn-secondary" onClick={closeOtpModal}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,16 +6,22 @@ export const getPatients = async () => {
 };
 
 export const getPatientById = async (id: string) => {
-  const res = await api.get(`/patient?id=${encodeURIComponent(id)}`);
+  const res = await api.get("/patient", {
+    params: { id },
+  });
   return res.data;
 };
 
 export const getPatientByEmail = async (email: string) => {
-  const res = await api.get(`/patient?email=${encodeURIComponent(email)}`);
+  const res = await api.get("/patient", {
+    params: { email },
+  });
   return res.data;
 };
 
 export const getPatientByName = async (name: string) => {
-  const res = await api.get(`/patient?name=${encodeURIComponent(name)}`);
+  const res = await api.get("/patient", {
+    params: { name },
+  });
   return res.data;
 };

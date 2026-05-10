@@ -1,7 +1,7 @@
-import { Download, FileText, StickyNote } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { getRecordById } from '../services/recordService';
+import { Download, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { getRecordById, getSecureRecordUrl } from "../services/recordService";
 
 type RecordItem = {
   id?: string;
@@ -9,142 +9,170 @@ type RecordItem = {
   file_name?: string;
   file_url?: string;
   record_type?: string;
-  ocr_extracted_text?: string;
+  ocr_extracted_text?: string | null;
   date_issued?: string;
   created_at?: string;
 };
 
 const formatDate = (value?: string) => {
-  if (!value) return 'No date';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString();
+  if (!value) return "No date";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString();
 };
 
 export default function ReportDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const [detail, setDetail] = useState<RecordItem | null>(null);
+  const activeShareId = localStorage.getItem("activeShareId") || "";
+  const selectedPatientId = localStorage.getItem("selectedPatientId") || "";
+
+  const [report, setReport] = useState<RecordItem | null>(null);
+  const [secureLoading, setSecureLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const load = async () => {
-      if (!id) {
+      if (!id || !activeShareId || !selectedPatientId) {
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        setError('');
+        setError("");
+
         const data = await getRecordById(id);
-        setDetail(data || null);
+        const item = Array.isArray(data) ? data[0] : data;
+
+        if (item?.patient_id && item.patient_id !== selectedPatientId) {
+          setError("This report does not belong to the active patient session.");
+          setReport(null);
+          return;
+        }
+
+        setReport(item || null);
       } catch (err) {
         console.error(err);
-        setError('Could not load report details.');
+        setError("Could not load report.");
       } finally {
         setLoading(false);
       }
     };
 
     load();
-  }, [id]);
+  }, [id, activeShareId, selectedPatientId]);
 
-  if (loading) {
+  const openSecureFile = async () => {
+    if (!report?.file_url) {
+      alert("No file URL available.");
+      return;
+    }
+
+    try {
+      setSecureLoading(true);
+
+      const data = await getSecureRecordUrl(report.file_url);
+      const url = data?.url || report.file_url;
+
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      console.error(err);
+      window.open(report.file_url, "_blank", "noopener,noreferrer");
+    } finally {
+      setSecureLoading(false);
+    }
+  };
+
+  if (!activeShareId || !selectedPatientId) {
     return (
-      <div className="grid" style={{ gridTemplateColumns: '1.2fr .8fr' }}>
-        <section className="card" style={{ padding: 24, minHeight: 400 }} />
-        <aside className="grid">
-          <section className="card" style={{ padding: 24, minHeight: 180 }} />
-          <section className="card" style={{ padding: 24, minHeight: 180 }} />
-        </aside>
-        <style>{`@media (max-width:980px){ .grid[style*='1.2fr .8fr']{grid-template-columns:1fr!important;} }`}</style>
-      </div>
+      <section className="card" style={{ padding: 24 }}>
+        <h1 className="section-title">Report Detail</h1>
+        <p className="section-subtitle">
+          No active patient session found. Start a session before viewing reports.
+        </p>
+
+        <Link to="/sessions" className="btn btn-primary" style={{ marginTop: 18 }}>
+          Go to Sessions
+        </Link>
+      </section>
     );
   }
 
-  if (error || !detail) {
+  if (loading) {
     return (
-      <div className="grid">
-        <section className="card" style={{ padding: 24 }}>
-          <h1 className="section-title">Report Detail</h1>
-          <div className="panel" style={{ padding: 16, marginTop: 18, color: 'tomato' }}>
-            {error || 'Report not found.'}
-          </div>
-        </section>
-      </div>
+      <section className="card" style={{ padding: 24 }}>
+        <h1 className="section-title">Report Detail</h1>
+        <p className="section-subtitle">Loading report...</p>
+      </section>
+    );
+  }
+
+  if (error || !report) {
+    return (
+      <section className="card" style={{ padding: 24 }}>
+        <h1 className="section-title">Report Detail</h1>
+        <div className="panel" style={{ padding: 14, color: "tomato", marginTop: 18 }}>
+          {error || "Report not found."}
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '1.2fr .8fr' }}>
+    <div className="grid" style={{ gridTemplateColumns: "1.2fr .8fr" }}>
       <section className="card" style={{ padding: 24 }}>
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            display: "flex",
+            justifyContent: "space-between",
             gap: 14,
-            marginBottom: 16,
-            flexWrap: 'wrap',
+            flexWrap: "wrap",
+            marginBottom: 18,
           }}
         >
           <div>
-            <h1 className="section-title">{detail.file_name || 'Medical Report'}</h1>
+            <h1 className="section-title">{report.file_name || "Medical Report"}</h1>
             <p className="section-subtitle">
-              {(detail.record_type || 'other').replaceAll('_', ' ')} · {formatDate(detail.date_issued || detail.created_at)}
+              {report.record_type || "other"} ·{" "}
+              {formatDate(report.date_issued || report.created_at)}
             </p>
           </div>
 
-          {detail.file_url ? (
-            <a
-              className="btn btn-secondary"
-              href={detail.file_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Download size={16} /> Open File
-            </a>
-          ) : (
-            <button className="btn btn-secondary" disabled>
-              <Download size={16} /> No File URL
-            </button>
-          )}
+          <button className="btn btn-primary" onClick={openSecureFile} disabled={secureLoading}>
+            <Download size={16} />
+            {secureLoading ? "Opening..." : "Open File"}
+          </button>
         </div>
 
-        <div className="panel" style={{ minHeight: 420, padding: 26, background: 'var(--surface)' }}>
+        <div className="panel" style={{ minHeight: 420, padding: 24 }}>
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 10,
               marginBottom: 16,
-              color: 'var(--text-light)',
+              color: "var(--text-light)",
             }}
           >
-            <FileText size={18} /> Report Preview / OCR Text
+            <FileText size={18} />
+            OCR Extracted Text
           </div>
 
-          {detail.ocr_extracted_text ? (
-            <div
-              style={{
-                whiteSpace: 'pre-wrap',
-                lineHeight: 1.8,
-                color: 'var(--text)',
-              }}
-            >
-              {detail.ocr_extracted_text}
+          {report.ocr_extracted_text ? (
+            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
+              {report.ocr_extracted_text}
             </div>
           ) : (
             <div
               style={{
-                border: '1px dashed var(--border)',
+                border: "1px dashed var(--border)",
                 borderRadius: 18,
-                minHeight: 320,
-                display: 'grid',
-                placeItems: 'center',
-                color: 'var(--text-very-light)',
+                minHeight: 300,
+                display: "grid",
+                placeItems: "center",
+                color: "var(--text-very-light)",
               }}
             >
               No OCR text stored for this report.
@@ -155,46 +183,34 @@ export default function ReportDetailPage() {
 
       <aside className="grid">
         <section className="card" style={{ padding: 24 }}>
-          <h2 className="section-title">Report Information</h2>
+          <h2 className="section-title">Report Info</h2>
 
-          <div className="grid" style={{ marginTop: 14 }}>
+          <div className="grid" style={{ marginTop: 16 }}>
             <div className="panel" style={{ padding: 14 }}>
-              <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>Report ID</div>
-              <div style={{ fontWeight: 700, wordBreak: 'break-word' }}>{detail.id || '-'}</div>
+              <div className="muted">Report ID</div>
+              <strong style={{ wordBreak: "break-word" }}>{report.id}</strong>
             </div>
 
             <div className="panel" style={{ padding: 14 }}>
-              <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>Patient ID</div>
-              <div style={{ fontWeight: 700, wordBreak: 'break-word' }}>{detail.patient_id || '-'}</div>
+              <div className="muted">Patient ID</div>
+              <strong style={{ wordBreak: "break-word" }}>{report.patient_id}</strong>
             </div>
 
             <div className="panel" style={{ padding: 14 }}>
-              <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>Type</div>
-              <div style={{ fontWeight: 700 }}>{(detail.record_type || 'other').replaceAll('_', ' ')}</div>
+              <div className="muted">Access Mode</div>
+              <strong>Read-only shared session</strong>
             </div>
-
-            <div className="panel" style={{ padding: 14 }}>
-              <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>Issued On</div>
-              <div style={{ fontWeight: 700 }}>{formatDate(detail.date_issued)}</div>
-            </div>
-          </div>
-        </section>
-
-        <section className="card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <StickyNote size={17} color="var(--primary)" />
-            <strong>Stored Notes</strong>
-          </div>
-
-          <div className="panel" style={{ padding: 16, lineHeight: 1.7 }}>
-            {detail.ocr_extracted_text
-              ? 'This report has OCR text stored in backend and is being shown live here.'
-              : 'No OCR-extracted text was found for this report in backend.'}
           </div>
         </section>
       </aside>
 
-      <style>{`@media (max-width:980px){ .grid[style*='1.2fr .8fr']{grid-template-columns:1fr!important;} }`}</style>
+      <style>{`
+        @media (max-width: 900px) {
+          .grid[style*="1.2fr .8fr"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
