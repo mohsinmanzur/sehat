@@ -411,7 +411,7 @@ export default function DashboardPage() {
           <button
             type="button"
             className="dashboard-action-card card"
-            onClick={() => setQrModalOpen(true)}
+            onClick={() => window.dispatchEvent(new CustomEvent("open-patient-otp-modal"))}
             style={actionCardButtonStyle}
           >
             <div className="dashboard-action-icon">

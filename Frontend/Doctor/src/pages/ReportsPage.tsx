@@ -1,117 +1,105 @@
-import { FileText } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getPatientRecords } from '../services/recordService';
+import { FileText } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getPatientRecords } from "../services/recordService";
 
 type RecordItem = {
   id?: string;
   file_name?: string;
   file_url?: string;
   record_type?: string;
-  ocr_extracted_text?: string;
   date_issued?: string;
   created_at?: string;
 };
 
-const toArray = (payload: any) => {
+const toArray = (payload: any): RecordItem[] => {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.data)) return payload.data;
   return [];
 };
 
 const formatDate = (value?: string) => {
-  if (!value) return 'No date';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString();
+  if (!value) return "No date";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString();
 };
 
 export default function ReportsPage() {
-  const patientId = localStorage.getItem('selectedPatientId') || '';
-  const patientName = localStorage.getItem('selectedPatientName') || 'Selected Patient';
+  const patientId = localStorage.getItem("selectedPatientId") || "";
+  const patientName = localStorage.getItem("selectedPatientName") || "Shared Patient";
+  const activeShareId = localStorage.getItem("activeShareId") || "";
 
   const [reports, setReports] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const load = async () => {
-      if (!patientId) {
-        setReports([]);
+    const loadReports = async () => {
+      if (!patientId || !activeShareId) {
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        setError('');
-        const res = await getPatientRecords(patientId);
-        setReports(toArray(res));
+        setError("");
+
+        const data = await getPatientRecords(patientId);
+        setReports(toArray(data));
       } catch (err) {
         console.error(err);
-        setError('Could not load reports.');
+        setError("Could not load reports.");
       } finally {
         setLoading(false);
       }
     };
 
-    load();
-  }, [patientId]);
+    loadReports();
+  }, [patientId, activeShareId]);
 
-  if (!patientId) {
+  if (!patientId || !activeShareId) {
     return (
-      <div className="grid">
-        <section className="card" style={{ padding: 24 }}>
-          <h1 className="section-title">Reports</h1>
-          <p className="section-subtitle">No patient selected yet.</p>
+      <section className="card" style={{ padding: 24 }}>
+        <h1 className="section-title">Reports</h1>
+        <p className="section-subtitle">
+          No active patient session found. Reports are available only after the patient shares access.
+        </p>
 
-          <div className="panel" style={{ padding: 16, marginTop: 18 }}>
-            Please select a patient from Access Patient first.
-          </div>
-
-          <Link to="/access" className="btn btn-primary" style={{ width: 'fit-content', marginTop: 18 }}>
-            Go to Access Patient
-          </Link>
-        </section>
-      </div>
+        <Link to="/sessions" className="btn btn-primary" style={{ marginTop: 18 }}>
+          Go to Sessions
+        </Link>
+      </section>
     );
   }
 
   return (
     <div className="grid">
       <section className="card" style={{ padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-          <div>
-            <h1 className="section-title">Reports</h1>
-            <p className="section-subtitle">{patientName}</p>
-          </div>
-
-          <div className="badge primary">
-            {loading ? 'Loading...' : `${reports.length} Report${reports.length === 1 ? '' : 's'}`}
-          </div>
-        </div>
+        <h1 className="section-title">Reports</h1>
+        <p className="section-subtitle">
+          {patientName} · Read-only patient documents
+        </p>
 
         {loading && (
-          <div className="grid" style={{ marginTop: 20 }}>
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="panel" style={{ padding: 16, minHeight: 90 }} />
-            ))}
+          <div className="muted" style={{ marginTop: 20 }}>
+            Loading reports...
           </div>
         )}
 
-        {!loading && error && (
-          <div className="panel" style={{ padding: 16, marginTop: 20, color: 'tomato' }}>
+        {error && (
+          <div className="panel" style={{ padding: 14, marginTop: 18, color: "tomato" }}>
             {error}
           </div>
         )}
 
-        {!loading && !error && reports.length === 0 && (
-          <div className="panel" style={{ padding: 16, marginTop: 20 }}>
-            No reports were found for this patient.
+        {!loading && reports.length === 0 && (
+          <div className="panel" style={{ padding: 16, marginTop: 18 }}>
+            No reports found for this patient.
           </div>
         )}
 
-        {!loading && !error && reports.length > 0 && (
+        {!loading && reports.length > 0 && (
           <div className="grid" style={{ marginTop: 20 }}>
             {reports.map((report) => (
               <Link
@@ -120,39 +108,39 @@ export default function ReportsPage() {
                 className="panel"
                 style={{
                   padding: 18,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   gap: 14,
                 }}
               >
-                <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                   <div
                     style={{
                       width: 52,
                       height: 52,
                       borderRadius: 18,
-                      background: 'var(--primary-soft)',
-                      color: 'var(--primary)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      flexShrink: 0,
+                      background: "var(--primary-soft)",
+                      color: "var(--primary)",
+                      display: "grid",
+                      placeItems: "center",
                     }}
                   >
                     <FileText size={20} />
                   </div>
 
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: 18 }}>
-                      {report.file_name || 'Medical Report'}
+                    <div style={{ fontWeight: 900 }}>
+                      {report.file_name || "Medical Report"}
                     </div>
-                    <div className="muted" style={{ marginTop: 4 }}>
-                      {(report.record_type || 'other').replaceAll('_', ' ')} · {formatDate(report.date_issued || report.created_at)}
+                    <div className="muted">
+                      {report.record_type || "other"} ·{" "}
+                      {formatDate(report.date_issued || report.created_at)}
                     </div>
                   </div>
                 </div>
 
-                <div className="badge primary">Open</div>
+                <span className="badge primary">Open</span>
               </Link>
             ))}
           </div>
