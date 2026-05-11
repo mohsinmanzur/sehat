@@ -20,6 +20,8 @@ export class ShareService {
     ) { }
 
     async shareMeasurement(patientId: string, shareDto: ShareMeasurementDto): Promise<AccessGrantType | null> {
+        if (!patientId) throw new Error('Patient ID is required!');
+
         let doctor: Doctor | undefined;
         if (shareDto.doctorEmail) {
             doctor = await this.doctorService.getDoctorByEmail(shareDto.doctorEmail) || undefined;
@@ -42,6 +44,8 @@ export class ShareService {
     }
 
     async getPatientShares(patientId: string): Promise<AccessGrantType[]> {
+        if (!patientId) throw new Error('Patient ID is required!');
+
         return await this.accessGrantRepo.find({
             where: { patient_id: patientId, is_revoked: false },
             relations: ['doctor', 'patient']
@@ -49,6 +53,9 @@ export class ShareService {
     }
 
     async getSharedById(shareId: string): Promise<AccessGrantType> {
+
+        if (!shareId) throw new Error('Share ID is required!');
+
         const grant = await this.accessGrantRepo.findOne({
             where: { id: shareId, is_revoked: false },
             relations: ['doctor', 'patient']
@@ -64,6 +71,8 @@ export class ShareService {
     }
 
     async getSharedByCode(accessCode: string): Promise<AccessGrantType> {
+        if (!accessCode) throw new Error('Access code is required!');
+
         const grant = await this.accessGrantRepo.findOne({
             where: { access_token: accessCode, is_revoked: false },
             relations: ['doctor', 'patient']
@@ -79,6 +88,8 @@ export class ShareService {
     }
 
     async getSharedMeasurements(shareId: string): Promise<HealthMeasurementType[]> {
+        if (!shareId) throw new Error('Share ID is required!');
+
         const grant = await this.accessGrantRepo.findOne({
             where: { id: shareId, is_revoked: false },
             relations: ['doctor', 'patient']
@@ -93,6 +104,8 @@ export class ShareService {
     }
 
     async revokeShare(patientId: string, shareId: string): Promise<AccessGrantType> {
+        if (!patientId || !shareId) throw new Error('Patient ID and Share ID are required!');
+
         const share = await this.accessGrantRepo.findOne({
             where: { id: shareId, patient_id: patientId }
         });
@@ -106,6 +119,8 @@ export class ShareService {
     }
 
     async hasAccess(doctorId: string, patientId: string, measurementId?: string): Promise<boolean> {
+        if (!doctorId || !patientId) throw new Error('Doctor ID and Patient ID are required!');
+
         const query = this.accessGrantRepo.createQueryBuilder('grant')
             .where('grant.doctor_id = :doctorId', { doctorId })
             .andWhere('grant.patient_id = :patientId', { patientId })
