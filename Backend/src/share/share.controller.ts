@@ -35,6 +35,11 @@ export class ShareController {
         return await this.shareService.getSharedById(shareId);
     }
 
+    @Get('shared-by-code')
+    async getSharedByCode(@Query('access_code') accessCode: string): Promise<AccessGrantType> {
+        return await this.shareService.getSharedByCode(accessCode);
+    }
+
     @Post('revoke')
     async revokeShare(
         @Query('patient_id') patientId: string,
