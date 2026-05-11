@@ -1,18 +1,16 @@
 import {
+  Activity,
+  Camera,
   ClipboardPlus,
+  FileText,
   QrCode,
   Users,
-  FileText,
-  Activity,
   X,
-  Camera,
-  ShieldAlert,
-} from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getPatients, getPatientById, getPatientByEmail } from '../services/patientService';
-import { getPatientRecords } from '../services/recordService';
-import { getHealthMeasurements } from '../services/measurementService';
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getShareMeasurements } from "../services/shareService";
+import { getPatientRecords } from "../services/recordService";
 
 declare global {
   interface Window {
@@ -20,187 +18,106 @@ declare global {
   }
 }
 
-type PatientLike = {
-  id?: string;
-  _id?: string;
-  name?: string;
-  fullName?: string;
-  email?: string;
-};
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(2, 6, 23, 0.72)',
-  display: 'grid',
-  placeItems: 'center',
-  zIndex: 200,
-  padding: 16,
-};
-
-const modalStyle: React.CSSProperties = {
-  width: 'min(100%, 560px)',
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: 28,
-  boxShadow: 'var(--shadow-lg)',
-  padding: 24,
-  backdropFilter: 'blur(14px)',
+const toArray = (payload: any) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
 };
 
 const actionCardButtonStyle: React.CSSProperties = {
-  textAlign: 'left',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'var(--text)',
-  background: 'transparent',
+  textAlign: "left",
+  border: "none",
+  cursor: "pointer",
+  color: "var(--text)",
+  background: "transparent",
 };
 
 const actionCardHeadingStyle: React.CSSProperties = {
   margin: 0,
-  color: 'var(--text)',
-  fontWeight: 800,
-  fontSize: '1.15rem',
+  color: "var(--text)",
+  fontWeight: 900,
+  fontSize: "1.15rem",
 };
 
 const actionCardParagraphStyle: React.CSSProperties = {
   margin: 0,
-  color: 'var(--text-light)',
-  fontSize: '1rem',
+  color: "var(--text-light)",
+  fontSize: "1rem",
   lineHeight: 1.6,
-  maxWidth: '28ch',
+  maxWidth: "30ch",
 };
 
-const toArray = (payload: any) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.patients)) return payload.patients;
-  if (Array.isArray(payload?.records)) return payload.records;
-  if (Array.isArray(payload?.measurements)) return payload.measurements;
-  return [];
-};
-
-const getPatientDisplayName = (patient: PatientLike | null | undefined) => {
-  return patient?.name || patient?.fullName || 'Selected Patient';
-};
-
-const tryExtractPatientPayload = (rawText: string) => {
+const tryExtractQrValue = (rawText: string) => {
   const raw = rawText.trim();
-  if (!raw) return null;
+  if (!raw) return "";
 
   try {
     const parsed = JSON.parse(raw);
-
-    return {
-      patientId:
-        parsed.patient_id ||
-        parsed.patientId ||
-        parsed.id ||
-        '',
-      patientName:
-        parsed.patient_name ||
-        parsed.patientName ||
-        parsed.name ||
-        '',
-      patientEmail: parsed.email || '',
-    };
+    return parsed.share_id || parsed.shareId || parsed.otp || parsed.code || parsed.id || raw;
   } catch {
-    // not json
+    return raw;
   }
-
-  const patientIdMatch = raw.match(/patient[_-\s]?id[:=]\s*([a-zA-Z0-9-]+)/i);
-  const emailMatch = raw.match(/email[:=]\s*([^\s,;]+)/i);
-
-  if (patientIdMatch || emailMatch) {
-    return {
-      patientId: patientIdMatch?.[1] || '',
-      patientName: '',
-      patientEmail: emailMatch?.[1] || '',
-    };
-  }
-
-  return {
-    patientId: raw,
-    patientName: '',
-    patientEmail: '',
-  };
 };
 
 export default function DashboardPage() {
   const navigate = useNavigate();
 
-  const [patientCount, setPatientCount] = useState(0);
-  const [reportCount, setReportCount] = useState(0);
-  const [measurementCount, setMeasurementCount] = useState(0);
+  const [patientsToday, setPatientsToday] = useState(0);
+  const [reportsShared, setReportsShared] = useState(0);
+  const [measurementsTracked, setMeasurementsTracked] = useState(0);
+  const [loadingInsights, setLoadingInsights] = useState(true);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
-
-  const [enteredOtp, setEnteredOtp] = useState('');
-  const [otpInfo, setOtpInfo] = useState('');
-  const [otpBusy, setOtpBusy] = useState(false);
-
-  const [qrMessage, setQrMessage] = useState('');
-  const [qrError, setQrError] = useState('');
+  const [qrMessage, setQrMessage] = useState("");
+  const [qrError, setQrError] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraSupported, setCameraSupported] = useState(true);
-  const [manualQrText, setManualQrText] = useState('');
+  const [manualQrText, setManualQrText] = useState("");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanIntervalRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    const loadInsights = async () => {
-      try {
-        setLoading(true);
-        setError('');
+  const loadTodayInsights = async () => {
+    const activeShareId = localStorage.getItem("activeShareId") || "";
+    const patientId = localStorage.getItem("selectedPatientId") || "";
 
-        const [patientsRes, reportsRes, measurementsRes] = await Promise.all([
-          getPatients(),
-          getPatientRecords(),
-          getHealthMeasurements(),
-        ]);
+    try {
+      setLoadingInsights(true);
 
-        const patients = toArray(patientsRes);
-        const reports = toArray(reportsRes);
-        const measurements = toArray(measurementsRes);
-
-        setPatientCount(patients.length);
-        setReportCount(reports.length);
-        setMeasurementCount(measurements.length);
-      } catch (err) {
-        console.error(err);
-        setError('Could not load dashboard insights.');
-      } finally {
-        setLoading(false);
+      if (!activeShareId || !patientId) {
+        setPatientsToday(0);
+        setReportsShared(0);
+        setMeasurementsTracked(0);
+        return;
       }
-    };
 
-    loadInsights();
-  }, []);
+      const [sharedRes, reportRes] = await Promise.allSettled([
+        getShareMeasurements(activeShareId),
+        getPatientRecords(patientId),
+      ]);
+
+      const shared = sharedRes.status === "fulfilled" ? toArray(sharedRes.value) : [];
+      const reports = reportRes.status === "fulfilled" ? toArray(reportRes.value) : [];
+
+      setPatientsToday(1);
+      setReportsShared(reports.length);
+      setMeasurementsTracked(shared.length);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
 
   useEffect(() => {
-    const openModalListener = () => {
-      setOtpModalOpen(true);
-    };
+    loadTodayInsights();
 
-    window.addEventListener('open-patient-otp-modal', openModalListener);
+    const handler = () => loadTodayInsights();
+    window.addEventListener("session-started", handler);
 
     return () => {
-      window.removeEventListener('open-patient-otp-modal', openModalListener);
+      window.removeEventListener("session-started", handler);
     };
   }, []);
-
-  const closeOtpModal = () => {
-    setOtpModalOpen(false);
-    setEnteredOtp('');
-    setOtpInfo('');
-    setOtpBusy(false);
-  };
 
   const stopCamera = () => {
     if (scanIntervalRef.current) {
@@ -219,58 +136,73 @@ export default function DashboardPage() {
   const closeQrModal = () => {
     stopCamera();
     setQrModalOpen(false);
-    setQrMessage('');
-    setQrError('');
-    setManualQrText('');
+    setQrMessage("");
+    setQrError("");
+    setManualQrText("");
   };
 
-  const handleOtpSubmit = async () => {
+  const startSessionFromQrValue = async (rawValue: string) => {
+    const shareId = tryExtractQrValue(rawValue);
+
+    if (!shareId) {
+      setQrError("QR code is empty or invalid.");
+      return;
+    }
+
     try {
-      setOtpBusy(true);
-      setOtpInfo('');
-      setQrError('');
+      setQrError("");
+      setQrMessage("QR detected. Starting session...");
 
-      const cleanOtp = enteredOtp.trim();
+      const data = await getShareMeasurements(shareId);
+      const shared = toArray(data);
 
-      if (!cleanOtp) {
-        setOtpInfo('Please enter the patient OTP first.');
+      if (shared.length === 0) {
+        setQrError("No shared data found for this QR.");
         return;
       }
 
-      localStorage.setItem('pendingPatientOtp', cleanOtp);
+      const patientId = shared[0]?.patient_id || shared[0]?.patient?.id || "";
+      const patientName = shared[0]?.patient?.name || "Shared Patient";
 
-      setOtpInfo(
-        'OTP captured in the popup. Backend validation for patient OTP access is not available yet, so this step is currently UI-ready only.'
-      );
-    } finally {
-      setOtpBusy(false);
+      if (!patientId) {
+        setQrError("Shared data found, but patient ID is missing.");
+        return;
+      }
+
+      localStorage.setItem("activeShareId", shareId);
+      localStorage.setItem("selectedPatientId", patientId);
+      localStorage.setItem("selectedPatientName", patientName);
+
+      window.dispatchEvent(new CustomEvent("session-started"));
+
+      closeQrModal();
+      navigate("/overview");
+    } catch (err) {
+      console.error(err);
+      setQrError("Could not start session from this QR.");
     }
   };
 
   const openQrCamera = async () => {
-    setQrError('');
-    setQrMessage('');
+    setQrError("");
+    setQrMessage("");
     setCameraSupported(true);
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraSupported(false);
-      setQrError('Camera access is not supported on this browser/device.');
+      setQrError("Camera access is not supported on this browser/device.");
       return;
     }
 
     if (!window.BarcodeDetector) {
       setCameraSupported(false);
-      setQrError(
-        'QR scanning is not supported in this browser. Use a supported mobile browser or paste the QR content manually below.'
-      );
+      setQrError("QR scanning is not supported in this browser. Use manual QR entry below.");
       return;
     }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-        },
+        video: { facingMode: { ideal: "environment" } },
         audio: false,
       });
 
@@ -282,90 +214,27 @@ export default function DashboardPage() {
       }
 
       setCameraReady(true);
-      setQrMessage('Point the camera at the patient QR code.');
+      setQrMessage("Point the camera at the patient QR code.");
 
-      const detector = new window.BarcodeDetector({
-        formats: ['qr_code'],
-      });
+      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
 
       scanIntervalRef.current = window.setInterval(async () => {
         try {
           if (!videoRef.current) return;
+
           const barcodes = await detector.detect(videoRef.current);
+          const rawValue = barcodes?.[0]?.rawValue || "";
 
-          if (!barcodes || !barcodes.length) return;
-
-          const rawValue = barcodes[0]?.rawValue || '';
-          if (!rawValue) return;
-
-          await handleQrPayload(rawValue);
-        } catch (scanErr) {
-          console.error('QR scan error:', scanErr);
+          if (rawValue) {
+            await startSessionFromQrValue(rawValue);
+          }
+        } catch (err) {
+          console.error(err);
         }
       }, 900);
     } catch (err) {
       console.error(err);
-      setQrError('Could not open camera. Please allow camera permission and try again.');
-    }
-  };
-
-  const handleQrPayload = async (rawValue: string) => {
-    try {
-      setQrError('');
-      setQrMessage('QR code detected. Opening patient...');
-
-      const extracted = tryExtractPatientPayload(rawValue);
-
-      if (!extracted) {
-        setQrError('Could not understand the QR content.');
-        return;
-      }
-
-      let patient: PatientLike | null = null;
-
-      if (extracted.patientId) {
-        try {
-          const result = await getPatientById(extracted.patientId);
-          patient = Array.isArray(result) ? result[0] : result;
-        } catch (err) {
-          console.error('Patient by id lookup failed:', err);
-        }
-      }
-
-      if (!patient && extracted.patientEmail) {
-        try {
-          const result = await getPatientByEmail(extracted.patientEmail);
-          patient = Array.isArray(result) ? result[0] : result;
-        } catch (err) {
-          console.error('Patient by email lookup failed:', err);
-        }
-      }
-
-      if (!patient && extracted.patientId) {
-        patient = {
-          id: extracted.patientId,
-          name: extracted.patientName || 'Selected Patient',
-          email: extracted.patientEmail || '',
-        };
-      }
-
-      if (!patient) {
-        setQrError('No matching patient was found from this QR code.');
-        return;
-      }
-
-      localStorage.setItem('selectedPatientId', patient.id || patient._id || extracted.patientId || '');
-      localStorage.setItem(
-        'selectedPatientName',
-        getPatientDisplayName(patient) || extracted.patientName || 'Selected Patient'
-      );
-
-      stopCamera();
-      setQrModalOpen(false);
-      navigate('/overview');
-    } catch (err) {
-      console.error(err);
-      setQrError('QR was detected, but opening the patient failed.');
+      setQrError("Could not open camera. Allow camera permission and try again.");
     }
   };
 
@@ -377,16 +246,12 @@ export default function DashboardPage() {
 
     openQrCamera();
 
-    return () => {
-      stopCamera();
-    };
+    return () => stopCamera();
   }, [qrModalOpen]);
 
   const qrSupportText = useMemo(() => {
-    if (!cameraSupported) {
-      return 'Use manual QR content entry below if camera scanning is unavailable.';
-    }
-    return cameraReady ? 'Camera is active.' : 'Preparing camera...';
+    if (!cameraSupported) return "Camera scanning unavailable. Use manual QR entry.";
+    return cameraReady ? "Camera is active." : "Preparing camera...";
   }, [cameraSupported, cameraReady]);
 
   return (
@@ -396,30 +261,34 @@ export default function DashboardPage() {
           <button
             type="button"
             className="dashboard-action-card card"
-            onClick={() => setOtpModalOpen(true)}
+            onClick={() => window.dispatchEvent(new CustomEvent("open-patient-otp-modal"))}
             style={actionCardButtonStyle}
           >
             <div className="dashboard-action-icon">
               <ClipboardPlus size={24} />
             </div>
+
             <h2 style={actionCardHeadingStyle}>Enter Patient OTP</h2>
+
             <p style={actionCardParagraphStyle}>
-              Start a secure temporary access session using the patient OTP.
+              Start a read-only patient session using the OTP shared by the patient.
             </p>
           </button>
 
           <button
             type="button"
             className="dashboard-action-card card"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-patient-otp-modal"))}
+            onClick={() => setQrModalOpen(true)}
             style={actionCardButtonStyle}
           >
             <div className="dashboard-action-icon">
               <QrCode size={24} />
             </div>
+
             <h2 style={actionCardHeadingStyle}>Scan QR</h2>
+
             <p style={actionCardParagraphStyle}>
-              Use the patient QR for quick access without extra steps.
+              Open your camera on mobile and scan the patient QR for quick access.
             </p>
           </button>
         </section>
@@ -427,213 +296,93 @@ export default function DashboardPage() {
         <section className="card dashboard-insights-card">
           <div className="dashboard-section-head">
             <div>
-              <h2 className="section-title">Patient Insights</h2>
-              <p className="section-subtitle">Quick context for today.</p>
+              <h2 className="section-title">Today&apos;s Insights</h2>
+              <p className="section-subtitle">
+                Based on the active patient session for today.
+              </p>
             </div>
           </div>
 
-          {loading && (
-            <div className="muted" style={{ marginTop: 10 }}>
-              Loading patient insights...
-            </div>
-          )}
-
-          {error && (
-            <div style={{ color: 'tomato', marginTop: 10 }}>
-              {error}
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div className="dashboard-insights-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-              <div className="dashboard-stat-panel dashboard-stat-panel-primary">
-                <div className="dashboard-stat-icon">
-                  <Users size={18} />
-                </div>
-                <div className="dashboard-stat-label">Patients in system</div>
-                <div className="dashboard-stat-value">{patientCount}</div>
+          <div className="dashboard-insights-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+            <div className="dashboard-stat-panel dashboard-stat-panel-primary">
+              <div className="dashboard-stat-icon">
+                <Users size={18} />
               </div>
-
-              <div className="dashboard-stat-panel">
-                <div className="dashboard-stat-icon">
-                  <FileText size={18} />
-                </div>
-                <div className="dashboard-stat-label">Reports available</div>
-                <div className="dashboard-stat-value">{reportCount}</div>
-              </div>
-
-              <div className="dashboard-stat-panel">
-                <div className="dashboard-stat-icon">
-                  <Activity size={18} />
-                </div>
-                <div className="dashboard-stat-label">Measurements tracked</div>
-                <div className="dashboard-stat-value">{measurementCount}</div>
-              </div>
+              <div className="dashboard-stat-label">Patients encountered today</div>
+              <div className="dashboard-stat-value">{loadingInsights ? "..." : patientsToday}</div>
             </div>
-          )}
+
+            <div className="dashboard-stat-panel">
+              <div className="dashboard-stat-icon">
+                <FileText size={18} />
+              </div>
+              <div className="dashboard-stat-label">Reports shared</div>
+              <div className="dashboard-stat-value">{loadingInsights ? "..." : reportsShared}</div>
+            </div>
+
+            <div className="dashboard-stat-panel">
+              <div className="dashboard-stat-icon">
+                <Activity size={18} />
+              </div>
+              <div className="dashboard-stat-label">Measurements tracked</div>
+              <div className="dashboard-stat-value">{loadingInsights ? "..." : measurementsTracked}</div>
+            </div>
+          </div>
         </section>
       </div>
 
-      {otpModalOpen && (
-        <div style={overlayStyle} onClick={closeOtpModal}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: 12,
-                marginBottom: 18,
-              }}
-            >
-              <div>
-                <h2 className="section-title" style={{ fontSize: 38 }}>
-                  Enter Patient OTP
-                </h2>
-                <p className="section-subtitle">
-                  Ask the patient for the access OTP and enter it here.
-                </p>
-              </div>
-
-              <button
-                className="btn btn-secondary"
-                onClick={closeOtpModal}
-                style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="panel" style={{ padding: 16, marginBottom: 16 }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <ShieldAlert size={18} color="var(--primary)" />
-                <div style={{ fontWeight: 700 }}>Temporary secure access</div>
-              </div>
-
-              <div className="muted" style={{ marginTop: 8, lineHeight: 1.65 }}>
-                This popup is now ready for OTP input. Real OTP verification still needs a backend
-                endpoint for doctor-patient access session validation.
-              </div>
-            </div>
-
-            <label
-              style={{
-                display: 'block',
-                fontSize: 14,
-                fontWeight: 700,
-                marginBottom: 8,
-              }}
-            >
-              Patient OTP
-            </label>
-
-            <input
-              className="input"
-              placeholder="Enter OTP shared by the patient"
-              value={enteredOtp}
-              onChange={(e) => setEnteredOtp(e.target.value)}
-            />
-
-            {otpInfo && (
-              <div
-                className="panel"
-                style={{
-                  padding: 14,
-                  marginTop: 16,
-                  color: otpInfo.toLowerCase().includes('not available')
-                    ? '#fbbf24'
-                    : 'var(--text)',
-                }}
-              >
-                {otpInfo}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={handleOtpSubmit} disabled={otpBusy}>
-                {otpBusy ? 'Submitting...' : 'Submit OTP'}
-              </button>
-
-              <button className="btn btn-secondary" onClick={closeOtpModal}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {qrModalOpen && (
-        <div style={overlayStyle} onClick={closeQrModal}>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(2, 6, 23, 0.72)",
+            display: "grid",
+            placeItems: "center",
+            zIndex: 300,
+            padding: 16,
+          }}
+          onClick={closeQrModal}
+        >
           <div
-            style={{
-              ...modalStyle,
-              width: 'min(100%, 720px)',
-            }}
+            className="card"
+            style={{ width: "min(100%, 720px)", padding: 24, borderRadius: 28 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: 12,
-                marginBottom: 18,
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 18 }}>
               <div>
-                <h2 className="section-title" style={{ fontSize: 38 }}>
+                <h2 className="section-title" style={{ fontSize: 34 }}>
                   Scan Patient QR
                 </h2>
                 <p className="section-subtitle">
-                  Use your phone camera to scan the patient QR for quick access.
+                  Scan the patient QR to start a read-only shared session.
                 </p>
               </div>
 
-              <button
-                className="btn btn-secondary"
-                onClick={closeQrModal}
-                style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}
-              >
+              <button className="btn btn-secondary" onClick={closeQrModal} style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}>
                 <X size={18} />
               </button>
             </div>
 
-            <div
-              className="panel"
-              style={{
-                padding: 16,
-                marginBottom: 16,
-                display: 'flex',
-                gap: 10,
-                alignItems: 'center',
-              }}
-            >
+            <div className="panel" style={{ padding: 16, marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
               <Camera size={18} color="var(--primary)" />
               <div className="muted">{qrSupportText}</div>
             </div>
 
-            <div
-              className="panel"
-              style={{
-                padding: 12,
-                borderRadius: 24,
-                overflow: 'hidden',
-                background: '#000',
-              }}
-            >
+            <div className="panel" style={{ padding: 12, borderRadius: 24, overflow: "hidden", background: "#000" }}>
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
                 style={{
-                  width: '100%',
+                  width: "100%",
                   minHeight: 280,
                   maxHeight: 460,
-                  objectFit: 'cover',
+                  objectFit: "cover",
                   borderRadius: 18,
-                  display: 'block',
-                  background: '#000',
+                  display: "block",
+                  background: "#000",
                 }}
               />
             </div>
@@ -645,37 +394,27 @@ export default function DashboardPage() {
             )}
 
             {qrError && (
-              <div className="panel" style={{ padding: 14, marginTop: 16, color: 'tomato' }}>
+              <div className="panel" style={{ padding: 14, marginTop: 16, color: "tomato" }}>
                 {qrError}
               </div>
             )}
 
             <div style={{ marginTop: 20 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  marginBottom: 8,
-                }}
-              >
-                Manual QR content fallback
+              <label style={{ display: "block", fontSize: 14, fontWeight: 800, marginBottom: 8 }}>
+                Manual QR / OTP fallback
               </label>
 
               <textarea
                 className="input"
-                placeholder='Paste QR content here if camera scan is unavailable. Example: {"patient_id":"abc-123","patient_name":"Mohsin Manzoor"}'
+                placeholder="Paste QR content or patient OTP here"
                 value={manualQrText}
                 onChange={(e) => setManualQrText(e.target.value)}
-                style={{ minHeight: 110, resize: 'vertical' }}
+                style={{ minHeight: 110, resize: "vertical" }}
               />
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleQrPayload(manualQrText)}
-                >
-                  Open Patient From QR
+              <div style={{ display: "flex", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
+                <button className="btn btn-primary" onClick={() => startSessionFromQrValue(manualQrText)}>
+                  Start Session
                 </button>
 
                 <button className="btn btn-secondary" onClick={closeQrModal}>

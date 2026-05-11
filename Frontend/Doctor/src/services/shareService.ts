@@ -21,9 +21,21 @@ export type SharedMeasurement = {
   };
 };
 
+export const getSessionByAccessToken = async (accessToken: string) => {
+  const res = await api.get("/share/session", {
+    params: {
+      access_token: accessToken,
+    },
+  });
+
+  return res.data;
+};
+
 export const getShareMeasurements = async (shareId: string) => {
-  const res = await api.get("/share/shares", {
-    params: { share_id: shareId },
+  const res = await api.get("/share/shared-measurements", {
+    params: {
+      share_id: shareId,
+    },
   });
 
   return res.data;

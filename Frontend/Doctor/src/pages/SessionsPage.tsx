@@ -1,13 +1,8 @@
-import { ShieldCheck, TimerReset, XCircle } from "lucide-react";
+import { FileText, ShieldCheck, TimerReset, XCircle } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getShareMeasurements, revokeShare, SharedMeasurement } from "../services/shareService";
-
-const toArray = (payload: any): SharedMeasurement[] => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-};
+import { revokeShare } from "../services/shareService";
+import { clearPatientSession, getActiveSession, startPatientSession } from "../utils/session";
 
 const formatDate = (value?: string) => {
   if (!value) return "No date";
@@ -18,94 +13,87 @@ const formatDate = (value?: string) => {
 
 export default function SessionsPage() {
   const navigate = useNavigate();
+  const existing = getActiveSession();
 
   const [patientOtp, setPatientOtp] = useState("");
-  const [measurements, setMeasurements] = useState<SharedMeasurement[]>([]);
-  const [activeShareId, setActiveShareId] = useState(localStorage.getItem("activeShareId") || "");
+  const [measurements, setMeasurements] = useState<any[]>(existing.measurements || []);
+  const [reports, setReports] = useState<any[]>(existing.reports || []);
+  const [activeShareId, setActiveShareId] = useState(existing.shareId || "");
+  const [patientName, setPatientName] = useState(existing.patientName || "Shared Patient");
   const [loading, setLoading] = useState(false);
   const [revoking, setRevoking] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(activeShareId ? "Active patient session loaded." : "");
   const [error, setError] = useState("");
 
   const startSession = async () => {
-    const cleanOtp = patientOtp.trim();
-
-    if (!cleanOtp) {
-      setError("Please enter the patient OTP first.");
-      return;
-    }
-
     try {
       setLoading(true);
       setError("");
       setMessage("");
 
-      const data = await getShareMeasurements(cleanOtp);
-      const list = toArray(data);
+      const session = await startPatientSession(patientOtp);
 
-      if (list.length === 0) {
-        setMeasurements([]);
-        setError("No shared data found for this OTP.");
-        return;
-      }
+      setActiveShareId(session.shareId);
+      setPatientName(session.patientName);
+      setMeasurements(session.measurements);
+      setReports(session.reports);
 
-      const patientId = list[0]?.patient_id || list[0]?.patient?.id || "";
-      const patientName = list[0]?.patient?.name || "Shared Patient";
-
-      if (!patientId) {
-        setError("Shared data was found, but patient ID is missing.");
-        return;
-      }
-
-      localStorage.setItem("activeShareId", cleanOtp);
-      localStorage.setItem("selectedPatientId", patientId);
-      localStorage.setItem("selectedPatientName", patientName);
-
-      setActiveShareId(cleanOtp);
-      setMeasurements(list);
-      setMessage("Session started successfully. You can now view shared results and reports.");
-    } catch (err) {
+      setMessage(
+        `Session started for ${session.patientName}. ${session.measurements.length} shared measurement(s) and ${session.reports.length} report(s) found.`
+      );
+    } catch (err: any) {
       console.error(err);
+      setActiveShareId("");
+      setPatientName("Shared Patient");
       setMeasurements([]);
-      setError("Invalid OTP or session could not be started.");
+      setReports([]);
+      setError(err.message || "Could not start session.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleRevoke = async () => {
-    const patientId =
-      measurements[0]?.patient_id ||
-      measurements[0]?.patient?.id ||
-      localStorage.getItem("selectedPatientId") ||
-      "";
+    const confirmed = window.confirm(
+      "Are you sure you want to revoke this patient session? You will lose access to this patient's shared data."
+    );
 
-    if (!patientId || !activeShareId) {
-      setError("Patient ID or active session ID is missing.");
-      return;
-    }
+    if (!confirmed) return;
+
+    const patientId = localStorage.getItem("selectedPatientId") || "";
+    const shareId = localStorage.getItem("activeShareId") || activeShareId;
 
     try {
       setRevoking(true);
       setError("");
       setMessage("");
 
-      await revokeShare({
-        patientId,
-        shareId: activeShareId,
-      });
+      if (patientId && shareId) {
+        await revokeShare({
+          patientId,
+          shareId,
+        });
+      }
 
-      localStorage.removeItem("activeShareId");
-      localStorage.removeItem("selectedPatientId");
-      localStorage.removeItem("selectedPatientName");
+      clearPatientSession();
 
       setMeasurements([]);
+      setReports([]);
       setActiveShareId("");
       setPatientOtp("");
+      setPatientName("Shared Patient");
       setMessage("Session revoked successfully.");
     } catch (err) {
       console.error(err);
-      setError("Could not revoke this session.");
+
+      clearPatientSession();
+
+      setMeasurements([]);
+      setReports([]);
+      setActiveShareId("");
+      setPatientOtp("");
+      setPatientName("Shared Patient");
+      setMessage("Local session closed. Backend revoke failed, but doctor access was removed from this portal.");
     } finally {
       setRevoking(false);
     }
@@ -116,7 +104,7 @@ export default function SessionsPage() {
       <section className="card" style={{ padding: 24 }}>
         <h1 className="section-title">Active Sessions</h1>
         <p className="section-subtitle">
-          Enter the patient OTP to start a read-only shared session.
+          Enter the patient OTP generated from the mobile app to load shared measurements and reports.
         </p>
 
         <div className="panel" style={{ padding: 16, marginTop: 20 }}>
@@ -124,13 +112,7 @@ export default function SessionsPage() {
             Patient OTP
           </label>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto",
-              gap: 12,
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12 }}>
             <input
               className="input"
               placeholder="Enter patient OTP"
@@ -160,24 +142,23 @@ export default function SessionsPage() {
           </div>
         )}
 
-        {measurements.length > 0 && (
+        {activeShareId && (
           <div style={{ marginTop: 22 }}>
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 gap: 12,
-                alignItems: "center",
                 flexWrap: "wrap",
                 marginBottom: 14,
               }}
             >
               <div>
                 <h2 className="section-title" style={{ fontSize: 28 }}>
-                  Current Active Session
+                  Current Patient Session
                 </h2>
                 <p className="section-subtitle">
-                  {measurements[0]?.patient?.name || "Patient"} · {measurements.length} shared result(s)
+                  {patientName} · {measurements.length} shared measurement(s) · {reports.length} report(s)
                 </p>
               </div>
 
@@ -190,71 +171,82 @@ export default function SessionsPage() {
                   View Reports
                 </button>
 
-                <button className="btn btn-secondary" onClick={handleRevoke} disabled={revoking}>
+                <button
+                  onClick={handleRevoke}
+                  disabled={revoking}
+                  style={{
+                    minHeight: 52,
+                    border: "1px solid rgba(239, 68, 68, 0.7)",
+                    background: "#ef4444",
+                    color: "#ffffff",
+                    padding: "14px 18px",
+                    borderRadius: 18,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                    fontWeight: 800,
+                    cursor: revoking ? "not-allowed" : "pointer",
+                    opacity: revoking ? 0.7 : 1,
+                  }}
+                >
                   <XCircle size={16} />
                   {revoking ? "Revoking..." : "Revoke Access"}
                 </button>
               </div>
             </div>
 
-            <div className="grid">
-              {measurements.map((item) => (
-                <div
-                  key={item.id}
-                  className="panel"
-                  style={{
-                    padding: 18,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 16,
-                    alignItems: "center",
-                  }}
-                >
-                  <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 16,
-                        background: "var(--primary-soft)",
-                        color: "var(--primary)",
-                        display: "grid",
-                        placeItems: "center",
-                      }}
-                    >
-                      <ShieldCheck size={20} />
-                    </div>
+            <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="panel" style={{ padding: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <ShieldCheck size={18} color="var(--primary)" />
+                  <strong>Shared Measurements</strong>
+                </div>
 
-                    <div>
+                {measurements.length === 0 && <div className="muted">No measurements shared.</div>}
+
+                <div className="grid">
+                  {measurements.map((item) => (
+                    <div key={item.id} className="panel" style={{ padding: 14 }}>
                       <div style={{ fontWeight: 800 }}>
                         {item.measurement_unit?.unit_name || "Measurement"}
                       </div>
                       <div className="muted" style={{ marginTop: 4 }}>
                         {formatDate(item.created_at)}
                       </div>
+                      <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8 }}>
+                        {item.numeric_value ?? "-"} {item.measurement_unit?.symbol || ""}
+                      </div>
                     </div>
-                  </div>
-
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 26, fontWeight: 900 }}>
-                      {item.numeric_value ?? "-"}
-                    </div>
-                    <div className="muted">{item.measurement_unit?.symbol || ""}</div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              <div className="panel" style={{ padding: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <FileText size={18} color="var(--primary)" />
+                  <strong>Patient Reports Found</strong>
+                </div>
+
+                {reports.length === 0 && <div className="muted">No reports found for this patient.</div>}
+
+                <div className="grid">
+                  {reports.map((report) => (
+                    <div key={report.id} className="panel" style={{ padding: 14 }}>
+                      <div style={{ fontWeight: 800 }}>
+                        {report.file_name || "Medical Report"}
+                      </div>
+                      <div className="muted" style={{ marginTop: 4 }}>
+                        {report.record_type || "other"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
       </section>
-
-      <style>{`
-        @media (max-width: 700px) {
-          div[style*="1fr auto"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

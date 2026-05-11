@@ -11,30 +11,28 @@ import {
   TimerReset,
   UserRound,
   X,
-} from 'lucide-react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { useMemo, useState } from 'react';
-import Logo from './Logo';
-import { getShareMeasurements } from '../services/shareService';
+} from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { useEffect, useMemo, useState } from "react";
+import Logo from "./Logo";
+import { startPatientSession } from "../utils/session";
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/access', label: 'Access Patient', icon: ClipboardPlus },
-  { to: '/overview', label: 'Patient Overview', icon: UserRound },
-  { to: '/reports', label: 'Reports', icon: FileText },
-  { to: '/sessions', label: 'Sessions', icon: TimerReset },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/overview", label: "Patient Overview", icon: UserRound },
+  { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/sessions", label: "Sessions", icon: TimerReset },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 const pageMeta: Record<string, { eyebrow: string; title: string }> = {
-  '/dashboard': { eyebrow: 'Welcome back', title: 'Dashboard' },
-  '/access': { eyebrow: 'Welcome back', title: 'Access Patient' },
-  '/overview': { eyebrow: 'Welcome back', title: 'Patient Overview' },
-  '/reports': { eyebrow: 'Welcome back', title: 'Reports' },
-  '/sessions': { eyebrow: 'Welcome back', title: 'Sessions' },
-  '/settings': { eyebrow: 'Welcome back', title: 'Settings' },
+  "/dashboard": { eyebrow: "Welcome back", title: "Dashboard" },
+  "/overview": { eyebrow: "Welcome back", title: "Patient Overview" },
+  "/reports": { eyebrow: "Welcome back", title: "Reports" },
+  "/sessions": { eyebrow: "Welcome back", title: "Sessions" },
+  "/settings": { eyebrow: "Welcome back", title: "Settings" },
 };
 
 const toArray = (payload: any) => {
@@ -53,104 +51,82 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [showAlerts, setShowAlerts] = useState(false);
 
   const [otpModalOpen, setOtpModalOpen] = useState(false);
-  const [patientOtp, setPatientOtp] = useState('');
+  const [patientOtp, setPatientOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [otpMessage, setOtpMessage] = useState('');
+  const [otpError, setOtpError] = useState("");
+  const [otpMessage, setOtpMessage] = useState("");
 
   const currentMeta = useMemo(() => {
     return pageMeta[location.pathname] || {
-      eyebrow: 'Welcome back',
-      title: 'Dashboard',
+      eyebrow: "Welcome back",
+      title: "Dashboard",
     };
   }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const openOtpModal = () => {
     setOtpModalOpen(true);
-    setPatientOtp('');
-    setOtpError('');
-    setOtpMessage('');
+    setPatientOtp("");
+    setOtpError("");
+    setOtpMessage("");
   };
 
   const closeOtpModal = () => {
     setOtpModalOpen(false);
-    setPatientOtp('');
-    setOtpError('');
-    setOtpMessage('');
+    setPatientOtp("");
+    setOtpError("");
+    setOtpMessage("");
     setOtpLoading(false);
   };
 
   const startSessionFromOtp = async () => {
-    const cleanOtp = patientOtp.trim();
+  try {
+    setOtpLoading(true);
+    setOtpError("");
+    setOtpMessage("");
 
-    if (!cleanOtp) {
-      setOtpError('Please enter the patient OTP first.');
-      return;
-    }
+    const session = await startPatientSession(patientOtp);
 
-    try {
-      setOtpLoading(true);
-      setOtpError('');
-      setOtpMessage('');
+    setOtpMessage(
+      `Session started for ${session.patientName}. ${session.measurements.length} shared measurement(s), ${session.reports.length} report(s).`
+    );
 
-      const data = await getShareMeasurements(cleanOtp);
-      const sharedMeasurements = toArray(data);
+    setTimeout(() => {
+      closeOtpModal();
+      navigate("/overview");
+    }, 500);
+  } catch (err: any) {
+    console.error(err);
+    setOtpError(err.message || "Invalid OTP or session could not be started.");
+  } finally {
+    setOtpLoading(false);
+  }
+};
 
-      if (sharedMeasurements.length === 0) {
-        setOtpError('No shared data found for this OTP.');
-        return;
-      }
+  useEffect(() => {
+    const handler = () => openOtpModal();
+    window.addEventListener("open-patient-otp-modal", handler);
 
-      const firstItem = sharedMeasurements[0];
-
-      const patientId =
-        firstItem?.patient_id ||
-        firstItem?.patient?.id ||
-        '';
-
-      const patientName =
-        firstItem?.patient?.name ||
-        'Shared Patient';
-
-      if (!patientId) {
-        setOtpError('Shared data was found, but patient ID is missing.');
-        return;
-      }
-
-      localStorage.setItem('activeShareId', cleanOtp);
-      localStorage.setItem('selectedPatientId', patientId);
-      localStorage.setItem('selectedPatientName', patientName);
-
-      setOtpMessage('Session started successfully.');
-
-      setTimeout(() => {
-        closeOtpModal();
-        navigate('/overview');
-      }, 500);
-    } catch (err) {
-      console.error(err);
-      setOtpError('Invalid OTP or session could not be started.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
+    return () => {
+      window.removeEventListener("open-patient-otp-modal", handler);
+    };
+  }, []);
 
   const alerts = [
-    'Session for Emily Davis expires in 9 minutes.',
-    'New CBC report shared by Rajesh Kumar Sharma.',
-    'Two abnormal findings require review today.',
+    "Session access is read-only.",
+    "Reports are visible only during active patient sessions.",
+    "Use patient OTP to start a secure session.",
   ];
 
   return (
     <div className="app-bg mobile-bottom-space">
-      <div className="container" style={{ padding: '12px 0 24px' }}>
+      <div className="container" style={{ padding: "12px 0 24px" }}>
         <div className="shell-grid-premium">
-          <aside className={`card sidebar-premium ${open ? 'open' : ''}`}>
+          <aside className={`card sidebar-premium ${open ? "open" : ""}`}>
             <div className="sidebar-top">
               <Logo compact />
               <button className="btn btn-secondary sidebar-close" onClick={() => setOpen(false)}>
@@ -164,7 +140,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
               <div style={{ fontWeight: 800, fontSize: 18 }}>{doctorName}</div>
               <div className="muted" style={{ marginTop: 4 }}>
-                SehatScan doctor portal
+                Sehat doctor portal
               </div>
             </div>
 
@@ -173,7 +149,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <NavLink
                   key={to}
                   to={to}
-                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
                   onClick={() => setOpen(false)}
                 >
                   <Icon size={18} />
@@ -202,11 +178,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="shell-header-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary shell-top-cta"
-                  onClick={openOtpModal}
-                >
+                <button type="button" className="btn btn-primary shell-top-cta" onClick={openOtpModal}>
                   <ClipboardPlus size={18} />
                   Enter Patient OTP
                 </button>
@@ -216,10 +188,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 </button>
 
                 <div className="alerts-anchor">
-                  <button
-                    className="btn btn-secondary icon-btn"
-                    onClick={() => setShowAlerts((prev) => !prev)}
-                  >
+                  <button className="btn btn-secondary icon-btn" onClick={() => setShowAlerts((prev) => !prev)}>
                     <Bell size={18} />
                   </button>
 
@@ -250,11 +219,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {otpModalOpen && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             inset: 0,
-            background: 'rgba(2, 6, 23, 0.72)',
-            display: 'grid',
-            placeItems: 'center',
+            background: "rgba(2, 6, 23, 0.72)",
+            display: "grid",
+            placeItems: "center",
             zIndex: 300,
             padding: 16,
           }}
@@ -263,40 +232,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div
             className="card"
             style={{
-              width: 'min(100%, 540px)',
+              width: "min(100%, 540px)",
               padding: 24,
               borderRadius: 28,
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 12,
-                alignItems: 'flex-start',
-                marginBottom: 18,
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 18 }}>
               <div>
                 <h2 className="section-title" style={{ fontSize: 34 }}>
                   Enter Patient OTP
                 </h2>
                 <p className="section-subtitle">
-                  Enter the OTP/session code shared by the patient to start access.
+                  Enter the OTP shared by the patient to start a read-only session.
                 </p>
               </div>
 
-              <button
-                className="btn btn-secondary"
-                onClick={closeOtpModal}
-                style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}
-              >
+              <button className="btn btn-secondary" onClick={closeOtpModal} style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}>
                 <X size={18} />
               </button>
             </div>
 
-            <label style={{ fontWeight: 800, display: 'block', marginBottom: 8 }}>
+            <label style={{ fontWeight: 800, display: "block", marginBottom: 8 }}>
               Patient OTP
             </label>
 
@@ -306,13 +263,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               value={patientOtp}
               onChange={(e) => setPatientOtp(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') startSessionFromOtp();
+                if (e.key === "Enter") startSessionFromOtp();
               }}
               autoFocus
             />
 
             {otpError && (
-              <div className="panel" style={{ padding: 14, marginTop: 14, color: 'tomato' }}>
+              <div className="panel" style={{ padding: 14, marginTop: 14, color: "tomato" }}>
                 {otpError}
               </div>
             )}
@@ -323,9 +280,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
+            <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
               <button className="btn btn-primary" onClick={startSessionFromOtp} disabled={otpLoading}>
-                {otpLoading ? 'Starting...' : 'Start Session'}
+                {otpLoading ? "Starting..." : "Start Session"}
               </button>
 
               <button className="btn btn-secondary" onClick={closeOtpModal}>

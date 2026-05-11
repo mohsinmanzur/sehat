@@ -99,14 +99,16 @@ export default function OverviewPage() {
   if (!activeShareId || !patientId) {
     return (
       <section className="card" style={{ padding: 24 }}>
-        <h1 className="section-title">Patient Overview</h1>
-        <p className="section-subtitle">
-          No active patient session found. Start a session first.
-        </p>
+        <h1 className="section-title">No overview available</h1>
+        <p className="section-subtitle">No patient session started.</p>
 
-        <Link to="/sessions" className="btn btn-primary" style={{ marginTop: 18 }}>
-          Go to Sessions
-        </Link>
+        <button
+          className="btn btn-primary"
+          style={{ marginTop: 18 }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-patient-otp-modal"))}
+        >
+          Enter Patient OTP
+        </button>
       </section>
     );
   }
@@ -117,18 +119,13 @@ export default function OverviewPage() {
         <h1 className="section-title">{patientName}</h1>
         <p className="section-subtitle">Shared patient health overview</p>
 
-        <div
-          className="grid"
-          style={{ gridTemplateColumns: "repeat(3, 1fr)", marginTop: 20 }}
-        >
+        <div className="grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", marginTop: 20 }}>
           <div className="dashboard-stat-panel dashboard-stat-panel-primary">
             <div className="dashboard-stat-icon">
               <Activity size={18} />
             </div>
             <div className="dashboard-stat-label">Shared Measurements</div>
-            <div className="dashboard-stat-value">
-              {loading ? "..." : measurements.length}
-            </div>
+            <div className="dashboard-stat-value">{loading ? "..." : measurements.length}</div>
           </div>
 
           <div className="dashboard-stat-panel">
@@ -152,7 +149,7 @@ export default function OverviewPage() {
       <section className="card" style={{ padding: 24 }}>
         <h2 className="section-title">Shared Results</h2>
         <p className="section-subtitle">
-          These are the measurements shared by the patient.
+          These measurements are visible because the patient started a session.
         </p>
 
         {error && (
@@ -218,19 +215,11 @@ export default function OverviewPage() {
       </section>
 
       <section className="card" style={{ padding: 24 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 12,
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <div>
             <h2 className="section-title">Patient Reports</h2>
             <p className="section-subtitle">
-              Reports are shown only after an active shared session is loaded.
+              Reports are visible during the active patient session.
             </p>
           </div>
 
@@ -252,17 +241,13 @@ export default function OverviewPage() {
                 key={record.id}
                 to={`/reports/${record.id}`}
                 className="panel"
-                style={{
-                  padding: 16,
-                  display: "block",
-                }}
+                style={{ padding: 16, display: "block" }}
               >
                 <div style={{ fontWeight: 900 }}>
                   {record.file_name || "Medical Report"}
                 </div>
                 <div className="muted" style={{ marginTop: 4 }}>
-                  {record.record_type || "other"} ·{" "}
-                  {formatDate(record.date_issued || record.created_at)}
+                  {record.record_type || "other"} · {formatDate(record.date_issued || record.created_at)}
                 </div>
               </Link>
             ))}
