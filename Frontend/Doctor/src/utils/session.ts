@@ -203,3 +203,39 @@ export const getTodayInsights = () => {
     measurementsTracked: data.measurementsTracked || 0,
   };
 };
+
+export const validateActivePatientSession = async () => {
+  const accessCode =
+    localStorage.getItem("activeAccessCode") ||
+    localStorage.getItem("activeAccessToken") ||
+    "";
+
+  if (!accessCode) return true;
+
+  try {
+    const response = await getShareByAccessCode(accessCode);
+
+    const patient =
+      response?.patient ||
+      response?.data?.patient ||
+      response?.share?.patient ||
+      response?.data?.share?.patient;
+
+    const patientId =
+      patient?.id ||
+      response?.share?.patient_id ||
+      response?.data?.share?.patient_id ||
+      "";
+
+    if (!patientId) {
+      clearPatientSession();
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn("Session was revoked or expired. Clearing doctor session.", err);
+    clearPatientSession();
+    return false;
+  }
+};

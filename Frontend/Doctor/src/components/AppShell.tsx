@@ -6,6 +6,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  QrCode,
   Settings,
   Sun,
   TimerReset,
@@ -13,16 +14,17 @@ import {
   X,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+
+import Logo from "./Logo";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
-import { useEffect, useMemo, useState } from "react";
-import Logo from "./Logo";
-import { startPatientSession } from "../utils/session";
+import { startPatientSession, validateActivePatientSession } from "../utils/session";
 import {
+  DoctorNotification,
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
-  DoctorNotification,
 } from "../utils/notifications";
 
 const navItems = [
@@ -33,47 +35,78 @@ const navItems = [
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
-const pageMeta: Record<string, { eyebrow: string; title: string }> = {
-  "/dashboard": { eyebrow: "Welcome back", title: "Dashboard" },
-  "/overview": { eyebrow: "Welcome back", title: "Patient Overview" },
-  "/reports": { eyebrow: "Welcome back", title: "Reports" },
-  "/sessions": { eyebrow: "Welcome back", title: "Sessions" },
-  "/settings": { eyebrow: "Welcome back", title: "Settings" },
-};
-
-const toArray = (payload: any) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-};
-
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { darkMode, toggleTheme } = useTheme();
-  const { doctorName, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [open, setOpen] = useState(false);
+  const { darkMode, toggleTheme } = useTheme();
+  const { doctorName, doctorFullName, logout } = useAuth();
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
+
+  const [notifications, setNotifications] = useState<DoctorNotification[]>([]);
 
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [patientOtp, setPatientOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [otpMessage, setOtpMessage] = useState("");
-  const [notifications, setNotifications] = useState<DoctorNotification[]>([]);
 
-  const currentMeta = useMemo(() => {
-    return pageMeta[location.pathname] || {
-      eyebrow: "Welcome back",
-      title: "Dashboard",
-    };
+  const unreadCount = notifications.filter((item) => !item.read).length;
+
+  const pageTitle = useMemo(() => {
+    if (location.pathname.includes("overview")) return "Patient Overview";
+    if (location.pathname.includes("reports")) return "Reports";
+    if (location.pathname.includes("sessions")) return "Sessions";
+    if (location.pathname.includes("settings")) return "Settings";
+    return "Dashboard";
   }, [location.pathname]);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+  useEffect(() => {
+    const loadNotifications = () => {
+      setNotifications(getNotifications());
+    };
+
+    loadNotifications();
+
+    window.addEventListener("doctor-notifications-updated", loadNotifications);
+
+    return () => {
+      window.removeEventListener("doctor-notifications-updated", loadNotifications);
+    };
+  }, []);
+
+  useEffect(() => {
+    const openOtpHandler = () => {
+      openOtpModal();
+    };
+
+    window.addEventListener("open-patient-otp-modal", openOtpHandler);
+
+    return () => {
+      window.removeEventListener("open-patient-otp-modal", openOtpHandler);
+    };
+  }, []);
+
+  useEffect(() => {
+  const checkSession = async () => {
+    const stillValid = await validateActivePatientSession();
+
+    if (!stillValid) {
+      window.dispatchEvent(new CustomEvent("doctor-notifications-updated"));
+
+      if (
+        location.pathname.includes("overview") ||
+        location.pathname.includes("reports")
+      ) {
+        navigate("/dashboard");
+      }
+    }
   };
+
+  checkSession();
+}, []);
 
   const openOtpModal = () => {
     setOtpModalOpen(true);
@@ -90,69 +123,51 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     setOtpLoading(false);
   };
 
-  const startSessionFromOtp = async () => {
-  try {
-    setOtpLoading(true);
-    setOtpError("");
-    setOtpMessage("");
+  const handleStartSession = async () => {
+    try {
+      setOtpLoading(true);
+      setOtpError("");
+      setOtpMessage("");
 
-    const session = await startPatientSession(patientOtp);
+      const session = await startPatientSession(patientOtp);
 
-    setOtpMessage(
-      `Session started for ${session.patientName}. ${session.measurements.length} shared measurement(s), ${session.reports.length} report(s).`
-    );
+      setOtpMessage(
+        `Session started for ${session.patientName}. ${session.measurements.length} measurement(s), ${session.reports.length} report(s).`
+      );
 
-    setTimeout(() => {
-      closeOtpModal();
-      navigate("/overview");
-    }, 500);
-  } catch (err: any) {
-    console.error(err);
-    setOtpError(err.message || "Invalid OTP or session could not be started.");
-  } finally {
-    setOtpLoading(false);
-  }
-};
-
-  useEffect(() => {
-    const handler = () => openOtpModal();
-    window.addEventListener("open-patient-otp-modal", handler);
-
-    return () => {
-      window.removeEventListener("open-patient-otp-modal", handler);
-    };
-  }, []);
-
-  useEffect(() => {
-  const loadNotifications = () => {
-    setNotifications(getNotifications());
+      setTimeout(() => {
+        closeOtpModal();
+        navigate("/overview");
+      }, 600);
+    } catch (err: any) {
+      console.error(err);
+      setOtpError(err?.message || "Invalid OTP or session could not be started.");
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
-  loadNotifications();
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (!confirmed) return;
 
-  window.addEventListener("doctor-notifications-updated", loadNotifications);
-
-  return () => {
-    window.removeEventListener("doctor-notifications-updated", loadNotifications);
+    logout();
+    navigate("/login");
   };
-}, []);
-
-const unreadCount = notifications.filter((item) => !item.read).length;
-
-  const alerts = [
-    "Session access is read-only.",
-    "Reports are visible only during active patient sessions.",
-    "Use patient OTP to start a secure session.",
-  ];
 
   return (
     <div className="app-bg mobile-bottom-space">
       <div className="container" style={{ padding: "12px 0 24px" }}>
         <div className="shell-grid-premium">
-          <aside className={`card sidebar-premium ${open ? "open" : ""}`}>
+          <aside className={`card sidebar-premium ${sidebarOpen ? "open" : ""}`}>
             <div className="sidebar-top">
               <Logo compact />
-              <button className="btn btn-secondary sidebar-close" onClick={() => setOpen(false)}>
+
+              <button
+                type="button"
+                className="btn btn-secondary sidebar-close"
+                onClick={() => setSidebarOpen(false)}
+              >
                 <X size={16} />
               </button>
             </div>
@@ -161,9 +176,13 @@ const unreadCount = notifications.filter((item) => !item.read).length;
               <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
                 Signed in as
               </div>
-              <div style={{ fontWeight: 800, fontSize: 18 }}>{doctorName}</div>
+
+              <div style={{ fontWeight: 900, fontSize: 18 }}>
+                {doctorName || "Doctor"}
+              </div>
+
               <div className="muted" style={{ marginTop: 4 }}>
-                Sehat doctor portal
+                {doctorFullName || "Sehat doctor portal"}
               </div>
             </div>
 
@@ -173,7 +192,7 @@ const unreadCount = notifications.filter((item) => !item.read).length;
                   key={to}
                   to={to}
                   className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
-                  onClick={() => setOpen(false)}
+                  onClick={() => setSidebarOpen(false)}
                 >
                   <Icon size={18} />
                   <span>{label}</span>
@@ -181,7 +200,11 @@ const unreadCount = notifications.filter((item) => !item.read).length;
               ))}
             </nav>
 
-            <button className="btn btn-secondary sidebar-logout" onClick={handleLogout}>
+            <button
+              type="button"
+              className="btn btn-secondary sidebar-logout"
+              onClick={handleLogout}
+            >
               <LogOut size={16} />
               Logout
             </button>
@@ -190,44 +213,197 @@ const unreadCount = notifications.filter((item) => !item.read).length;
           <main className="shell-main">
             <header className="card shell-header-clean">
               <div className="shell-header-left">
-                <button className="btn btn-secondary mobile-menu-btn" onClick={() => setOpen(true)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary mobile-menu-btn"
+                  onClick={() => setSidebarOpen(true)}
+                >
                   <Menu size={18} />
                 </button>
 
                 <div>
-                  <div className="shell-eyebrow">{currentMeta.eyebrow}</div>
-                  <div className="shell-title-custom">Hello, {doctorName}</div>
+                  <div className="shell-eyebrow">Welcome back</div>
+                  <div className="shell-title-custom">
+                    {pageTitle === "Dashboard" ? `Hello, ${doctorName || "Doctor"}` : pageTitle}
+                  </div>
                 </div>
               </div>
 
               <div className="shell-header-actions">
-                <button type="button" className="btn btn-primary shell-top-cta" onClick={openOtpModal}>
+                <button
+                  type="button"
+                  className="btn btn-primary shell-top-cta"
+                  onClick={openOtpModal}
+                >
                   <ClipboardPlus size={18} />
                   Enter Patient OTP
                 </button>
 
-                <button className="btn btn-secondary icon-btn" onClick={toggleTheme}>
-                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                <button
+                  type="button"
+                  className="btn btn-secondary icon-btn"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-qr-modal"))}
+                  aria-label="Scan QR"
+                >
+                  <QrCode size={18} />
                 </button>
 
                 <div className="alerts-anchor">
-                  <button className="btn btn-secondary icon-btn" onClick={() => setShowAlerts((prev) => !prev)}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary icon-btn"
+                    onClick={() => setShowAlerts((prev) => !prev)}
+                    style={{ position: "relative" }}
+                    aria-label="Open notifications"
+                  >
                     <Bell size={18} />
+
+                    {unreadCount > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 7,
+                          right: 7,
+                          minWidth: 18,
+                          height: 18,
+                          padding: "0 5px",
+                          borderRadius: 999,
+                          background: "var(--danger)",
+                          color: "#ffffff",
+                          fontSize: 11,
+                          fontWeight: 900,
+                          display: "grid",
+                          placeItems: "center",
+                          lineHeight: 1,
+                          border: "2px solid var(--card)",
+                        }}
+                      >
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </button>
 
                   {showAlerts && (
                     <div className="alerts-dropdown card">
-                      <div className="alerts-head">Recent Alerts</div>
-                      <div className="alerts-list">
-                        {alerts.map((alert) => (
-                          <div key={alert} className="panel alerts-item">
-                            {alert}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: 12,
+                          marginBottom: 14,
+                        }}
+                      >
+                        <div>
+                          <div className="alerts-head">Notifications</div>
+
+                          <div className="muted" style={{ fontSize: 13 }}>
+                            {unreadCount > 0
+                              ? `${unreadCount} unread alert${unreadCount === 1 ? "" : "s"}`
+                              : "All caught up"}
                           </div>
-                        ))}
+                        </div>
+
+                        {notifications.length > 0 && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{
+                              minHeight: 36,
+                              padding: "0 12px",
+                              borderRadius: 12,
+                              fontSize: 13,
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAllNotificationsRead();
+                              setNotifications(getNotifications());
+                            }}
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="alerts-list">
+                        {notifications.length === 0 ? (
+                          <div className="panel alerts-item">
+                            <div style={{ fontWeight: 900, color: "var(--text)" }}>
+                              No notifications yet
+                            </div>
+
+                            <div className="muted" style={{ marginTop: 4 }}>
+                              Patient session updates will appear here.
+                            </div>
+                          </div>
+                        ) : (
+                          notifications.slice(0, 8).map((item) => (
+                            <button
+                              type="button"
+                              key={item.id}
+                              className="panel alerts-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markNotificationRead(item.id);
+                                setNotifications(getNotifications());
+                              }}
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                borderColor: item.read ? "var(--border)" : "var(--primary)",
+                                background: item.read ? "var(--surface-soft)" : "var(--card)",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  gap: 10,
+                                  alignItems: "flex-start",
+                                }}
+                              >
+                                <div style={{ fontWeight: 900, color: "var(--text)" }}>
+                                  {item.title}
+                                </div>
+
+                                {!item.read && (
+                                  <span
+                                    style={{
+                                      width: 9,
+                                      height: 9,
+                                      borderRadius: 999,
+                                      background: "var(--primary)",
+                                      flexShrink: 0,
+                                      marginTop: 6,
+                                    }}
+                                  />
+                                )}
+                              </div>
+
+                              <div className="muted" style={{ marginTop: 6, lineHeight: 1.5 }}>
+                                {item.message}
+                              </div>
+
+                              <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
+                                {new Date(item.createdAt).toLocaleString()}
+                              </div>
+                            </button>
+                          ))
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary icon-btn"
+                  onClick={toggleTheme}
+                  aria-label="Toggle theme"
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
               </div>
             </header>
 
@@ -236,8 +412,13 @@ const unreadCount = notifications.filter((item) => !item.read).length;
         </div>
       </div>
 
-      {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
-      {showAlerts && <div className="alerts-overlay" onClick={() => setShowAlerts(false)} />}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {showAlerts && (
+        <div className="alerts-overlay" onClick={() => setShowAlerts(false)} />
+      )}
 
       {otpModalOpen && (
         <div
@@ -261,7 +442,15 @@ const unreadCount = notifications.filter((item) => !item.read).length;
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 18 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "flex-start",
+                marginBottom: 18,
+              }}
+            >
               <div>
                 <h2 className="section-title" style={{ fontSize: 34 }}>
                   Enter Patient OTP
@@ -271,7 +460,12 @@ const unreadCount = notifications.filter((item) => !item.read).length;
                 </p>
               </div>
 
-              <button className="btn btn-secondary" onClick={closeOtpModal} style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={closeOtpModal}
+                style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}
+              >
                 <X size={18} />
               </button>
             </div>
@@ -286,7 +480,7 @@ const unreadCount = notifications.filter((item) => !item.read).length;
               value={patientOtp}
               onChange={(e) => setPatientOtp(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") startSessionFromOtp();
+                if (e.key === "Enter") handleStartSession();
               }}
               autoFocus
             />
@@ -304,11 +498,16 @@ const unreadCount = notifications.filter((item) => !item.read).length;
             )}
 
             <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
-              <button className="btn btn-primary" onClick={startSessionFromOtp} disabled={otpLoading}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleStartSession}
+                disabled={otpLoading}
+              >
                 {otpLoading ? "Starting..." : "Start Session"}
               </button>
 
-              <button className="btn btn-secondary" onClick={closeOtpModal}>
+              <button type="button" className="btn btn-secondary" onClick={closeOtpModal}>
                 Cancel
               </button>
             </div>
