@@ -1,10 +1,23 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import { AccessGrant, HealthMeasurement, MeasurementUnit, Patient, ReferenceRange, ShareMeasurementDTO } from "../../types/types";
 import { UpdateHealthMeasurement } from "../../types/updatetypes";
 import { MeasurementUnitDTO } from "../../types/parameters";
 import { removeValue } from "../Storage/storage.service";
 import { UploadMedicalDocument } from '../../types/others';
 import { API_BASE_URL, OCR_BASE_URL } from '@env';
+
+// On web, React Native's FormData coerces `{uri,name,type}` to the string
+// "[object Object]". Fetch the URI as a Blob so multipart works in browsers.
+async function appendImageToFormData(formData: FormData, uri: string, name: string, type: string) {
+    if (Platform.OS === 'web') {
+        const res = await fetch(uri);
+        const blob = await res.blob();
+        formData.append('file', blob, name);
+    } else {
+        formData.append('file', { uri, name, type } as any);
+    }
+}
 
 enum allowedMethods {
     GET,
@@ -305,11 +318,7 @@ class Backend {
 
     async createandUploadMedicalDocument(data: UploadMedicalDocument) {
         const formData = new FormData();
-        formData.append('file', {
-            uri: data.file,
-            name: data.file_name || `upload.jpg`,
-            type: 'image/jpeg',
-        } as any);
+        await appendImageToFormData(formData, data.file, data.file_name || 'upload.jpg', 'image/jpeg');
         formData.append('patient_id', data.patient_id);
         formData.append('record_type', data.record_type);
         if (data.ocr_extracted_text) {
@@ -342,11 +351,7 @@ class Backend {
     // =========================
     async extractTextFromImage(imageUri: string): Promise<{ text: string; label: string; confidence: number }> {
         const formData = new FormData();
-        formData.append('file', {
-            uri: imageUri,
-            name: 'ocr.jpg',
-            type: 'image/jpeg',
-        } as any);
+        await appendImageToFormData(formData, imageUri, 'ocr.jpg', 'image/jpeg');
 
         const response = await fetch(`${OCR_BASE_URL}/ocr`, {
             method: 'POST',
