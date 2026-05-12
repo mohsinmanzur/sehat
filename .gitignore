@@ -3,8 +3,11 @@
 /Backend/node_modules
 /Backend/build
 
-# ML / OCR workspace (cloned models, venv, large weights)
-/ml/
+# ML / OCR workspace — commit source, exclude weights/venv
+/ml/Medical-Prescription-OCR/model/
+/ml/Medical-Prescription-OCR/.venv/
+/ml/Medical-Prescription-OCR/__pycache__/
+/ml/Medical-Prescription-OCR/.ipynb_checkpoints/
 
 # Claude Code user-private settings
 /.claude/
