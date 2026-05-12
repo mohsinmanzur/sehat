@@ -1,22 +1,11 @@
 import { Activity, AlertTriangle, ExternalLink, FileText } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getShareMeasurements, SharedMeasurement } from "../services/shareService";
-import { getDocumentUrlByMeasurementId, getPatientRecords } from "../services/recordService";
-
-type RecordItem = {
-  id?: string;
-  file_name?: string;
-  record_type?: string;
-  date_issued?: string;
-  created_at?: string;
-};
-
-const toArray = (payload: any) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-};
+import {
+  getDocumentUrlByMeasurementId,
+  openRecordFile,
+} from "../services/recordService";
+import { getActiveSession } from "../utils/session";
 
 const formatDate = (value?: string) => {
   if (!value) return "No date";
@@ -26,68 +15,89 @@ const formatDate = (value?: string) => {
 };
 
 export default function OverviewPage() {
-  const patientId = localStorage.getItem("selectedPatientId") || "";
-  const patientName = localStorage.getItem("selectedPatientName") || "Shared Patient";
-  const activeShareId = localStorage.getItem("activeShareId") || "";
+  const session = getActiveSession();
 
-  const [measurements, setMeasurements] = useState<SharedMeasurement[]>([]);
-  const [records, setRecords] = useState<RecordItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [docLoadingId, setDocLoadingId] = useState("");
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
-      if (!activeShareId || !patientId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError("");
-
-        const [sharedRes, recordsRes] = await Promise.allSettled([
-          getShareMeasurements(activeShareId),
-          getPatientRecords(patientId),
-        ]);
-
-        if (sharedRes.status === "fulfilled") {
-          setMeasurements(toArray(sharedRes.value));
-        } else {
-          setError("Could not load shared measurements.");
-        }
-
-        if (recordsRes.status === "fulfilled") {
-          setRecords(toArray(recordsRes.value));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, [activeShareId, patientId]);
+  const measurements = session.measurements || [];
+  const records = session.reports || [];
 
   const abnormalCount = useMemo(() => {
-    return measurements.filter((item) => {
+    return measurements.filter((item: any) => {
       const value = Number(item.numeric_value);
       return !Number.isNaN(value) && value <= 0;
     }).length;
   }, [measurements]);
 
-  const openDocument = async (measurementId?: string) => {
-    if (!measurementId) return;
+  const getMeasurementDocument = (item: any) => {
+    return (
+      item?.medical_document ||
+      item?.document ||
+      item?.record ||
+      item?.report ||
+      null
+    );
+  };
 
+  const hasDocument = (item: any) => {
+    const doc = getMeasurementDocument(item);
+
+    return Boolean(
+      doc?.file_url ||
+        doc?.url ||
+        doc?.document_url ||
+        item?.file_url ||
+        item?.document_url ||
+        item?.document_id ||
+        doc?.id
+    );
+  };
+
+  const openDocument = async (item: any) => {
     try {
-      setDocLoadingId(measurementId);
-      const data = await getDocumentUrlByMeasurementId(measurementId);
+      setDocLoadingId(item.id);
 
-      if (data?.url) {
-        window.open(data.url, "_blank", "noopener,noreferrer");
-      } else {
-        alert("No source document found for this measurement.");
+      const doc = getMeasurementDocument(item);
+
+      console.log("Opening measurement document:", {
+        measurement: item,
+        document: doc,
+      });
+
+      if (doc?.file_url || doc?.url || doc?.document_url || item?.file_url || item?.document_url) {
+        await openRecordFile(
+          doc?.file_url ||
+            doc?.url ||
+            doc?.document_url ||
+            item?.file_url ||
+            item?.document_url
+        );
+        return;
       }
+
+      const measurementId = item?.id;
+
+      if (measurementId) {
+        const data = await getDocumentUrlByMeasurementId(measurementId);
+
+        console.log("Document URL response:", data);
+
+        const url =
+          data?.url ||
+          data?.file_url ||
+          data?.document_url ||
+          data?.secure_url ||
+          data?.data?.url ||
+          data?.data?.file_url ||
+          data?.data?.document_url;
+
+        if (url) {
+          await openRecordFile(url);
+          return;
+        }
+      }
+
+      alert("Document exists, but no openable file URL was returned by backend.");
     } catch (err) {
       console.error(err);
       alert("Could not open source document.");
@@ -96,7 +106,7 @@ export default function OverviewPage() {
     }
   };
 
-  if (!activeShareId || !patientId) {
+  if (!session.shareId || !session.patientId) {
     return (
       <section className="card" style={{ padding: 24 }}>
         <h1 className="section-title">No overview available</h1>
@@ -116,7 +126,7 @@ export default function OverviewPage() {
   return (
     <div className="grid" style={{ gap: 20 }}>
       <section className="card" style={{ padding: 24 }}>
-        <h1 className="section-title">{patientName}</h1>
+        <h1 className="section-title">{session.patientName}</h1>
         <p className="section-subtitle">Shared patient health overview</p>
 
         <div className="grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", marginTop: 20 }}>
@@ -125,7 +135,7 @@ export default function OverviewPage() {
               <Activity size={18} />
             </div>
             <div className="dashboard-stat-label">Shared Measurements</div>
-            <div className="dashboard-stat-value">{loading ? "..." : measurements.length}</div>
+            <div className="dashboard-stat-value">{measurements.length}</div>
           </div>
 
           <div className="dashboard-stat-panel">
@@ -133,7 +143,7 @@ export default function OverviewPage() {
               <FileText size={18} />
             </div>
             <div className="dashboard-stat-label">Patient Reports</div>
-            <div className="dashboard-stat-value">{loading ? "..." : records.length}</div>
+            <div className="dashboard-stat-value">{records.length}</div>
           </div>
 
           <div className="dashboard-stat-panel">
@@ -141,7 +151,7 @@ export default function OverviewPage() {
               <AlertTriangle size={18} />
             </div>
             <div className="dashboard-stat-label">Needs Review</div>
-            <div className="dashboard-stat-value">{loading ? "..." : abnormalCount}</div>
+            <div className="dashboard-stat-value">{abnormalCount}</div>
           </div>
         </div>
       </section>
@@ -152,23 +162,15 @@ export default function OverviewPage() {
           These measurements are visible because the patient started a session.
         </p>
 
-        {error && (
-          <div className="panel" style={{ padding: 14, color: "tomato", marginTop: 18 }}>
-            {error}
-          </div>
-        )}
-
-        {loading && <div className="muted" style={{ marginTop: 18 }}>Loading...</div>}
-
-        {!loading && measurements.length === 0 && (
+        {measurements.length === 0 && (
           <div className="panel" style={{ padding: 16, marginTop: 18 }}>
             No shared measurements found.
           </div>
         )}
 
-        {!loading && measurements.length > 0 && (
+        {measurements.length > 0 && (
           <div className="grid" style={{ marginTop: 18 }}>
-            {measurements.map((item) => (
+            {measurements.map((item: any) => (
               <div
                 key={item.id}
                 className="panel"
@@ -183,24 +185,28 @@ export default function OverviewPage() {
               >
                 <div>
                   <div style={{ fontWeight: 900, fontSize: 18 }}>
-                    {item.measurement_unit?.unit_name || "Measurement"}
+                    {item.measurement_unit?.unit_name ||
+                      item.unit?.unit_name ||
+                      item.name ||
+                      "Measurement"}
                   </div>
 
                   <div className="muted" style={{ marginTop: 4 }}>
-                    {formatDate(item.created_at)}
+                    {formatDate(item.created_at || item.createdAt)}
                   </div>
                 </div>
 
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: 28, fontWeight: 900 }}>
-                    {item.numeric_value ?? "-"} {item.measurement_unit?.symbol || ""}
+                    {item.numeric_value ?? item.value ?? "-"}{" "}
+                    {item.measurement_unit?.symbol || item.unit?.symbol || ""}
                   </div>
 
-                  {item.document_id && (
+                  {hasDocument(item) && (
                     <button
                       className="btn btn-secondary"
                       style={{ marginTop: 10 }}
-                      onClick={() => openDocument(item.id)}
+                      onClick={() => openDocument(item)}
                       disabled={docLoadingId === item.id}
                     >
                       <ExternalLink size={15} />
@@ -215,7 +221,15 @@ export default function OverviewPage() {
       </section>
 
       <section className="card" style={{ padding: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
           <div>
             <h2 className="section-title">Patient Reports</h2>
             <p className="section-subtitle">
@@ -228,15 +242,15 @@ export default function OverviewPage() {
           </Link>
         </div>
 
-        {!loading && records.length === 0 && (
+        {records.length === 0 && (
           <div className="panel" style={{ padding: 16, marginTop: 18 }}>
             No reports found for this patient.
           </div>
         )}
 
-        {!loading && records.length > 0 && (
+        {records.length > 0 && (
           <div className="grid" style={{ marginTop: 18 }}>
-            {records.slice(0, 3).map((record) => (
+            {records.slice(0, 3).map((record: any) => (
               <Link
                 key={record.id}
                 to={`/reports/${record.id}`}
@@ -247,7 +261,8 @@ export default function OverviewPage() {
                   {record.file_name || "Medical Report"}
                 </div>
                 <div className="muted" style={{ marginTop: 4 }}>
-                  {record.record_type || "other"} · {formatDate(record.date_issued || record.created_at)}
+                  {record.record_type || "other"} ·{" "}
+                  {formatDate(record.date_issued || record.created_at)}
                 </div>
               </Link>
             ))}

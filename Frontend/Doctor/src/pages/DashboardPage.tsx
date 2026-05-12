@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getShareMeasurements } from "../services/shareService";
+import { getShareByAccessCode } from "../services/shareService";
+import { getTodayInsights } from "../utils/session";
 import { getPatientRecords } from "../services/recordService";
 
 declare global {
@@ -79,33 +80,17 @@ export default function DashboardPage() {
   const scanIntervalRef = useRef<number | null>(null);
 
   const loadTodayInsights = async () => {
-    const activeShareId = localStorage.getItem("activeShareId") || "";
-    const patientId = localStorage.getItem("selectedPatientId") || "";
+  try {
+    setLoadingInsights(true);
 
-    try {
-      setLoadingInsights(true);
+    const insights = getTodayInsights();
 
-      if (!activeShareId || !patientId) {
-        setPatientsToday(0);
-        setReportsShared(0);
-        setMeasurementsTracked(0);
-        return;
-      }
-
-      const [sharedRes, reportRes] = await Promise.allSettled([
-        getShareMeasurements(activeShareId),
-        getPatientRecords(patientId),
-      ]);
-
-      const shared = sharedRes.status === "fulfilled" ? toArray(sharedRes.value) : [];
-      const reports = reportRes.status === "fulfilled" ? toArray(reportRes.value) : [];
-
-      setPatientsToday(1);
-      setReportsShared(reports.length);
-      setMeasurementsTracked(shared.length);
-    } finally {
-      setLoadingInsights(false);
-    }
+    setPatientsToday(insights.patientsToday);
+    setReportsShared(insights.reportsShared);
+    setMeasurementsTracked(insights.measurementsTracked);
+  } finally {
+    setLoadingInsights(false);
+  }
   };
 
   useEffect(() => {
@@ -153,7 +138,7 @@ export default function DashboardPage() {
       setQrError("");
       setQrMessage("QR detected. Starting session...");
 
-      const data = await getShareMeasurements(shareId);
+      const data = await getShareByAccessCode(shareId);
       const shared = toArray(data);
 
       if (shared.length === 0) {
@@ -239,15 +224,18 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (!qrModalOpen) {
-      stopCamera();
-      return;
-    }
+  loadTodayInsights();
 
-    openQrCamera();
+  const handler = () => loadTodayInsights();
 
-    return () => stopCamera();
-  }, [qrModalOpen]);
+  window.addEventListener("session-started", handler);
+  window.addEventListener("session-ended", handler);
+
+  return () => {
+    window.removeEventListener("session-started", handler);
+    window.removeEventListener("session-ended", handler);
+  };
+}, []), [qrModalOpen];
 
   const qrSupportText = useMemo(() => {
     if (!cameraSupported) return "Camera scanning unavailable. Use manual QR entry.";

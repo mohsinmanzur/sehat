@@ -18,6 +18,12 @@ import { useAuth } from "../context/AuthContext";
 import { useEffect, useMemo, useState } from "react";
 import Logo from "./Logo";
 import { startPatientSession } from "../utils/session";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  DoctorNotification,
+} from "../utils/notifications";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -55,6 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [otpMessage, setOtpMessage] = useState("");
+  const [notifications, setNotifications] = useState<DoctorNotification[]>([]);
 
   const currentMeta = useMemo(() => {
     return pageMeta[location.pathname] || {
@@ -115,6 +122,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("open-patient-otp-modal", handler);
     };
   }, []);
+
+  useEffect(() => {
+  const loadNotifications = () => {
+    setNotifications(getNotifications());
+  };
+
+  loadNotifications();
+
+  window.addEventListener("doctor-notifications-updated", loadNotifications);
+
+  return () => {
+    window.removeEventListener("doctor-notifications-updated", loadNotifications);
+  };
+}, []);
+
+const unreadCount = notifications.filter((item) => !item.read).length;
 
   const alerts = [
     "Session access is read-only.",

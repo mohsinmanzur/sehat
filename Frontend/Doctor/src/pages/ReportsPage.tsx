@@ -1,6 +1,6 @@
-import { FileText } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ExternalLink, FileText } from "lucide-react";
 import { getActiveSession } from "../utils/session";
+import { openRecordFile } from "../services/recordService";
 
 const formatDate = (value?: string) => {
   if (!value) return "No date";
@@ -11,6 +11,16 @@ const formatDate = (value?: string) => {
 
 export default function ReportsPage() {
   const session = getActiveSession();
+
+  const openReport = async (report: any) => {
+    try {
+      console.log("Opening report:", report);
+      await openRecordFile(report);
+    } catch (err) {
+      console.error(err);
+      alert("Could not open this report. No file URL found.");
+    }
+  };
 
   if (!session.shareId || !session.patientId) {
     return (
@@ -33,7 +43,7 @@ export default function ReportsPage() {
     <section className="card" style={{ padding: 24 }}>
       <h1 className="section-title">Reports</h1>
       <p className="section-subtitle">
-        {session.patientName} · Reports available during active session
+        {session.patientName} · Documents available during active session
       </p>
 
       {session.reports.length === 0 && (
@@ -45,9 +55,8 @@ export default function ReportsPage() {
       {session.reports.length > 0 && (
         <div className="grid" style={{ marginTop: 20 }}>
           {session.reports.map((report: any) => (
-            <Link
+            <div
               key={report.id}
-              to={`/reports/${report.id}`}
               className="panel"
               style={{
                 padding: 18,
@@ -55,6 +64,7 @@ export default function ReportsPage() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 gap: 14,
+                flexWrap: "wrap",
               }}
             >
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -83,8 +93,11 @@ export default function ReportsPage() {
                 </div>
               </div>
 
-              <span className="badge primary">Open</span>
-            </Link>
+              <button className="btn btn-primary" onClick={() => openReport(report)}>
+                <ExternalLink size={16} />
+                Open Document
+              </button>
+            </div>
           ))}
         </div>
       )}
