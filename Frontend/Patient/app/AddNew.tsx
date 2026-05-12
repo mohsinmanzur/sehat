@@ -244,6 +244,30 @@ export default function AddNewMeasurement() {
                     >
                         <Text style={[s.optionPillText, selectedSpecialConditions.includes('Fasting') && s.optionPillTextActive]}>Fasting</Text>
                     </ScalePressable>
+                    <ScalePressable
+                        style={[s.optionPill, selectedSpecialConditions.includes('Post-meal') && s.optionPillActive]}
+                        onPress={() => {
+                            if (selectedSpecialConditions.includes('Post-meal')) {
+                                setSelectedSpecialConditions(selectedSpecialConditions.filter((condition) => condition !== 'Post-meal'));
+                            } else {
+                                setSelectedSpecialConditions([...selectedSpecialConditions, 'Post-meal']);
+                            }
+                        }}
+                    >
+                        <Text style={[s.optionPillText, selectedSpecialConditions.includes('Post-meal') && s.optionPillTextActive]}>Post-meal</Text>
+                    </ScalePressable>
+                    <ScalePressable
+                        style={[s.optionPill, selectedSpecialConditions.includes('Morning') && s.optionPillActive]}
+                        onPress={() => {
+                            if (selectedSpecialConditions.includes('Morning')) {
+                                setSelectedSpecialConditions(selectedSpecialConditions.filter((condition) => condition !== 'Morning'));
+                            } else {
+                                setSelectedSpecialConditions([...selectedSpecialConditions, 'Morning']);
+                            }
+                        }}
+                    >
+                        <Text style={[s.optionPillText, selectedSpecialConditions.includes('Morning') && s.optionPillTextActive]}>Morning</Text>
+                    </ScalePressable>
                 </View>
 
                 {/* ── Date & Time ── */}
