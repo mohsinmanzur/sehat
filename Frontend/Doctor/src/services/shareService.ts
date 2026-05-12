@@ -21,9 +21,11 @@ export type SharedMeasurement = {
   };
 };
 
-export const getShareMeasurements = async (shareId: string) => {
-  const res = await api.get("/share/shares", {
-    params: { share_id: shareId },
+export const getShareByAccessCode = async (accessCode: string) => {
+  const res = await api.get("/share/shared-by-code", {
+    params: {
+      access_code: accessCode,
+    },
   });
 
   return res.data;

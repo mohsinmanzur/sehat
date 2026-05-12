@@ -6,154 +6,168 @@ import {
   LogOut,
   Menu,
   Moon,
+  QrCode,
   Settings,
   Sun,
   TimerReset,
   UserRound,
   X,
-} from 'lucide-react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { useMemo, useState } from 'react';
-import Logo from './Logo';
-import { getShareMeasurements } from '../services/shareService';
+} from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+
+import Logo from "./Logo";
+import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { startPatientSession, validateActivePatientSession } from "../utils/session";
+import {
+  DoctorNotification,
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "../utils/notifications";
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/access', label: 'Access Patient', icon: ClipboardPlus },
-  { to: '/overview', label: 'Patient Overview', icon: UserRound },
-  { to: '/reports', label: 'Reports', icon: FileText },
-  { to: '/sessions', label: 'Sessions', icon: TimerReset },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/overview", label: "Patient Overview", icon: UserRound },
+  { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/sessions", label: "Sessions", icon: TimerReset },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
-const pageMeta: Record<string, { eyebrow: string; title: string }> = {
-  '/dashboard': { eyebrow: 'Welcome back', title: 'Dashboard' },
-  '/access': { eyebrow: 'Welcome back', title: 'Access Patient' },
-  '/overview': { eyebrow: 'Welcome back', title: 'Patient Overview' },
-  '/reports': { eyebrow: 'Welcome back', title: 'Reports' },
-  '/sessions': { eyebrow: 'Welcome back', title: 'Sessions' },
-  '/settings': { eyebrow: 'Welcome back', title: 'Settings' },
-};
-
-const toArray = (payload: any) => {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  return [];
-};
-
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { darkMode, toggleTheme } = useTheme();
-  const { doctorName, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [open, setOpen] = useState(false);
+  const { darkMode, toggleTheme } = useTheme();
+  const { doctorName, doctorFullName, logout } = useAuth();
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
 
-  const [otpModalOpen, setOtpModalOpen] = useState(false);
-  const [patientOtp, setPatientOtp] = useState('');
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [otpMessage, setOtpMessage] = useState('');
+  const [notifications, setNotifications] = useState<DoctorNotification[]>([]);
 
-  const currentMeta = useMemo(() => {
-    return pageMeta[location.pathname] || {
-      eyebrow: 'Welcome back',
-      title: 'Dashboard',
-    };
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [patientOtp, setPatientOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpMessage, setOtpMessage] = useState("");
+
+  const unreadCount = notifications.filter((item) => !item.read).length;
+
+  const pageTitle = useMemo(() => {
+    if (location.pathname.includes("overview")) return "Patient Overview";
+    if (location.pathname.includes("reports")) return "Reports";
+    if (location.pathname.includes("sessions")) return "Sessions";
+    if (location.pathname.includes("settings")) return "Settings";
+    return "Dashboard";
   }, [location.pathname]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  useEffect(() => {
+    const loadNotifications = () => {
+      setNotifications(getNotifications());
+    };
+
+    loadNotifications();
+
+    window.addEventListener("doctor-notifications-updated", loadNotifications);
+
+    return () => {
+      window.removeEventListener("doctor-notifications-updated", loadNotifications);
+    };
+  }, []);
+
+  useEffect(() => {
+    const openOtpHandler = () => {
+      openOtpModal();
+    };
+
+    window.addEventListener("open-patient-otp-modal", openOtpHandler);
+
+    return () => {
+      window.removeEventListener("open-patient-otp-modal", openOtpHandler);
+    };
+  }, []);
+
+  useEffect(() => {
+  const checkSession = async () => {
+    const stillValid = await validateActivePatientSession();
+
+    if (!stillValid) {
+      window.dispatchEvent(new CustomEvent("doctor-notifications-updated"));
+
+      if (
+        location.pathname.includes("overview") ||
+        location.pathname.includes("reports")
+      ) {
+        navigate("/dashboard");
+      }
+    }
   };
+
+  checkSession();
+}, []);
 
   const openOtpModal = () => {
     setOtpModalOpen(true);
-    setPatientOtp('');
-    setOtpError('');
-    setOtpMessage('');
+    setPatientOtp("");
+    setOtpError("");
+    setOtpMessage("");
   };
 
   const closeOtpModal = () => {
     setOtpModalOpen(false);
-    setPatientOtp('');
-    setOtpError('');
-    setOtpMessage('');
+    setPatientOtp("");
+    setOtpError("");
+    setOtpMessage("");
     setOtpLoading(false);
   };
 
-  const startSessionFromOtp = async () => {
-    const cleanOtp = patientOtp.trim();
-
-    if (!cleanOtp) {
-      setOtpError('Please enter the patient OTP first.');
-      return;
-    }
-
+  const handleStartSession = async () => {
     try {
       setOtpLoading(true);
-      setOtpError('');
-      setOtpMessage('');
+      setOtpError("");
+      setOtpMessage("");
 
-      const data = await getShareMeasurements(cleanOtp);
-      const sharedMeasurements = toArray(data);
+      const session = await startPatientSession(patientOtp);
 
-      if (sharedMeasurements.length === 0) {
-        setOtpError('No shared data found for this OTP.');
-        return;
-      }
-
-      const firstItem = sharedMeasurements[0];
-
-      const patientId =
-        firstItem?.patient_id ||
-        firstItem?.patient?.id ||
-        '';
-
-      const patientName =
-        firstItem?.patient?.name ||
-        'Shared Patient';
-
-      if (!patientId) {
-        setOtpError('Shared data was found, but patient ID is missing.');
-        return;
-      }
-
-      localStorage.setItem('activeShareId', cleanOtp);
-      localStorage.setItem('selectedPatientId', patientId);
-      localStorage.setItem('selectedPatientName', patientName);
-
-      setOtpMessage('Session started successfully.');
+      setOtpMessage(
+        `Session started for ${session.patientName}. ${session.measurements.length} measurement(s), ${session.reports.length} report(s).`
+      );
 
       setTimeout(() => {
         closeOtpModal();
-        navigate('/overview');
-      }, 500);
-    } catch (err) {
+        navigate("/overview");
+      }, 600);
+    } catch (err: any) {
       console.error(err);
-      setOtpError('Invalid OTP or session could not be started.');
+      setOtpError(err?.message || "Invalid OTP or session could not be started.");
     } finally {
       setOtpLoading(false);
     }
   };
 
-  const alerts = [
-    'Session for Emily Davis expires in 9 minutes.',
-    'New CBC report shared by Rajesh Kumar Sharma.',
-    'Two abnormal findings require review today.',
-  ];
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (!confirmed) return;
+
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="app-bg mobile-bottom-space">
-      <div className="container" style={{ padding: '12px 0 24px' }}>
+      <div className="container" style={{ padding: "12px 0 24px" }}>
         <div className="shell-grid-premium">
-          <aside className={`card sidebar-premium ${open ? 'open' : ''}`}>
+          <aside className={`card sidebar-premium ${sidebarOpen ? "open" : ""}`}>
             <div className="sidebar-top">
               <Logo compact />
-              <button className="btn btn-secondary sidebar-close" onClick={() => setOpen(false)}>
+
+              <button
+                type="button"
+                className="btn btn-secondary sidebar-close"
+                onClick={() => setSidebarOpen(false)}
+              >
                 <X size={16} />
               </button>
             </div>
@@ -162,9 +176,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
                 Signed in as
               </div>
-              <div style={{ fontWeight: 800, fontSize: 18 }}>{doctorName}</div>
+
+              <div style={{ fontWeight: 900, fontSize: 18 }}>
+                {doctorName || "Doctor"}
+              </div>
+
               <div className="muted" style={{ marginTop: 4 }}>
-                SehatScan doctor portal
+                {doctorFullName || "Sehat doctor portal"}
               </div>
             </div>
 
@@ -173,8 +191,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <NavLink
                   key={to}
                   to={to}
-                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                  onClick={() => setOpen(false)}
+                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
                 >
                   <Icon size={18} />
                   <span>{label}</span>
@@ -182,7 +200,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
 
-            <button className="btn btn-secondary sidebar-logout" onClick={handleLogout}>
+            <button
+              type="button"
+              className="btn btn-secondary sidebar-logout"
+              onClick={handleLogout}
+            >
               <LogOut size={16} />
               Logout
             </button>
@@ -191,13 +213,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <main className="shell-main">
             <header className="card shell-header-clean">
               <div className="shell-header-left">
-                <button className="btn btn-secondary mobile-menu-btn" onClick={() => setOpen(true)}>
+                <button
+                  type="button"
+                  className="btn btn-secondary mobile-menu-btn"
+                  onClick={() => setSidebarOpen(true)}
+                >
                   <Menu size={18} />
                 </button>
 
                 <div>
-                  <div className="shell-eyebrow">{currentMeta.eyebrow}</div>
-                  <div className="shell-title-custom">Hello, {doctorName}</div>
+                  <div className="shell-eyebrow">Welcome back</div>
+                  <div className="shell-title-custom">
+                    {pageTitle === "Dashboard" ? `Hello, ${doctorName || "Doctor"}` : pageTitle}
+                  </div>
                 </div>
               </div>
 
@@ -211,31 +239,171 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   Enter Patient OTP
                 </button>
 
-                <button className="btn btn-secondary icon-btn" onClick={toggleTheme}>
-                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                <button
+                  type="button"
+                  className="btn btn-secondary icon-btn"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-qr-modal"))}
+                  aria-label="Scan QR"
+                >
+                  <QrCode size={18} />
                 </button>
 
                 <div className="alerts-anchor">
                   <button
+                    type="button"
                     className="btn btn-secondary icon-btn"
                     onClick={() => setShowAlerts((prev) => !prev)}
+                    style={{ position: "relative" }}
+                    aria-label="Open notifications"
                   >
                     <Bell size={18} />
+
+                    {unreadCount > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 7,
+                          right: 7,
+                          minWidth: 18,
+                          height: 18,
+                          padding: "0 5px",
+                          borderRadius: 999,
+                          background: "var(--danger)",
+                          color: "#ffffff",
+                          fontSize: 11,
+                          fontWeight: 900,
+                          display: "grid",
+                          placeItems: "center",
+                          lineHeight: 1,
+                          border: "2px solid var(--card)",
+                        }}
+                      >
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </button>
 
                   {showAlerts && (
                     <div className="alerts-dropdown card">
-                      <div className="alerts-head">Recent Alerts</div>
-                      <div className="alerts-list">
-                        {alerts.map((alert) => (
-                          <div key={alert} className="panel alerts-item">
-                            {alert}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: 12,
+                          marginBottom: 14,
+                        }}
+                      >
+                        <div>
+                          <div className="alerts-head">Notifications</div>
+
+                          <div className="muted" style={{ fontSize: 13 }}>
+                            {unreadCount > 0
+                              ? `${unreadCount} unread alert${unreadCount === 1 ? "" : "s"}`
+                              : "All caught up"}
                           </div>
-                        ))}
+                        </div>
+
+                        {notifications.length > 0 && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{
+                              minHeight: 36,
+                              padding: "0 12px",
+                              borderRadius: 12,
+                              fontSize: 13,
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAllNotificationsRead();
+                              setNotifications(getNotifications());
+                            }}
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="alerts-list">
+                        {notifications.length === 0 ? (
+                          <div className="panel alerts-item">
+                            <div style={{ fontWeight: 900, color: "var(--text)" }}>
+                              No notifications yet
+                            </div>
+
+                            <div className="muted" style={{ marginTop: 4 }}>
+                              Patient session updates will appear here.
+                            </div>
+                          </div>
+                        ) : (
+                          notifications.slice(0, 8).map((item) => (
+                            <button
+                              type="button"
+                              key={item.id}
+                              className="panel alerts-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markNotificationRead(item.id);
+                                setNotifications(getNotifications());
+                              }}
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                cursor: "pointer",
+                                borderColor: item.read ? "var(--border)" : "var(--primary)",
+                                background: item.read ? "var(--surface-soft)" : "var(--card)",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  gap: 10,
+                                  alignItems: "flex-start",
+                                }}
+                              >
+                                <div style={{ fontWeight: 900, color: "var(--text)" }}>
+                                  {item.title}
+                                </div>
+
+                                {!item.read && (
+                                  <span
+                                    style={{
+                                      width: 9,
+                                      height: 9,
+                                      borderRadius: 999,
+                                      background: "var(--primary)",
+                                      flexShrink: 0,
+                                      marginTop: 6,
+                                    }}
+                                  />
+                                )}
+                              </div>
+
+                              <div className="muted" style={{ marginTop: 6, lineHeight: 1.5 }}>
+                                {item.message}
+                              </div>
+
+                              <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
+                                {new Date(item.createdAt).toLocaleString()}
+                              </div>
+                            </button>
+                          ))
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary icon-btn"
+                  onClick={toggleTheme}
+                  aria-label="Toggle theme"
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
               </div>
             </header>
 
@@ -244,17 +412,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {open && <div className="sidebar-overlay" onClick={() => setOpen(false)} />}
-      {showAlerts && <div className="alerts-overlay" onClick={() => setShowAlerts(false)} />}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {showAlerts && (
+        <div className="alerts-overlay" onClick={() => setShowAlerts(false)} />
+      )}
 
       {otpModalOpen && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             inset: 0,
-            background: 'rgba(2, 6, 23, 0.72)',
-            display: 'grid',
-            placeItems: 'center',
+            background: "rgba(2, 6, 23, 0.72)",
+            display: "grid",
+            placeItems: "center",
             zIndex: 300,
             padding: 16,
           }}
@@ -263,7 +436,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div
             className="card"
             style={{
-              width: 'min(100%, 540px)',
+              width: "min(100%, 540px)",
               padding: 24,
               borderRadius: 28,
             }}
@@ -271,10 +444,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           >
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
+                display: "flex",
+                justifyContent: "space-between",
                 gap: 12,
-                alignItems: 'flex-start',
+                alignItems: "flex-start",
                 marginBottom: 18,
               }}
             >
@@ -283,11 +456,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   Enter Patient OTP
                 </h2>
                 <p className="section-subtitle">
-                  Enter the OTP/session code shared by the patient to start access.
+                  Enter the OTP shared by the patient to start a read-only session.
                 </p>
               </div>
 
               <button
+                type="button"
                 className="btn btn-secondary"
                 onClick={closeOtpModal}
                 style={{ width: 46, height: 46, padding: 0, borderRadius: 16 }}
@@ -296,7 +470,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
 
-            <label style={{ fontWeight: 800, display: 'block', marginBottom: 8 }}>
+            <label style={{ fontWeight: 800, display: "block", marginBottom: 8 }}>
               Patient OTP
             </label>
 
@@ -306,13 +480,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               value={patientOtp}
               onChange={(e) => setPatientOtp(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') startSessionFromOtp();
+                if (e.key === "Enter") handleStartSession();
               }}
               autoFocus
             />
 
             {otpError && (
-              <div className="panel" style={{ padding: 14, marginTop: 14, color: 'tomato' }}>
+              <div className="panel" style={{ padding: 14, marginTop: 14, color: "tomato" }}>
                 {otpError}
               </div>
             )}
@@ -323,12 +497,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={startSessionFromOtp} disabled={otpLoading}>
-                {otpLoading ? 'Starting...' : 'Start Session'}
+            <div style={{ display: "flex", gap: 12, marginTop: 18, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleStartSession}
+                disabled={otpLoading}
+              >
+                {otpLoading ? "Starting..." : "Start Session"}
               </button>
 
-              <button className="btn btn-secondary" onClick={closeOtpModal}>
+              <button type="button" className="btn btn-secondary" onClick={closeOtpModal}>
                 Cancel
               </button>
             </div>
