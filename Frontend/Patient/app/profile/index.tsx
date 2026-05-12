@@ -1,17 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { useCurrentPatient } from "@context/PatientContext";
 import { useTheme } from "@context/ThemeContext";
-import { Ionicons, MaterialIcons, Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@theme/colors";
 import { router } from "expo-router";
 import {
-    Pressable,
     StyleSheet,
     View,
-    Switch,
     TouchableOpacity,
     Linking,
-    ScrollView,
 } from "react-native";
 import { ThemedText } from "src/components";
 import { ThemedView } from "src/components";
@@ -23,13 +20,10 @@ const ProfileScreen: React.FC = () => {
     const { theme } = useTheme();
     const { currentPatient, setCurrentPatient } = useCurrentPatient();
 
-    const [pushNotifications, setPushNotifications] = useState(true);
-
     const styles = styleSheet(theme);
 
-    const handleLogout = () => {
-        setCurrentPatient(null);
-        backend.logout();
+    const handleLogout = async () => {
+        await backend.logout();
         Snackbar.show({
             text: "Logged out successfully",
             duration: Snackbar.LENGTH_SHORT,
@@ -78,7 +72,7 @@ const ProfileScreen: React.FC = () => {
                     <ThemedText style={styles.userName}>
                         {firstName} {lastName}
                     </ThemedText>
-                    <ThemedText style={styles.welcomeLabel}>{currentPatient.email}</ThemedText>
+                    <ThemedText style={styles.welcomeLabel}>{currentPatient?.email}</ThemedText>
                 </View>
                 <ScalePressable style={styles.logoutIcon} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={22} color={theme.primary} />
@@ -88,9 +82,9 @@ const ProfileScreen: React.FC = () => {
             {/* Menu Items */}
             <View style={styles.menuSection}>
                 {menuItems.map((item, index) => (
-                    <>
-                        <View key={index} style={{ backgroundColor: theme.textGray, opacity: 0.1, height: 1, borderRadius: 10 }} />
-                        <ScalePressable key={item.id} onPress={item.onPress}>
+                    <React.Fragment key={item.id}>
+                        <View style={{ backgroundColor: theme.textGray, opacity: 0.1, height: 1, borderRadius: 10 }} />
+                        <ScalePressable onPress={item.onPress}>
                             <View
                                 style={[
                                     styles.menuItem,
@@ -108,25 +102,9 @@ const ProfileScreen: React.FC = () => {
                                 />
                             </View>
                         </ScalePressable>
-                    </>
+                    </React.Fragment>
                 ))}
 
-                <View style={{ backgroundColor: theme.textGray, opacity: 0.1, height: 1, borderRadius: 10 }} />
-
-                {/* Push Notification Row */}
-                <View style={[styles.menuItem]}>
-                    <View style={styles.menuItemLeft}>
-                        <Ionicons name="notifications-outline" size={22} color={theme.textLight} />
-                        <ThemedText style={styles.menuItemLabel}>Push Notification</ThemedText>
-                    </View>
-                    <Switch
-                        value={pushNotifications}
-                        onValueChange={setPushNotifications}
-                        trackColor={{ false: theme.card, true: theme.success }}
-                        thumbColor={"#FFFFFF"}
-                        ios_backgroundColor={theme.card}
-                    />
-                </View>
                 <View style={{ backgroundColor: theme.textGray, opacity: 0.1, height: 1, borderRadius: 10 }} />
             </View>
 
@@ -177,7 +155,7 @@ const styleSheet = (theme: typeof Colors.dark) =>
             alignItems: "center",
             marginHorizontal: 20,
             marginTop: 8,
-            marginBottom: 24,
+            marginBottom: 5,
             borderRadius: 16,
             paddingVertical: 14,
             paddingHorizontal: 16,

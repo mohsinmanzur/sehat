@@ -1,9 +1,10 @@
 import * as SecureStore from 'expo-secure-store';
 import { AccessGrant, HealthMeasurement, MeasurementUnit, Patient, ReferenceRange, ShareMeasurementDTO } from "../../types/types";
 import { UpdateHealthMeasurement } from "../../types/updatetypes";
-import { HealthMeasurementDTO, MeasurementUnitDTO, ReferenceRangeDTO } from "../../types/parameters";
+import { MeasurementUnitDTO } from "../../types/parameters";
 import { removeValue } from "../Storage/storage.service";
 import { UploadMedicalDocument } from '../../types/others';
+import { API_BASE_URL } from '@env';
 
 enum allowedMethods {
     GET,
@@ -20,7 +21,7 @@ class Backend {
     private onLogoutCallback: (() => void) | null = null;
 
     constructor() {
-        this.baseUrl = 'https://sehatscan-abgtfbb6cmgmgugr.uaenorth-01.azurewebsites.net';
+        this.baseUrl = API_BASE_URL;
     }
 
     setOnLogout(callback: () => void) {
@@ -377,6 +378,22 @@ class Backend {
         const response = await this.request(`/share/revoke?patient_id=${patientId}&share_id=${shareId}`, allowedMethods.POST);
         if (!response.ok) {
             throw new Error(`Error in revoking share: ${response.status} ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async handleWebhook(receiverUuid: string, sharingId: string) {
+        const response = await this.request(`/share/webhook`, allowedMethods.POST, { receiverUuid, sharingId });
+        if (!response.ok) {
+            throw new Error(`Error in handling webhook: ${response.status} ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    async getSharedById(shareId: string): Promise<AccessGrant> {
+        const response = await this.request(`/share/shared-by-id?share_id=${shareId}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching shared by id: ${response.status} ${await response.text()}`);
         }
         return await response.json();
     }

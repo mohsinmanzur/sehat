@@ -15,7 +15,7 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from "react-native";
-import { ThemedText, ThemedView } from "src/components";
+import { Spacer, ThemedText, ThemedView } from "src/components";
 import { ScalePressable } from "src/components/ScalePressable";
 import Toast from "react-native-toast-message";
 
@@ -75,14 +75,7 @@ const UserProfileScreen: React.FC = () => {
                         <View style={styles.headerSpacer} />
                     </View>
 
-                    {/* Avatar */}
-                    <View style={styles.avatarSection}>
-                        <View style={styles.avatarRing}>
-                            <View style={styles.avatarPlaceholder}>
-                                <Ionicons name="person" size={44} color={theme.primary} />
-                            </View>
-                        </View>
-                    </View>
+                    <Spacer height={15} />
 
                     {/* Form */}
                     <View style={styles.form}>
@@ -216,7 +209,6 @@ const styleSheet = (theme: typeof Colors.dark) =>
             borderRadius: 100,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: theme.card,
         },
         headerTitle: {
             flex: 1,

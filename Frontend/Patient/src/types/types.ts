@@ -84,12 +84,13 @@ export type AIAnalysis = {
 export type AccessGrant = {
     id?: string;
     doctor?: Doctor;
-    patient: Patient;
+    patient?: Patient;
+    measurements?: HealthMeasurement[];
     measurement_ids?: string[];
     access_token?: string;
     permission: 'view_only' | 'emergency' | 'full_access';
     is_revoked?: boolean;
-    expires_at: Date;
+    expires_at?: Date;
 }
 
 export type ShareMeasurementDTO = {

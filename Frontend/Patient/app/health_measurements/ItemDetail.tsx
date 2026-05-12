@@ -10,13 +10,14 @@ import { HealthMeasurement } from '../../src/types/types';
 import { GhostElement } from 'src/components/GhostElement';
 
 export default function HealthMeasurementDetailScreen() {
-    const { data, data2, primaryColor, secondaryColor } = useLocalSearchParams<{ data: string, data2?: string, primaryColor: string, secondaryColor: string }>();
+    const { data, data2, primaryColor, secondaryColor, guestMode = "false" } = useLocalSearchParams<{ data: string, data2?: string, primaryColor: string, secondaryColor: string, guestMode: string }>();
     const router = useRouter();
     const { theme } = useTheme();
 
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
     const [secureUrlLoading, setSecureUrlLoading] = useState(true);
     const [imageRatio, setImageRatio] = useState<number>(3 / 4);
+    const isGuestMode = guestMode.toLowerCase() === "true";
 
     let measurement: HealthMeasurement | null = null;
     let secondaryMeasurement: HealthMeasurement | null = null;
@@ -144,21 +145,25 @@ export default function HealthMeasurementDetailScreen() {
                     </View>
                 )}
 
-                <ScalePressable
-                    style={[styles.editBtn, { backgroundColor: theme.primary }]}
-                    onPress={handleEdit}
-                >
-                    <MaterialIcons name="edit" size={20} color="#fff" style={{ marginRight: 8 }} />
-                    <Text style={styles.editBtnText}>Edit Entry</Text>
-                </ScalePressable>
+                {!isGuestMode && (
+                    <>
+                        <ScalePressable
+                            style={[styles.editBtn, { backgroundColor: theme.primary }]}
+                            onPress={handleEdit}
+                        >
+                            <MaterialIcons name="edit" size={20} color="#fff" style={{ marginRight: 8 }} />
+                            <Text style={styles.editBtnText}>Edit Entry</Text>
+                        </ScalePressable>
 
-                <ScalePressable
-                    onPress={handleDelete}
-                    style={[styles.deleteBtn, { backgroundColor: theme.backgroundLight, borderWidth: 1, borderColor: theme.danger }]}
-                >
-                    <MaterialIcons name="delete" size={20} color={theme.danger} style={{ marginRight: 8 }} />
-                    <Text style={[styles.deleteBtnText, { color: theme.danger }]}>Delete Entry</Text>
-                </ScalePressable>
+                        <ScalePressable
+                            onPress={handleDelete}
+                            style={[styles.deleteBtn, { backgroundColor: theme.backgroundLight, borderWidth: 1, borderColor: theme.danger }]}
+                        >
+                            <MaterialIcons name="delete" size={20} color={theme.danger} style={{ marginRight: 8 }} />
+                            <Text style={[styles.deleteBtnText, { color: theme.danger }]}>Delete Entry</Text>
+                        </ScalePressable>
+                    </>
+                )}
             </ScrollView>
         </ThemedView>
     );

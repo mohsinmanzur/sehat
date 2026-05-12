@@ -2,15 +2,17 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { ThemedButton, ThemedText, ThemedView } from "src/components";
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@context/ThemeContext';
 import { Colors } from '@theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Snackbar } from 'react-native-snackbar';
 import { ScalePressable } from 'src/components/ScalePressable';
+import backend from 'src/services/Backend/backend.service';
 
 export default function ScanQR() {
+    const { shareId } = useLocalSearchParams<{ shareId: string }>();
     const [permission, requestPermission] = useCameraPermissions();
     const [isActive, setIsActive] = useState(false);
     const [hasScanned, setHasScanned] = useState(false);
@@ -51,7 +53,7 @@ export default function ScanQR() {
         }, [])
     );
 
-    const handleBarCodeScanned = ({ bounds }: BarcodeScanningResult) => {
+    const handleBarCodeScanned = async ({ bounds, data }: BarcodeScanningResult) => {
         if (bounds) {
             setQrBounds(bounds);
         }
@@ -64,16 +66,38 @@ export default function ScanQR() {
             Animated.timing(successAnim, { toValue: 0, duration: 400, delay: 600, useNativeDriver: true }),
         ]).start();
 
-        Snackbar.show({
-            text: `QR Scanned!`,
-            duration: Snackbar.LENGTH_SHORT,
-            backgroundColor: theme.primarySoft,
-            textColor: theme.primary,
-        });
+        // data is the raw decoded QR string — used as the receiverUuid
+        const receiverUuid = data?.trim();
 
-        setTimeout(() => {
-            router.back();
-        }, 800);
+        if (!receiverUuid || !shareId) {
+            Snackbar.show({
+                text: 'Invalid QR code or missing share context.',
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: theme.danger,
+                textColor: '#FFFFFF',
+            });
+            setHasScanned(false);
+            return;
+        }
+
+        try {
+            await backend.handleWebhook(receiverUuid, shareId);
+            Snackbar.show({
+                text: `Access Granted!`,
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: theme.primarySoft,
+                textColor: theme.primary,
+            });
+            setTimeout(() => { router.back(); }, 800);
+        } catch (error: any) {
+            Snackbar.show({
+                text: `Failed to send share: ${error.message}`,
+                duration: Snackbar.LENGTH_LONG,
+                backgroundColor: theme.danger,
+                textColor: '#FFFFFF',
+            });
+            setHasScanned(false);
+        }
     };
 
     if (!permission) return <View />;

@@ -41,12 +41,25 @@ const SelectReportsScreen = () => {
         getMeasurements();
     }, [currentPatient?.id])
 
-    const toggleSelection = (id: string) => {
+    const toggleSelection = (item: HealthMeasurement) => {
         const next = new Set(selectedReports);
-        if (next.has(id)) {
-            next.delete(id);
+        
+        // Find the paired diastolic measurement if this is a systolic measurement
+        let diastolicItem: HealthMeasurement | undefined;
+        if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && item.measurement_unit.unit_name.toLowerCase() === 'systolic') {
+            diastolicItem = measurements.find(m => 
+                m.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && 
+                m.measurement_unit.unit_name.toLowerCase() === 'diastolic' && 
+                m.created_at === item.created_at
+            );
+        }
+
+        if (next.has(item.id)) {
+            next.delete(item.id);
+            if (diastolicItem) next.delete(diastolicItem.id);
         } else {
-            next.add(id);
+            next.add(item.id);
+            if (diastolicItem) next.add(diastolicItem.id);
         }
         setSelectedReports(next);
     };
@@ -87,9 +100,21 @@ const SelectReportsScreen = () => {
                                     // if clicking the active filter, toggle selection for all items in this filter
                                     const next = new Set(selectedReports);
                                     if (allFilteredelected) {
-                                        filteredMeasurements.forEach(item => next.delete(item.id));
+                                        filteredMeasurements.forEach(item => {
+                                            next.delete(item.id);
+                                            if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && item.measurement_unit.unit_name.toLowerCase() === 'systolic') {
+                                                const diastolicItem = measurements.find(m => m.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && m.measurement_unit.unit_name.toLowerCase() === 'diastolic' && m.created_at === item.created_at);
+                                                if (diastolicItem) next.delete(diastolicItem.id);
+                                            }
+                                        });
                                     } else {
-                                        filteredMeasurements.forEach(item => next.add(item.id));
+                                        filteredMeasurements.forEach(item => {
+                                            next.add(item.id);
+                                            if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && item.measurement_unit.unit_name.toLowerCase() === 'systolic') {
+                                                const diastolicItem = measurements.find(m => m.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && m.measurement_unit.unit_name.toLowerCase() === 'diastolic' && m.created_at === item.created_at);
+                                                if (diastolicItem) next.add(diastolicItem.id);
+                                            }
+                                        });
                                     }
                                     setSelectedReports(next);
                                 } else {
@@ -153,12 +178,21 @@ const SelectReportsScreen = () => {
                             const secondaryColor = theme.items[unitIndex % theme.items.length]?.secondary || theme.primarySoft;
                             const iconName = iconMap[item.measurement_unit.measurement_group] || 'activity';
 
+                            let diastolicItem: HealthMeasurement | undefined;
+                            if (item.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' && item.measurement_unit.unit_name.toLowerCase() === 'systolic') {
+                                diastolicItem = measurements.find(m =>
+                                    m.measurement_unit.measurement_group.toLowerCase() === 'blood pressure' &&
+                                    m.measurement_unit.unit_name.toLowerCase() === 'diastolic' &&
+                                    m.created_at === item.created_at
+                                );
+                            }
+
                             return (
                                 <ScalePressable
                                     key={item.id}
                                     style={[styles.listItem, { backgroundColor: theme.backgroundLight }]}
                                     activeOpacity={0.7}
-                                    onPress={() => toggleSelection(item.id)}
+                                    onPress={() => toggleSelection(item)}
                                 >
                                     <View style={[styles.iconContainer, { backgroundColor: secondaryColor }]}>
                                         <FontAwesome5 name={iconName} size={22} color={primaryColor} />
@@ -166,7 +200,10 @@ const SelectReportsScreen = () => {
 
                                     <View style={styles.itemContent}>
                                         <View style={styles.valRow}>
-                                            <ThemedText style={styles.itemValue}>{item.numeric_value}</ThemedText>
+                                            <ThemedText style={styles.itemValue}>
+                                                {item.numeric_value}
+                                                {diastolicItem ? `/${diastolicItem.numeric_value}` : ''}
+                                            </ThemedText>
                                             <ThemedText style={styles.itemUnit}> {item.measurement_unit.symbol}</ThemedText>
                                         </View>
                                         <ThemedText style={styles.itemSubtext}>

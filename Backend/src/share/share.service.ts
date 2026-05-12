@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Access_Grant } from '../entities/access_grant.entity';
 import { In, Repository } from 'typeorm';
@@ -20,7 +20,7 @@ export class ShareService {
     ) { }
 
     async shareMeasurement(patientId: string, shareDto: ShareMeasurementDto): Promise<AccessGrantType | null> {
-        if (!patientId) throw new Error('Patient ID is required!');
+        if (!patientId) throw new BadRequestException('Patient ID is required!');
 
         let doctor: Doctor | undefined;
         if (shareDto.doctorEmail) {
@@ -44,7 +44,7 @@ export class ShareService {
     }
 
     async getPatientShares(patientId: string): Promise<AccessGrantType[]> {
-        if (!patientId) throw new Error('Patient ID is required!');
+        if (!patientId) throw new BadRequestException('Patient ID is required!');
 
         return await this.accessGrantRepo.find({
             where: { patient_id: patientId, is_revoked: false },
@@ -54,13 +54,13 @@ export class ShareService {
 
     async getSharedById(shareId: string): Promise<AccessGrantType> {
 
-        if (!shareId) throw new Error('Share ID is required!');
+        if (!shareId) throw new BadRequestException('Share ID is required!');
 
         const grant = await this.accessGrantRepo.findOne({
             where: { id: shareId, is_revoked: false },
             relations: ['doctor', 'patient']
         });
-        if (!grant) throw new Error('No share found with this ID!');
+        if (!grant) throw new NotFoundException('No share found with this ID!');
 
         const measurements = await this.healthMeasurementRepo.find({
             where: { id: In(grant.measurement_ids) },
@@ -71,13 +71,13 @@ export class ShareService {
     }
 
     async getSharedByCode(accessCode: string): Promise<AccessGrantType> {
-        if (!accessCode) throw new Error('Access code is required!');
+        if (!accessCode) throw new BadRequestException('Access code is required!');
 
         const grant = await this.accessGrantRepo.findOne({
             where: { access_token: accessCode, is_revoked: false },
             relations: ['doctor', 'patient']
         });
-        if (!grant) throw new Error('No share found with this code!');
+        if (!grant) throw new NotFoundException('No share found with this code!');
 
         const measurements = await this.healthMeasurementRepo.find({
             where: { id: In(grant.measurement_ids) },
@@ -88,14 +88,14 @@ export class ShareService {
     }
 
     async getSharedMeasurements(shareId: string): Promise<HealthMeasurementType[]> {
-        if (!shareId) throw new Error('Share ID is required!');
+        if (!shareId) throw new BadRequestException('Share ID is required!');
 
         const grant = await this.accessGrantRepo.findOne({
             where: { id: shareId, is_revoked: false },
             relations: ['doctor', 'patient']
         });
 
-        if (!grant) throw new Error('No share found with this ID!');
+        if (!grant) throw new NotFoundException('No share found with this ID!');
 
         return await this.healthMeasurementRepo.find({
             where: { id: In(grant.measurement_ids) },
@@ -104,7 +104,7 @@ export class ShareService {
     }
 
     async revokeShare(patientId: string, shareId: string): Promise<AccessGrantType> {
-        if (!patientId || !shareId) throw new Error('Patient ID and Share ID are required!');
+        if (!patientId || !shareId) throw new BadRequestException('Patient ID and Share ID are required!');
 
         const share = await this.accessGrantRepo.findOne({
             where: { id: shareId, patient_id: patientId }
@@ -119,7 +119,7 @@ export class ShareService {
     }
 
     async hasAccess(doctorId: string, patientId: string, measurementId?: string): Promise<boolean> {
-        if (!doctorId || !patientId) throw new Error('Doctor ID and Patient ID are required!');
+        if (!doctorId || !patientId) throw new BadRequestException('Doctor ID and Patient ID are required!');
 
         const query = this.accessGrantRepo.createQueryBuilder('grant')
             .where('grant.doctor_id = :doctorId', { doctorId })

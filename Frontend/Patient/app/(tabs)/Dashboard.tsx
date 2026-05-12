@@ -113,16 +113,15 @@ const DashboardScreen: React.FC = () => {
               const primaryColor = theme.items[index % theme.items.length].primary;
               const secondaryColor = theme.items[index % theme.items.length].secondary;
 
-              let itemHistory = measurements
+              let fullHistory = measurements
                 .filter(m => m.measurement_unit.measurement_group === unit)
-                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
-                .map(m => m.numeric_value);
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); // oldest to newest
+
+              let itemHistory = fullHistory;
 
               if (unit === 'Blood Pressure') {
-                itemHistory = measurements
-                  .filter(m => m.measurement_unit.measurement_group === unit && m.measurement_unit.unit_name === 'Systolic')
-                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) // oldest to newest
-                  .map(m => m.numeric_value);
+                itemHistory = fullHistory
+                  .filter(m => m.measurement_unit.unit_name === 'Systolic');
               }
 
               return (
@@ -134,6 +133,8 @@ const DashboardScreen: React.FC = () => {
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}
                   itemHistory={itemHistory}
+                  fullHistory={fullHistory}
+                  pathname='/health_measurements/DetailedView'
                 />
               )
             }

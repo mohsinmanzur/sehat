@@ -16,10 +16,12 @@ interface UpdatedMeasurementCardProps {
     iconName: string;
     primaryColor: string;
     secondaryColor: string;
-    itemHistory: number[];
+    itemHistory: HealthMeasurement[];
+    fullHistory?: HealthMeasurement[];
+    pathname: string;
 }
 
-export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ id, item, secondaryItem, iconName, primaryColor, secondaryColor, itemHistory }) => {
+export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ id, item, secondaryItem, iconName, primaryColor, secondaryColor, itemHistory, fullHistory, pathname }) => {
 
     const { theme } = useTheme();
     const styles = StylesFunc(theme);
@@ -29,11 +31,12 @@ export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ 
 
     let chartData = [];
 
-    if (!itemHistory || itemHistory.length <= 1) {
-        chartData = [{ timestamp: 0, value: itemHistory[0] }, { timestamp: 1, value: itemHistory[0] }];
-    }
-    else {
-        chartData = itemHistory.map((val, index) => ({ timestamp: index, value: val }));
+    if (!itemHistory || itemHistory.length === 0) {
+        chartData = [{ timestamp: 0, value: 0 }, { timestamp: 1, value: 0 }];
+    } else if (itemHistory.length === 1) {
+        chartData = [{ timestamp: 0, value: itemHistory[0].numeric_value }, { timestamp: 1, value: itemHistory[0].numeric_value }];
+    } else {
+        chartData = itemHistory.map((val, index) => ({ timestamp: index, value: val.numeric_value }));
     }
 
     return (
@@ -42,7 +45,7 @@ export const UpdatedMeasurementCard: React.FC<UpdatedMeasurementCardProps> = ({ 
                 key={id}
                 style={[styles.container]}
                 disabled={!item}
-                onPress={() => router.push({ pathname: `/health_measurements/DetailedView`, params: { data: JSON.stringify(item), primaryColor, secondaryColor } })}
+                onPress={() => router.push({ pathname: pathname, params: { data: JSON.stringify(fullHistory || itemHistory), primaryColor, secondaryColor } })}
             >
                 {/* Top Row */}
                 <View style={styles.topRow}>

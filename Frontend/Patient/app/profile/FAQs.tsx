@@ -124,7 +124,6 @@ const styleSheet = (theme: typeof Colors.dark) =>
             borderRadius: 100,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: theme.card,
         },
         headerTitle: {
             flex: 1,

@@ -84,7 +84,6 @@ const ChangePasswordScreen: React.FC = () => {
 
                     {/* Card */}
                     <View style={styles.card}>
-                        <ThemedText style={styles.cardTitle}>Change Password</ThemedText>
 
                         {/* New Password */}
                         <View style={styles.inputWrapper}>
@@ -170,7 +169,6 @@ const styleSheet = (theme: typeof Colors.dark) =>
             borderRadius: 100,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: theme.card,
         },
         headerTitle: {
             flex: 1,
@@ -185,7 +183,6 @@ const styleSheet = (theme: typeof Colors.dark) =>
         card: {
             marginHorizontal: 20,
             marginTop: 20,
-            backgroundColor: theme.card,
             borderRadius: 20,
             paddingHorizontal: 20,
             paddingTop: 24,
@@ -201,7 +198,7 @@ const styleSheet = (theme: typeof Colors.dark) =>
         inputWrapper: {
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: theme.backgroundDark,
+            backgroundColor: theme.card,
             borderRadius: 12,
             marginBottom: 16,
             paddingRight: 12,

@@ -115,7 +115,7 @@ const SharedDetailScreen = () => {
                             </ThemedText>
 
                             <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 15 }}>
-                                <ThemedText type={'h1'} style={{ color: theme.primary, fontSize: 35, letterSpacing: 2 }}>
+                                <ThemedText type={'h1'} style={{ color: theme.primary, fontSize: 35, letterSpacing: 1 }}>
                                     {share?.access_token?.substring(0, 3)} {share?.access_token?.substring(3)}
                                 </ThemedText>
                                 <FontAwesomeIcon icon={faCopy} size={18} color={theme.textGray} />
@@ -123,36 +123,13 @@ const SharedDetailScreen = () => {
                         </View>
 
                         <ScalePressable
-                            onPress={() => router.push('/share/ScanQR')}
+                            onPress={() => router.push({ pathname: '/share/ScanQR', params: { shareId: share?.id } })}
                             style={{ padding: 10, marginRight: 5, marginTop: 15, backgroundColor: theme.primarySoft, borderRadius: 10 }}
                         >
                             <FontAwesomeIcon icon={faQrcode} size={24} color={theme.primary} />
                         </ScalePressable>
 
                     </View>
-
-                    <ThemedText style={{ color: theme.textGray, fontSize: 13, marginTop: 20 }}>
-                        SHAREABLE URL
-                    </ThemedText>
-                    <ScalePressable
-                        style={{ padding: 12, backgroundColor: theme.card, borderRadius: 10, marginTop: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
-                        onPress={async () => {
-                            if (share?.access_token) {
-                                await Clipboard.setStringAsync(share.access_token);
-                                Snackbar.show({
-                                    text: 'Link copied to clipboard!',
-                                    duration: Snackbar.LENGTH_SHORT,
-                                    backgroundColor: theme.primarySoft,
-                                    textColor: theme.primary
-                                });
-                            }
-                        }}
-                    >
-                        <ThemedText numberOfLines={1} style={{ color: theme.textGray, width: '90%' }}>
-                            https://stitch.withgoogle.com/projects/844583902641196270
-                        </ThemedText>
-                        <FontAwesomeIcon icon={faCopy} size={18} color={theme.textGray} />
-                    </ScalePressable>
                 </ScalePressable>
 
                 <Spacer height={25} />
