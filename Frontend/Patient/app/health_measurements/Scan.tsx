@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Animated, ActivityIndicator, Pressable } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Animated, ActivityIndicator, Pressable, Platform } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { ThemedButton, ThemedText, ThemedView } from "src/components";
 import { router, useFocusEffect } from 'expo-router';
 import { useTheme } from '@context/ThemeContext';
@@ -43,11 +44,36 @@ export default function ScanDocument() {
         }
     }, [permission, requestPermission]);
 
+    const pickFromGallery = useCallback(async () => {
+        try {
+            setIsProcessing(true);
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: false,
+                quality: 0.8,
+            });
+            if (result.canceled || !result.assets?.[0]?.uri) {
+                if (Platform.OS === 'web') router.back();
+                return;
+            }
+            setScannedImage(result.assets[0].uri);
+            router.back();
+        } catch (error) {
+            console.error('Error picking image from gallery:', error);
+            if (Platform.OS === 'web') router.back();
+        } finally {
+            setIsProcessing(false);
+        }
+    }, [setScannedImage]);
+
     useFocusEffect(
         useCallback(() => {
             setIsActive(true);
+            if (Platform.OS === 'web') {
+                pickFromGallery();
+            }
             return () => setIsActive(false);
-        }, [])
+        }, [pickFromGallery])
     );
 
     const takePicture = async () => {
@@ -101,6 +127,12 @@ export default function ScanDocument() {
                     onPress={requestPermission}
                 >
                     <ThemedText>Grant Permission</ThemedText>
+                </ThemedButton>
+                <ThemedButton
+                    style={{ alignSelf: 'center', marginTop: 12 }}
+                    onPress={pickFromGallery}
+                >
+                    <ThemedText>Choose from Gallery</ThemedText>
                 </ThemedButton>
             </ThemedView>
         );
@@ -159,12 +191,10 @@ export default function ScanDocument() {
         {/* Camera Controls / Shutter Button */}
         <View style={styles.bottomControls}>
             {/* Gallery Button */}
-            <TouchableOpacity 
-                style={styles.iconButton} 
-                onPress={() => {
-                    // TODO: Open gallery
-                    console.log("Gallery clicked");
-                }}
+            <TouchableOpacity
+                style={styles.iconButton}
+                onPress={pickFromGallery}
+                disabled={isProcessing}
             >
                 <Ionicons name="images-outline" size={32} color="#FFFFFF" />
             </TouchableOpacity>

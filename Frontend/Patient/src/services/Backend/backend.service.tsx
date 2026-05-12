@@ -4,7 +4,7 @@ import { UpdateHealthMeasurement } from "../../types/updatetypes";
 import { MeasurementUnitDTO } from "../../types/parameters";
 import { removeValue } from "../Storage/storage.service";
 import { UploadMedicalDocument } from '../../types/others';
-import { API_BASE_URL } from '@env';
+import { API_BASE_URL, OCR_BASE_URL } from '@env';
 
 enum allowedMethods {
     GET,
@@ -333,6 +333,27 @@ class Backend {
         const response = await this.request('/record/image/get-secure-url', allowedMethods.POST, { file_url });
         if (!response.ok) {
             throw new Error(`Error in fetching secure document URL ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
+    // =========================
+    // OCR (local Python service)
+    // =========================
+    async extractTextFromImage(imageUri: string): Promise<{ text: string; label: string; confidence: number }> {
+        const formData = new FormData();
+        formData.append('file', {
+            uri: imageUri,
+            name: 'ocr.jpg',
+            type: 'image/jpeg',
+        } as any);
+
+        const response = await fetch(`${OCR_BASE_URL}/ocr`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!response.ok) {
+            throw new Error(`OCR failed ${response.status}: ${await response.text()}`);
         }
         return await response.json();
     }

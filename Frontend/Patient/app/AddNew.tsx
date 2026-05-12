@@ -44,12 +44,46 @@ export default function AddNewMeasurement() {
     const [specialConditions, setSpecialConditions] = useState<string[]>([]);
     const [selectedSpecialConditions, setSelectedSpecialConditions] = useState<string[]>([]);
 
+    const [ocrText, setOcrText] = useState<string>('');
+    const [ocrLabel, setOcrLabel] = useState<string | null>(null);
+    const [ocrConfidence, setOcrConfidence] = useState<number | null>(null);
+    const [ocrLoading, setOcrLoading] = useState(false);
+    const [ocrError, setOcrError] = useState<string | null>(null);
+
     useEffect(() => {
         backend.getMeasurementUnits().then((units) => {
             setUnits(units);
             setisLoading(false);
         });
     }, []);
+
+    useEffect(() => {
+        if (!scannedImage) {
+            setOcrText('');
+            setOcrLabel(null);
+            setOcrConfidence(null);
+            setOcrError(null);
+            return;
+        }
+        let cancelled = false;
+        setOcrLoading(true);
+        setOcrError(null);
+        backend.extractTextFromImage(scannedImage)
+            .then((res) => {
+                if (cancelled) return;
+                setOcrText(res.text);
+                setOcrLabel(res.label);
+                setOcrConfidence(res.confidence);
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                setOcrError(err?.message ?? 'OCR failed');
+            })
+            .finally(() => {
+                if (!cancelled) setOcrLoading(false);
+            });
+        return () => { cancelled = true; };
+    }, [scannedImage]);
 
     const handleBack = () => {
         router.back();
@@ -95,8 +129,9 @@ export default function AddNewMeasurement() {
             if (scannedImage) {
                 uploadresponse = await backend.createandUploadMedicalDocument({
                     patient_id: currentPatient?.id || '',
-                    record_type: 'other',
+                    record_type: ocrLabel === 'medical prescription' ? 'prescription' : 'other',
                     file: scannedImage,
+                    ocr_extracted_text: ocrText || undefined,
                 });
             }
 
@@ -340,6 +375,37 @@ export default function AddNewMeasurement() {
                     </Pressable>
                 </View>
 
+                {scannedImage && (
+                    <View style={[s.ocrBox, { backgroundColor: theme.card, borderColor: theme.border ?? theme.card }]}>
+                        <View style={s.ocrHeader}>
+                            <MaterialIcons name="text-snippet" size={16} color={theme.primary} />
+                            <Text style={[s.ocrTitle, { color: theme.textGray }]}>EXTRACTED TEXT</Text>
+                            {ocrLabel && (
+                                <Text style={[s.ocrBadge, { color: theme.primary }]}>
+                                    {ocrLabel}{ocrConfidence != null ? ` · ${Math.round(ocrConfidence * 100)}%` : ''}
+                                </Text>
+                            )}
+                        </View>
+                        {ocrLoading ? (
+                            <View style={s.ocrLoading}>
+                                <ActivityIndicator color={theme.primary} size="small" />
+                                <Text style={[s.ocrHint, { color: theme.textLight }]}>Reading prescription…</Text>
+                            </View>
+                        ) : ocrError ? (
+                            <Text style={[s.ocrHint, { color: theme.danger }]}>{ocrError}</Text>
+                        ) : (
+                            <TextInput
+                                value={ocrText}
+                                onChangeText={setOcrText}
+                                multiline
+                                placeholder="No text detected. You can type notes here."
+                                placeholderTextColor={theme.textVeryLight}
+                                style={[s.ocrInput, { color: theme.text }]}
+                            />
+                        )}
+                    </View>
+                )}
+
                 <Text style={[s.hipaaText, { color: theme.textLight }]}>
                     Data is encrypted and stored securely following HIPAA compliance guidelines.
                 </Text>
@@ -487,6 +553,47 @@ const styles = (theme: any) => StyleSheet.create({
     },
     optionPillTextActive: {
         color: theme.primary,
+    },
+
+    /* ── OCR ── */
+    ocrBox: {
+        marginTop: 16,
+        padding: 14,
+        borderRadius: 14,
+        borderWidth: StyleSheet.hairlineWidth,
+    },
+    ocrHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 8,
+    },
+    ocrTitle: {
+        fontSize: 11,
+        fontFamily: 'Lexend_700Bold',
+        letterSpacing: 0.8,
+    },
+    ocrBadge: {
+        marginLeft: 'auto',
+        fontSize: 11,
+        fontFamily: 'Lexend_700Bold',
+    },
+    ocrInput: {
+        fontSize: 14,
+        fontFamily: 'Lexend_400Regular',
+        minHeight: 64,
+        textAlignVertical: 'top',
+        lineHeight: 20,
+    },
+    ocrLoading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingVertical: 8,
+    },
+    ocrHint: {
+        fontSize: 12,
+        fontFamily: 'Lexend_400Regular',
     },
 
     /* ── Footer ── */

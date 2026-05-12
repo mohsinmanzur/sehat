@@ -3,6 +3,12 @@
 /Backend/node_modules
 /Backend/build
 
+# ML / OCR workspace (cloned models, venv, large weights)
+/ml/
+
+# Claude Code user-private settings
+/.claude/
+
 /Frontend/Patient/node_modules
 /Frontend/Patient/.expo
 /Frontend/Patient/dist

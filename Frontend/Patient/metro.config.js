@@ -6,6 +6,7 @@ const config = getDefaultConfig(__dirname);
 const webShims = {
   'react-native-snackbar': path.resolve(__dirname, 'shims/snackbar.web.js'),
   'react-native-date-picker': path.resolve(__dirname, 'shims/date-picker.web.js'),
+  'expo-secure-store': path.resolve(__dirname, 'shims/secure-store.web.js'),
 };
 
 const originalResolveRequest = config.resolver.resolveRequest;
