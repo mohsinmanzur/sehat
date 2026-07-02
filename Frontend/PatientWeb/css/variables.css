@@ -1,0 +1,33 @@
+/* CSS Variables - Colors & Tokens matching Patient & Doctor Frontends */
+:root {
+    --primary: #2A5CFF;
+    --primary-soft: #DDE1FF;
+    --primary-dark: #2047c7;
+    --bg: #ebecff;
+    --bg-strong: #EDF0F7;
+    --card: #ffffff;
+    --surface: #F3F3F4;
+    --surface-soft: #EDF0F7;
+    --text: #1A1C1C;
+    --text-gray: #434656;
+    --text-light: #747688;
+    --text-very-light: #C0C1C8;
+    --border: rgba(26, 28, 28, 0.08);
+    --shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.12);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Patient App Specific Colors for Measurement Cards */
+    --widget-bp: #BA1A1A;
+    --widget-bp-soft: #FFF4F3;
+    --widget-hr: #13acc4;
+    --widget-hr-soft: #f3fdff;
+    --widget-bs: #D98324;
+    --widget-bs-soft: #fffaf3;
+    --widget-temp: #770058;
+    --widget-temp-soft: #fff3fe;
+
+    /* Success overlay states */
+    --success: #4CAF50;
+    --success-light: rgba(76, 175, 80, 0.1);
+}

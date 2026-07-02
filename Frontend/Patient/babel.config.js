@@ -12,7 +12,7 @@ module.exports = function (api) {
           alias: {
             '@screens': './src/screens',
             '@navigation': './src/navigation',
-            '@theme': './src/theme',
+            '@theme': './src/constants',
             '@context': './src/context',
             '@mock': './src/mock',
             '@types': './src/types'

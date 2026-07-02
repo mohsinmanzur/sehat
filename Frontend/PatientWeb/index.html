@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sehat - Medical Convenience & Report Digitization</title>
+    <meta name="description"
+        content="Sehat bridges the gap between patients and doctors with consent-based report digitization, easy data extraction from physical reports, and meaningful health visualizations.">
+    <meta name="keywords"
+        content="Sehat, medical app, patient portal, medical report digitizer, health tracker, secure medical records, consent based sharing">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&family=Public+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modular Stylesheet import -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+
+    <!-- Header / Nav -->
+    <header id="main-header">
+        <div class="container nav-container">
+            <a href="#" class="logo" id="brand-logo">
+                <img src="/assets/logo-colored.png" alt="Sehat Logo">
+                <span>Sehat</span>
+            </a>
+            <!--
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#privacy">Privacy & Security</a>
+            </nav> -->
+            <div class="nav-actions">
+                <a class="play-store-btn compact" id="playstore-header" href="#"
+                    onclick="alert('Demo Version: In production, this links to the Google Play Store listing.')">
+                    <i class="fa-brands fa-google-play play-store-icon"></i>
+                    <div class="play-store-text">
+                        <span class="get-it-on">Get it on</span>
+                        <span class="store-name">Google Play</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-grid">
+
+            <!-- Hero Left Side Content -->
+            <div class="hero-text">
+                <img src="/assets/logo-colored.png" alt="Sehat" width="80%" />
+            </div>
+
+            <!-- Hero Right Side - Interactive Mobile Mockup -->
+            <div class="hero-mockup-wrapper" id="phone-mockup-container">
+                <div
+                    style="color: var(--text); text-align: center; padding: 40px 24px; border: 2px dashed rgba(42, 92, 255, 0.2); border-radius: 24px; max-width: 320px; background-color: var(--card); margin: 0 auto; box-shadow: var(--shadow);">
+                    <i class="fa-solid fa-triangle-exclamation"
+                        style="font-size: 32px; color: var(--primary); margin-bottom: 16px;"></i>
+                    <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 8px;">Interactive Mockup Blocked</h3>
+                    <p style="font-size: 12px; color: var(--text-gray); line-height: 1.5;">Modern browsers block loading
+                        external templates over the <code>file://</code> protocol.</p>
+                    <p style="font-size: 12px; color: var(--text-gray); line-height: 1.5; margin-top: 8px;">Please view
+                        this page via your running local server at <strong
+                            style="color: var(--primary);">http://localhost:8080</strong> (or similar port).</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- App Features Grid -->
+    <section class="features-section section-padding" id="features">
+        <div class="container">
+            <div class="flow-section-header">
+                <div class="hero-badge" style="align-self: center;">Core Capabilities</div>
+                <h2>Features designed for patient autonomy</h2>
+                <p style="color: var(--text-gray);">Sehat provides standard tracking controls and privacy guarantees to
+                    empower your health journey.</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <h3>AI-Powered Digitization</h3>
+                    <p>Upload a photo or PDF of any paper lab report. Our localized AI model scans, extracts variables,
+                        and structures values into visual tracking records automatically.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3>Consent Access Control</h3>
+                    <p>Your records remain locked by default. Doctors request access through custom parameters, which
+                        you approve via time-bound, self-expiring secure passcodes.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3>Insightful Trends</h3>
+                    <p>Stop looking at isolated numbers. Monitor chronological metrics (Blood Sugar, Pressure, Heart
+                        Rate) and review health summaries through elegant dashboard charts.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Flow -->
+    <section class="section-padding" id="how-it-works">
+        <div class="container">
+            <div class="flow-section-header">
+                <div class="hero-badge" style="align-self: center;">Workflow</div>
+                <h2>How Sehat Operates</h2>
+                <p style="color: var(--text-gray);">Sehat bridges the gap between your physical documents and your
+                    doctor’s screen with simple steps.</p>
+            </div>
+
+            <div class="timeline">
+                <!-- Step 1 -->
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <span class="timeline-step">Step 1</span>
+                        <h3>Scan Documents</h3>
+                        <p>Take a picture of a lab document. Sehat structures metrics such as Hemoglobin or Fasting
+                            Glucose values, avoiding tedious manual entry.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <span class="timeline-step">Step 2</span>
+                        <h3>Local Records</h3>
+                        <p>Verify extracted metrics on your dashboard, building a continuous chronological database of
+                            your metrics.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <span class="timeline-step">Step 3</span>
+                        <h3>Doctor Requests</h3>
+                        <p>During clinic visits, your doctor requests access to specific charts via the Sehat Doctor
+                            portal.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <span class="timeline-step">Step 4</span>
+                        <h3>Consent Grant</h3>
+                        <p>Approve the request to generate a temporary secure passcode. Your data is encrypted and
+                            immediately made available to the doctor.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Focus Section -->
+    <section class="section-padding" id="privacy" style="background-color: var(--surface-soft);">
+        <div class="container">
+            <div class="security-banner">
+                <div class="security-text">
+                    <div class="hero-badge">Security First</div>
+                    <h2>Privacy-First Consent Architecture</h2>
+                    <p>
+                        We design Sehat with local database storage, patient consent, and structured access tokens. We
+                        ensure your records remain entirely in your control.
+                    </p>
+                    <div class="security-bullets">
+                        <div class="security-bullet">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Consent-based validation checks</span>
+                        </div>
+                        <div class="security-bullet">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Time-bound, self-revoking permissions</span>
+                        </div>
+                        <div class="security-bullet">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Zero permanent doctor storage</span>
+                        </div>
+                        <div class="security-bullet">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Comprehensive immutable audit logging</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-visual">
+                    <div class="security-shield-card">
+                        <div class="shield-icon">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <span class="shield-title">Guaranteed Control</span>
+                        <span class="shield-caption">No health metrics are shared without your active slide approval.
+                            Revoke keys at any time.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Banner -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="bottom-cta">
+                <h2>Ready to take control of your health records?</h2>
+                <p>Download the Sehat patient mobile application on your device and digitize your medical history today.
+                </p>
+
+                <div class="bottom-cta-download">
+                    <a class="play-store-btn" id="playstore-bottom" href="#"
+                        onclick="alert('Demo Version: In production, this links to the Google Play Store listing.')">
+                        <i class="fa-brands fa-google-play play-store-icon"></i>
+                        <div class="play-store-text">
+                            <span class="get-it-on">Get it on</span>
+                            <span class="store-name">Google Play</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <img src="/assets/logo-colored.png" alt="Sehat Logo">
+                    <span>Sehat</span>
+                </a>
+                <p>Securing reports digitization and patient-doctor collaboration with custom, privacy-preserving
+                    infrastructure.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Application</h4>
+                <div class="footer-links">
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#privacy">Privacy & Security</a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Legal & Contact</h4>
+                <div class="footer-links">
+                    <a href="#"
+                        onclick="alert('Demo Policy: Sehat is a privacy-first academic medical platform.')">Privacy
+                        Policy</a>
+                    <a href="#" onclick="alert('Demo Terms: Consent sharing terms apply.')">Terms of Service</a>
+                    <a href="mailto:mohsinmanzur@gmail.com">Developer Support</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <span>&copy; 2026 Sehat. All rights reserved. Developed at FAST National University, Karachi.</span>
+            <div class="footer-contributors">
+                <span>By:</span>
+                <a href="https://github.com/mohsinmanzur" target="_blank">M. Mohsin</a>
+                <a href="https://github.com/mohsinmanzur" target="_blank">S. Aadil Ahmed</a>
+                <a href="https://github.com/mohsinmanzur" target="_blank">Fabiha Ayela</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript Orchestrator loaded as ES Module -->
+    <script type="module" src="./js/main.js"></script>
+</body>
+
+</html>

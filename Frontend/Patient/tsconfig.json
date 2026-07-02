@@ -16,25 +16,24 @@
       "react",
       "react-native",
     ],
-    "baseUrl": ".",
     "paths": {
       "@screens/*": [
-        "src/screens/*"
+        "./src/screens/*"
       ],
       "@navigation/*": [
-        "src/navigation/*"
+        "./src/navigation/*"
       ],
       "@theme/*": [
-        "src/constants/*"
+        "./src/constants/*"
       ],
       "@context/*": [
-        "src/context/*"
+        "./src/context/*"
       ],
       "@mock/*": [
-        "src/mock/*"
+        "./src/mock/*"
       ],
       "@types/*": [
-        "src/types/*"
+        "./src/types/*"
       ]
     }
   },

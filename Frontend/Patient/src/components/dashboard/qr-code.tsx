@@ -32,7 +32,7 @@ export const QRCodeCard: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 socket.disconnect();
                 console.log(`Received Access to share: ${data.sharingId}`);
                 onClose?.();
-                router.navigate({ pathname: `/share/SharedDashboardScreen`, params: { sharingId: data.sharingId } });
+                router.navigate({ pathname: `/share/SharedDashboard`, params: { sharingId: data.sharingId } });
             }
         });
 

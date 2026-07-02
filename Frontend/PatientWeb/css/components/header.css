@@ -1,0 +1,134 @@
+/* Header Navigation */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: none;
+    transition: var(--transition);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 80px;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 40px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Lexend', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.logo img {
+    height: 38px;
+    width: auto;
+    border-radius: 8px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.nav-links a {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-gray);
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Play Store Button Styled exactly as Play Store specifications */
+.play-store-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #0F172A;
+    color: #ffffff;
+    padding: 10px 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+.play-store-btn:hover {
+    background-color: #000000;
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.play-store-btn.compact {
+    padding: 8px 18px;
+    border-radius: 10px;
+    gap: 8px;
+}
+
+.play-store-icon {
+    font-size: 24px;
+    /* Multi-color gradient for google play icon look */
+    background: linear-gradient(135deg, #00C6FF 0%, #0072FF 50%, #FF007F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.play-store-btn.compact .play-store-icon {
+    font-size: 18px;
+}
+
+.play-store-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.play-store-text .get-it-on {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.play-store-btn.compact .play-store-text .get-it-on {
+    font-size: 8px;
+    margin-bottom: 1px;
+}
+
+.play-store-text .store-name {
+    font-family: 'Lexend', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.play-store-btn.compact .play-store-text .store-name {
+    font-size: 13px;
+}

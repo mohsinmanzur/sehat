@@ -1,0 +1,45 @@
+/* Animations */
+@keyframes laserMove {
+    0% {
+        top: 5%;
+    }
+
+    50% {
+        top: 90%;
+    }
+
+    100% {
+        top: 5%;
+    }
+}
+
+@keyframes breathe {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+@keyframes popCheck {
+    0% {
+        transform: scale(0);
+    }
+
+    90% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}

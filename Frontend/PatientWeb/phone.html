@@ -1,0 +1,257 @@
+<div class="phone-glow"></div>
+<div class="phone-frame">
+
+    <!-- Notch -->
+    <div class="phone-notch">
+        <div class="phone-camera"></div>
+        <div class="phone-sensor"></div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="phone-status-bar">
+        <span id="phone-time">09:41</span>
+        <div class="phone-status-right">
+            <i class="fa-solid fa-signal"></i>
+            <i class="fa-solid fa-wifi"></i>
+            <i class="fa-solid fa-battery-three-quarters"></i>
+        </div>
+    </div>
+
+    <!-- Screen Canvas -->
+    <div class="phone-screen" id="phone-canvas">
+        <div class="phone-content-slider" id="screen-slider">
+
+            <!-- SCREEN 1: Dashboard View -->
+            <div class="phone-screen-view" id="phone-screen-dashboard">
+                <div class="phone-dash-header">
+                    <div class="phone-user-info">
+                        <span class="phone-user-greeting">Welcome back</span>
+                        <span class="phone-user-name" id="user-name-display">Mohsin Manzoor</span>
+                    </div>
+                    <div class="phone-avatar">MM</div>
+                </div>
+
+                <div class="phone-grid-cards">
+                    <!-- Card 1: Blood Pressure -->
+                    <div class="phone-widget"
+                        style="background-color: var(--widget-bp-soft); border-color: rgba(186, 26, 26, 0.15);">
+                        <div class="phone-widget-header">
+                            <div class="phone-widget-icon"
+                                style="background-color: var(--widget-bp); color: white;">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+                            <!-- SVG Sparkline representing BP trend -->
+                            <svg class="phone-sparkline" viewBox="0 0 50 20">
+                                <path d="M0,15 L10,12 L20,16 L30,8 L40,11 L50,5" fill="none"
+                                    stroke="var(--widget-bp)" stroke-width="2.5"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div class="phone-widget-val-row">
+                            <span class="phone-widget-val" style="color: var(--text);">120/80</span>
+                            <span class="phone-widget-unit">mmHg</span>
+                        </div>
+                        <span class="phone-widget-name">Blood Pressure</span>
+                    </div>
+
+                    <!-- Card 2: Heart Rate -->
+                    <div class="phone-widget"
+                        style="background-color: var(--widget-hr-soft); border-color: rgba(19, 172, 196, 0.15);">
+                        <div class="phone-widget-header">
+                            <div class="phone-widget-icon"
+                                style="background-color: var(--widget-hr); color: white;">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <svg class="phone-sparkline" viewBox="0 0 50 20">
+                                <path d="M0,10 L10,8 L20,12 L30,5 L40,9 L50,6" fill="none"
+                                    stroke="var(--widget-hr)" stroke-width="2.5"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div class="phone-widget-val-row">
+                            <span class="phone-widget-val" style="color: var(--text);">72</span>
+                            <span class="phone-widget-unit">bpm</span>
+                        </div>
+                        <span class="phone-widget-name">Heart Rate</span>
+                    </div>
+
+                    <!-- Card 3: Blood Sugar -->
+                    <div class="phone-widget"
+                        style="background-color: var(--widget-bs-soft); border-color: rgba(217, 131, 36, 0.15);">
+                        <div class="phone-widget-header">
+                            <div class="phone-widget-icon"
+                                style="background-color: var(--widget-bs); color: white;">
+                                <i class="fa-solid fa-droplet"></i>
+                            </div>
+                            <svg class="phone-sparkline" viewBox="0 0 50 20">
+                                <path d="M0,8 L10,14 L20,9 L30,12 L40,6 L50,8" fill="none"
+                                    stroke="var(--widget-bs)" stroke-width="2.5"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div class="phone-widget-val-row">
+                            <span class="phone-widget-val" style="color: var(--text);">98</span>
+                            <span class="phone-widget-unit">mg/dL</span>
+                        </div>
+                        <span class="phone-widget-name">Blood Sugar</span>
+                    </div>
+
+                    <!-- Card 4: Temperature -->
+                    <div class="phone-widget"
+                        style="background-color: var(--widget-temp-soft); border-color: rgba(119, 0, 88, 0.15);">
+                        <div class="phone-widget-header">
+                            <div class="phone-widget-icon"
+                                style="background-color: var(--widget-temp); color: white;">
+                                <i class="fa-solid fa-thermometer"></i>
+                            </div>
+                            <svg class="phone-sparkline" viewBox="0 0 50 20">
+                                <path d="M0,12 L10,10 L20,11 L30,8 L40,9 L50,5" fill="none"
+                                    stroke="var(--widget-temp)" stroke-width="2.5"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div class="phone-widget-val-row">
+                            <span class="phone-widget-val" style="color: var(--text);">98.6</span>
+                            <span class="phone-widget-unit">°F</span>
+                        </div>
+                        <span class="phone-widget-name">Body Temp</span>
+                    </div>
+                </div>
+
+                <div class="phone-insight-card">
+                    <div class="phone-insight-icon">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="phone-insight-content">
+                        <span class="phone-insight-title">Sehat Insight</span>
+                        <span class="phone-insight-text">Your health measurements are optimal today. Keep tracking!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 2: AI OCR Scanner View -->
+            <div class="phone-screen-view" id="phone-screen-scanner">
+                <span class="phone-scan-title">AI Document Scanner</span>
+
+                <div class="phone-scan-area">
+                    <div class="phone-scan-laser"></div>
+                    <div class="phone-scan-doc">
+                        <div class="phone-scan-doc-header">
+                            <span>LAB REPORT</span>
+                            <span>09-JUN-2026</span>
+                        </div>
+                        <div class="phone-scan-doc-line">
+                            <span>PATIENT: ARJUN PRASAD</span>
+                        </div>
+                        <br>
+                        <div class="phone-scan-doc-line phone-scan-highlight" id="scan-hl-1">
+                            <span>HEMOGLOBIN</span>
+                            <span>14.2 g/dL</span>
+                        </div>
+                        <div class="phone-scan-doc-line phone-scan-highlight" id="scan-hl-2">
+                            <span>FASTING GLUCOSE</span>
+                            <span>98 mg/dL</span>
+                        </div>
+                        <div class="phone-scan-doc-line phone-scan-highlight" id="scan-hl-3">
+                            <span>CHOLESTEROL</span>
+                            <span>180 mg/dL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phone-scan-results">
+                    <div class="phone-scan-result-row" id="scan-res-1">
+                        <div class="phone-scan-result-left">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Hemoglobin</span>
+                        </div>
+                        <span style="font-family: monospace;">14.2 g/dL</span>
+                    </div>
+                    <div class="phone-scan-result-row" id="scan-res-2">
+                        <div class="phone-scan-result-left">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Glucose (Fasting)</span>
+                        </div>
+                        <span style="font-family: monospace;">98 mg/dL</span>
+                    </div>
+                    <div class="phone-scan-result-row" id="scan-res-3">
+                        <div class="phone-scan-result-left">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Cholesterol</span>
+                        </div>
+                        <span style="font-family: monospace;">180 mg/dL</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: Consent Share View -->
+            <div class="phone-screen-view" id="phone-screen-share" style="position: relative;">
+                <span class="phone-share-title">Consent Access Control</span>
+
+                <div class="phone-request-card" id="consent-request-box">
+                    <div class="phone-doctor-info">
+                        <div class="phone-doctor-avatar">
+                            <i class="fa-solid fa-user-doctor"></i>
+                        </div>
+                        <div class="phone-doctor-details">
+                            <span class="phone-doctor-name">Dr. Aadil Ahmed</span>
+                            <span class="phone-doctor-clinic">FAST Medical Clinic</span>
+                        </div>
+                    </div>
+
+                    <div class="phone-request-scope">
+                        <span style="font-weight: 800; margin-bottom: 2px;">REQUESTED PERMISSIONS:</span>
+                        <div class="phone-scope-item">
+                            <i class="fa-solid fa-circle"></i>
+                            <span>Recent Blood Sugar Logs</span>
+                        </div>
+                        <div class="phone-scope-item">
+                            <i class="fa-solid fa-circle"></i>
+                            <span>Fasting Lab Results (OCR)</span>
+                        </div>
+                    </div>
+
+                    <div class="phone-slider-container" id="consent-slider-container">
+                        <span class="phone-slider-text" id="slider-text">Slide to Grant Access</span>
+                        <div class="phone-slider-handle" id="slider-handle">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Share View Overlay -->
+                <div class="phone-share-success" id="share-success-overlay">
+                    <div class="phone-success-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span class="phone-success-title">Secure Access Active</span>
+                    <span class="phone-success-desc">Dr. Aadil Ahmed can now view your logs securely.</span>
+
+                    <div class="phone-code-box" id="access-code-box">SEHAT-842B-9D1L</div>
+
+                    <div class="phone-countdown" id="countdown-timer">Access Expires: 23:59:59</div>
+
+                    <button class="phone-reset-btn" id="revoke-btn">Revoke Access Immediately</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Nav Mockup inside Mobile Phone -->
+    <div class="phone-nav-bar">
+        <div class="phone-nav-item active" id="phone-nav-dash-btn">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="phone-nav-item" id="phone-nav-scan-btn">
+            <i class="fa-solid fa-camera"></i>
+            <span>Scanner</span>
+        </div>
+        <div class="phone-nav-item" id="phone-nav-share-btn">
+            <i class="fa-solid fa-shield-heart"></i>
+            <span>Shares</span>
+        </div>
+    </div>
+
+</div>

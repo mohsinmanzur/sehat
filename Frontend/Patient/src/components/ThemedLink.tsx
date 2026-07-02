@@ -1,7 +1,7 @@
 import React from 'react'
 import { Pressable } from 'react-native'
 import { ThemedText } from './ThemedText'
-import { Link, LinkProps } from '@react-navigation/native'
+import { Link, LinkProps } from 'expo-router'
 
 export const ThemedLink = ({style, children, ...props}: LinkProps) => {
     return (

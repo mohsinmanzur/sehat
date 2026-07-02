@@ -34,13 +34,19 @@
       }
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "root": "./src/app"
+        }
+      ],
       [
         "expo-camera",
         {
           "cameraPermission": "Allow Sehat Scan to access your camera."
         }
-      ]
+      ],
+      "expo-sqlite"
     ]
   }
 }

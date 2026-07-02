@@ -1,5 +1,4 @@
-import { ReferenceRangeDTO } from "src/types/dto";
-import { GetHealthMeasurement } from "../types/others";
+import { ReferenceRange, HealthMeasurement } from "../types/types";
 
 export function buildSmoothPath(points: { x: number; y: number }[]): string {
     if (points.length < 2) return '';
@@ -36,7 +35,7 @@ export function formatChartDate(dateStr: string): string {
 }
 
 // ─── Trend title ──────────────────────────────────────────────────────────────
-export function getTrendTitle(measurements: GetHealthMeasurement[]): string {
+export function getTrendTitle(measurements: HealthMeasurement[]): string {
     if (measurements.length < 2) return 'Trend';
     const start = new Date(measurements[measurements.length - 1].created_at);
     const end = new Date(measurements[0].created_at);
@@ -68,12 +67,20 @@ export const calculatePoints = (data: number[], width: number, height: number): 
     }).join(" "); // Joins into an SVG readable format like "0,30 20,15 40,25"
 };
 
-export const findBestReferenceRange = (measurement: GetHealthMeasurement, referenceRanges: ReferenceRangeDTO[]): ReferenceRangeDTO | null => {
+export const findBestReferenceRange = (
+    measurement: HealthMeasurement | { special_conditions?: string[]; patient?: { date_of_birth?: Date | string; gender?: string } },
+    referenceRanges: ReferenceRange[],
+    patientFallback?: { date_of_birth?: Date | string; gender?: string }
+): ReferenceRange | null => {
     if (!referenceRanges || referenceRanges.length === 0) return null;
 
-    const patientAge = new Date().getFullYear() - new Date(measurement.patient.date_of_birth).getFullYear();
+    const patient = (measurement as any).patient ?? patientFallback;
+    const patientAge = patient?.date_of_birth != null
+        ? new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear()
+        : null;
+    const patientGender = patient?.gender ?? null;
 
-    let bestMatch: ReferenceRangeDTO | null = null;
+    let bestMatch: ReferenceRange | null = null;
     let highestScore = -Infinity;
 
     for (const range of referenceRanges) {
@@ -81,7 +88,9 @@ export const findBestReferenceRange = (measurement: GetHealthMeasurement, refere
 
         // 1. Gender Match (Highest Priority)
         if (range.target_gender) {
-            if (range.target_gender === measurement.patient.gender) {
+            if (patientGender === null) {
+                score += 500; // Unknown gender — don't discard, but don't reward
+            } else if (range.target_gender === patientGender) {
                 score += 10000;
             } else {
                 continue; // Discard hard mismatches
@@ -90,21 +99,23 @@ export const findBestReferenceRange = (measurement: GetHealthMeasurement, refere
             score += 1000; // Points for gender-neutral applicability
         }
 
-        // 2 & 3. Age Match 
+        // 2 & 3. Age Match
         const hasMinAge = range.min_age !== null && range.min_age !== undefined;
         const hasMaxAge = range.max_age !== null && range.max_age !== undefined;
 
-        if ((hasMinAge && patientAge < range.min_age!) ||
-            (hasMaxAge && patientAge > range.max_age!)) {
-            continue; // Discard if patient falls completely outside required bounds
-        }
+        if (patientAge !== null) {
+            if ((hasMinAge && patientAge < range.min_age!) ||
+                (hasMaxAge && patientAge > range.max_age!)) {
+                continue; // Discard if patient falls completely outside required bounds
+            }
 
-        if (hasMinAge && hasMaxAge) {
-            score += 1000; // Highly specific age range
-        } else if (hasMinAge || hasMaxAge) {
-            score += 500; // Partially specific
-        } else {
-            score += 100; // Unbounded general age range
+            if (hasMinAge && hasMaxAge) {
+                score += 1000; // Highly specific age range
+            } else if (hasMinAge || hasMaxAge) {
+                score += 500; // Partially specific
+            } else {
+                score += 100; // Unbounded general age range
+            }
         }
 
         // 4. Special Conditions Overlap
