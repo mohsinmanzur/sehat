@@ -52,8 +52,8 @@ const DashboardScreen: React.FC = () => {
 
   return (
     <ThemedView safe style={{ backgroundColor: theme.backgroundDark, paddingTop: insets.top }} >
-      <OfflineBanner />
-      <DeviceOnlyBanner isDeviceOnly={isDeviceOnly} />
+      {/*<OfflineBanner />
+      <DeviceOnlyBanner isDeviceOnly={isDeviceOnly} /> */}
       <View style={styles.mainContainer}>
         <Header name={patientName} />
 

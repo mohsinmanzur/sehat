@@ -8,11 +8,16 @@ import { ScalePressable } from 'src/components/ScalePressable';
 import backend from 'src/services/Backend/backend.service';
 import { HealthMeasurement } from '../../types/types';
 import { GhostElement } from 'src/components/GhostElement';
+import { useNetwork } from 'src/context/NetworkContext';
+import { useDatabase } from 'src/context/DatabaseContext';
+import { getDocumentById } from 'src/services/Database/documents.repository';
 
 export default function HealthMeasurementDetailScreen() {
     const { data, data2, primaryColor, secondaryColor, guestMode = "false" } = useLocalSearchParams<{ data: string, data2?: string, primaryColor: string, secondaryColor: string, guestMode: string }>();
     const router = useRouter();
     const { theme } = useTheme();
+    const { isOnline } = useNetwork();
+    const { db } = useDatabase();
 
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
     const [secureUrlLoading, setSecureUrlLoading] = useState(true);
@@ -26,9 +31,56 @@ export default function HealthMeasurementDetailScreen() {
         if (data2) {
             secondaryMeasurement = JSON.parse(data2);
         }
-    } catch (e) {
-        console.error("Failed to parse measurement data", e);
+    } catch {
+        // invalid params
     }
+
+    useEffect(() => {
+        if (!measurement) {
+            setSecureUrlLoading(false);
+            return;
+        }
+        const measurementId = measurement.id;
+        const documentId = measurement.document_id;
+
+        async function loadDocumentImage() {
+            setSecureUrlLoading(true);
+            try {
+                // SQLite local file takes priority — works offline
+                if (documentId && db) {
+                    const doc = await getDocumentById(db, documentId);
+                    if (doc?.local_file_path) {
+                        setSecureUrl(doc.local_file_path);
+                        Image.getSize(doc.local_file_path, (w, h) => {
+                            if (w && h) setImageRatio(w / h);
+                        }, () => {});
+                        return;
+                    }
+                }
+
+                // Fall back to backend only when online
+                if (!isOnline) return;
+
+                const res = await backend.getDocumentUrlfromMeasurementId(measurementId);
+                if (res?.file_url) {
+                    const response = await backend.getSecureDocumentUrl(res.file_url);
+                    const url = response.file_url;
+                    setSecureUrl(url);
+                    if (url) {
+                        Image.getSize(url, (w, h) => {
+                            if (w && h) setImageRatio(w / h);
+                        }, () => {});
+                    }
+                }
+            } catch {
+                // no image available — show nothing
+            } finally {
+                setSecureUrlLoading(false);
+            }
+        }
+
+        loadDocumentImage();
+    }, [measurement?.id, measurement?.document_id, db, isOnline]);
 
     if (!measurement) {
         return (
@@ -42,7 +94,7 @@ export default function HealthMeasurementDetailScreen() {
     }
 
     const handleDelete = async () => {
-        await backend.deleteHealthMeasurement(measurement.id);
+        await backend.deleteHealthMeasurement(measurement!.id);
         if (secondaryMeasurement) {
             await backend.deleteHealthMeasurement(secondaryMeasurement.id);
         }
@@ -55,36 +107,6 @@ export default function HealthMeasurementDetailScreen() {
             params: { data: JSON.stringify(measurement), data2: secondaryMeasurement ? JSON.stringify(secondaryMeasurement) : undefined }
         });
     }
-
-    useEffect(() => {
-        async function loadSecureUrl() {
-            setSecureUrlLoading(true);
-            try {
-                const res = await backend.getDocumentUrlfromMeasurementId(measurement.id);
-                if (res && res.file_url) {
-                    const response = await backend.getSecureDocumentUrl(res.file_url);
-                    const url = response.file_url;
-                    setSecureUrl(url);
-
-                    if (url) {
-                        Image.getSize(url, (width, height) => {
-                            if (width && height) {
-                                setImageRatio(width / height);
-                            }
-                        }, (error) => {
-                            console.error('Failed to get image size:', error);
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to load secure URL", error);
-            }
-            finally {
-                setSecureUrlLoading(false);
-            }
-        }
-        loadSecureUrl();
-    }, [measurement.id]);
 
     // Determine colors based on status
     let themeColor = primaryColor || theme.primary;

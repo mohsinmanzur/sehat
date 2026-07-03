@@ -4,12 +4,13 @@ import { useNetwork } from '../../context/NetworkContext';
 import { useTheme } from '../../context/ThemeContext';
 
 export const OfflineBanner: React.FC = () => {
-    const { isOnline } = useNetwork();
+    const { isOnline, isDeviceOnly } = useNetwork();
     const { theme } = useTheme();
 
     if (isOnline) return null;
 
     return (
+        !isDeviceOnly &&
         <View style={[styles.banner, { backgroundColor: theme.warning + '22', borderColor: theme.warning }]}>
             <Text style={[styles.text, { color: theme.textGray }]}>
                 Offline — showing cached data

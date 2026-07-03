@@ -5,4 +5,3 @@ export * from './MeasurementCard';
 export * from './InsightCard';
 export * from './ShareCard';
 export * from './FloatingActionButton';
-export * from './qr-code';

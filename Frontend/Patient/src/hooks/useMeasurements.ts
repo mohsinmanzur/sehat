@@ -7,7 +7,7 @@ import { syncMeasurements } from '../services/Sync/sync.service';
 
 export function useMeasurements(patientId: string | undefined) {
     const { db } = useDatabase();
-    const { isOnline } = useNetwork();
+    const { isOnline, isDeviceOnly } = useNetwork();
     const [measurements, setMeasurements] = useState<HealthMeasurement[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -38,7 +38,7 @@ export function useMeasurements(patientId: string | undefined) {
     }, [db, patientId]);
 
     const syncAndReload = useCallback(async () => {
-        if (!db || !patientId || !isOnline) return;
+        if (!db || !patientId || !isOnline || isDeviceOnly) return;
         if (isMounted.current) setIsSyncing(true);
         try {
             await syncMeasurements(db, patientId);
@@ -46,7 +46,7 @@ export function useMeasurements(patientId: string | undefined) {
         } finally {
             if (isMounted.current) setIsSyncing(false);
         }
-    }, [db, patientId, isOnline, loadFromDb]);
+    }, [db, patientId, isOnline, isDeviceOnly, loadFromDb]);
 
     useEffect(() => {
         loadFromDb().catch(() => {});
@@ -57,12 +57,12 @@ export function useMeasurements(patientId: string | undefined) {
     }, [syncAndReload]);
 
     const refresh = useCallback(async () => {
-        if (isOnline) {
+        if (isOnline && !isDeviceOnly) {
             await syncAndReload();
         } else {
             await loadFromDb();
         }
-    }, [isOnline, syncAndReload, loadFromDb]);
+    }, [isOnline, isDeviceOnly, syncAndReload, loadFromDb]);
 
     return { measurements, isLoading, isSyncing, isOffline: !isOnline, refresh };
 }

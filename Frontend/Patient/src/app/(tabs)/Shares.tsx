@@ -1,7 +1,7 @@
 import { useTheme } from "@context/ThemeContext";
 import React, { useState, useEffect } from "react";
 import { Colors } from "../../constants/colors";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { RefreshControl, StyleSheet, View, useWindowDimensions } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { SvgXml } from "react-native-svg";
 import { doctorSvg } from "../../constants/avatars";
@@ -11,11 +11,10 @@ import { useCurrentPatient } from "@context/PatientContext";
 import { useShares } from "../../hooks/useShares";
 import { useNetwork } from "../../context/NetworkContext";
 import { useDeviceOnlySetting } from "../../hooks/useDeviceOnlySetting";
-import { OfflineBanner } from "../../components/common/OfflineBanner";
-import { DeviceOnlyBanner } from "../../components/common/DeviceOnlyBanner";
+// import { DeviceOnlyBanner } from "../../components/common/DeviceOnlyBanner";
 import { Spacer, ThemedText, ThemedView } from "../../components";
 import { ScalePressable } from "../../components/ScalePressable";
-import backend from "../../services/Backend/backend.service";
+import { QRCodeButton } from "../../components/share/QRCodeButton";
 
 export function CountdownTimer({ expiresAt, style }: { expiresAt: string | Date, style?: any }) {
     const calculateTimeLeft = () => {
@@ -44,12 +43,12 @@ export default function Share() {
     const { currentPatient } = useCurrentPatient();
     const { isOnline } = useNetwork();
     const { isDeviceOnly } = useDeviceOnlySetting(currentPatient?.id);
+    const { height: windowHeight } = useWindowDimensions();
 
     const styles = StylesFunc(theme);
 
-    const { shares: currentAccessGrants, isLoading, isSyncing, refresh } = useShares(currentPatient?.id);
+    const { shares: currentAccessGrants, isSyncing, refresh } = useShares(currentPatient?.id);
 
-    const [revokingId, setRevokingId] = useState<string | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
     const onRefresh = async () => {
@@ -58,69 +57,60 @@ export default function Share() {
         setRefreshing(false);
     };
 
-    const handleRevokeAccess = async (id: string) => {
-        if (!isOnline) {
-            Snackbar.show({
-                text: 'Cannot revoke access while offline',
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: theme.danger,
-            });
-            return;
-        }
-        setRevokingId(id);
-        try {
-            await backend.revokeShare(currentPatient!.id!, id);
-            await refresh();
-            Snackbar.show({
-                text: 'Access revoked successfully',
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: theme.primarySoft,
-                textColor: theme.primary,
-            });
-        } catch (error: any) {
-            Snackbar.show({
-                text: `Failed to revoke access: ${error.message}`,
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: theme.danger,
-                textColor: theme.text,
-            });
-        } finally {
-            setRevokingId(null);
-        }
-    };
-
     const activeGrants = currentAccessGrants.filter(
         (item) => item.expires_at && new Date(item.expires_at).getTime() - new Date().getTime() > 0
     );
 
     return (
-        <>
-            <OfflineBanner />
-            <DeviceOnlyBanner isDeviceOnly={isDeviceOnly} />
-            <ThemedView
-                safe
-                scroll
-                style={styles.container}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing || isSyncing}
-                        onRefresh={onRefresh}
-                        colors={[theme.primary]}
-                        tintColor={theme.primary}
-                        progressBackgroundColor={theme.backgroundLight}
-                    />
-                }
-            >
-                <ThemedText type={'h1'} style={styles.title}>
-                    Shared Health Records
-                </ThemedText>
+        <ThemedView
+            safe
+            scroll
+            style={styles.container}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing || isSyncing}
+                    onRefresh={onRefresh}
+                    colors={[theme.primary]}
+                    tintColor={theme.primary}
+                    progressBackgroundColor={theme.backgroundLight}
+                />
+            }
+        >
+            {/* <DeviceOnlyBanner isDeviceOnly={isDeviceOnly} /> */}
+            <View style={{ flex: 1, paddingHorizontal: 20 }}>
 
-                <ThemedText style={{ color: theme.textGray, marginBottom: 24, marginTop: -5, fontSize: 14, lineHeight: 20 }}>
-                    Here are all your shared health records.
-                </ThemedText>
+                {(!isOnline || isDeviceOnly) && (
+                    <View style={{ height: windowHeight * 0.7, justifyContent: 'center', alignItems: 'center' }}>
+                        <Spacer height={180} />
+                        <FontAwesome5 name={isDeviceOnly ? 'mobile-alt' : 'wifi'} color={theme.textGray} size={24} />
+                        <ThemedText type={'h3'} style={{ textAlign: 'center', paddingTop: 15 }}>
+                            {isDeviceOnly ? "Sharing isn't available in Device Only mode" : "Sharing isn't available offline"}
+                        </ThemedText>
+                        <ThemedText style={{ fontSize: 14, color: theme.textGray, paddingHorizontal: 30, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+                            {isDeviceOnly
+                                ? 'Turn off Device Only mode in Settings to view and manage your shared records.'
+                                : 'Reconnect to the internet to view and manage your shared records.'}
+                        </ThemedText>
+                    </View>
+                )}
 
-                {activeGrants.length === 0 && (
+                {isOnline && !isDeviceOnly}
+
+                {isOnline && !isDeviceOnly && (<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View>
+                        <ThemedText type={'h1'} style={styles.title}>
+                            Shared Records
+                        </ThemedText>
+
+                        <ThemedText style={{ color: theme.textGray, marginBottom: 24, marginTop: -5, fontSize: 14, lineHeight: 20 }}>
+                            Here are your shared health records.
+                        </ThemedText>
+                    </View>
+                    {isOnline && <QRCodeButton />}
+                </View>)}
+
+                {isOnline && !isDeviceOnly && activeGrants.length === 0 && (
                     <View style={{ height: '160%', justifyContent: 'center', alignItems: 'center' }}>
                         <ThemedText style={{ fontSize: 15, color: theme.textGray, paddingHorizontal: 20, textAlign: 'center', marginTop: 20 }}>
                             No reports currently shared.
@@ -128,7 +118,7 @@ export default function Share() {
                     </View>
                 )}
 
-                {activeGrants.map((item) => (
+                {isOnline && !isDeviceOnly && activeGrants.map((item) => (
                     <ScalePressable
                         key={item.id}
                         style={styles.accessView}
@@ -162,19 +152,21 @@ export default function Share() {
                         </View>
                     </ScalePressable>
                 ))}
-
                 <Spacer height={180} />
-            </ThemedView>
-        </>
+            </View>
+        </ThemedView>
     );
 }
 
 const StylesFunc = (theme: typeof Colors.dark) => StyleSheet.create({
     container: {
         flex: 1,
-        paddingLeft: 20,
-        paddingRight: 20,
         paddingBottom: 0
+    },
+    titleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     title: {
         paddingTop: 20,

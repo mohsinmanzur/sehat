@@ -17,6 +17,9 @@
       "react-native",
     ],
     "paths": {
+      "src/*": [
+        "./src/*"
+      ],
       "@screens/*": [
         "./src/screens/*"
       ],

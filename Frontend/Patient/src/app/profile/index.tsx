@@ -21,7 +21,7 @@ import { useDeviceOnlySetting } from "../../hooks/useDeviceOnlySetting";
 
 const ProfileScreen: React.FC = () => {
     const { theme } = useTheme();
-    const { currentPatient, setCurrentPatient } = useCurrentPatient();
+    const { currentPatient } = useCurrentPatient();
     const { isDeviceOnly, setIsDeviceOnly } = useDeviceOnlySetting(currentPatient?.id);
 
     const styles = styleSheet(theme);

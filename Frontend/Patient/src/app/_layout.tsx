@@ -84,17 +84,17 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <DatabaseProvider>
-        <NetworkProvider>
-          <GlobalProvider>
-            <SafeAreaProvider>
-              <ThemeProvider>
+        <ThemeProvider>
+          <NetworkProvider>
+            <GlobalProvider>
+              <SafeAreaProvider>
                 <UserProvider>
                   <RootLayoutNav />
                 </UserProvider>
-              </ThemeProvider>
-            </SafeAreaProvider>
-          </GlobalProvider>
-        </NetworkProvider>
+              </SafeAreaProvider>
+            </GlobalProvider>
+          </NetworkProvider>
+        </ThemeProvider>
       </DatabaseProvider>
     </GestureHandlerRootView>
   );

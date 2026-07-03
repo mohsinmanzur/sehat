@@ -3,6 +3,7 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@context/ThemeContext';
+import { useNetwork } from '../../context/NetworkContext';
 import { Colors } from '@theme/colors';
 import Animated, {
   useAnimatedStyle,
@@ -20,6 +21,7 @@ import { useEffect } from 'react';
 export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
   const { theme } = useTheme();
+  const { isOnline } = useNetwork();
   const insets = useSafeAreaInsets();
   const styles = stylesFunc(theme);
 
@@ -71,8 +73,11 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
     };
   });
 
+  const isShareDisabled = isSharesTab && !isOnline;
+
   const handleFabPress = () => {
     if (isSharesTab) {
+      if (isShareDisabled) return;
       router.push('/NewShare');
     } else {
       router.push('/AddNew');
@@ -80,6 +85,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
   };
 
   const foregroundColor = '#ffffff';
+  const fabIconColor = isShareDisabled ? 'rgba(255, 255, 255, 0.45)' : foregroundColor;
 
   return (
     <>
@@ -138,13 +144,16 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
         {/* Floating Action Button */}
         <BlurView intensity={10} tint={'default'} style={[styles.actionButton, mode === 'light' && { backgroundColor: theme.textGray + 60 }]}>
-          <ScalePressable style={styles.actionButtonInner} onPress={handleFabPress}>
+          <ScalePressable style={styles.actionButtonInner} onPress={handleFabPress} disabled={isShareDisabled}>
             <Animated.View style={addIconStyle}>
               <MaterialIcons name="add" size={30} color={foregroundColor} />
             </Animated.View>
             <Animated.View style={shareIconStyle}>
-              <MaterialIcons name="share" size={24} color={foregroundColor} />
+              <MaterialIcons name="share" size={24} color={fabIconColor} />
             </Animated.View>
+            {isShareDisabled && (
+              <View pointerEvents="none" style={styles.fabDisabledStrike} />
+            )}
           </ScalePressable>
         </BlurView>
       </View>
@@ -221,5 +230,13 @@ const stylesFunc = (theme: typeof Colors.light) => StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  fabDisabledStrike: {
+    position: 'absolute',
+    width: 34,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    transform: [{ rotate: '-45deg' }],
   },
 });
