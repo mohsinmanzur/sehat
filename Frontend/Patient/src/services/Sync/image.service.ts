@@ -30,7 +30,7 @@ export async function downloadAndCacheDocumentImage(
             return destFile.uri;
         }
 
-        const { url: secureUrl } = await backend.getSecureDocumentUrl(fileUrl);
+        const { file_url: secureUrl } = await backend.getSecureDocumentUrl(fileUrl);
         await File.downloadFileAsync(secureUrl, destFile, { idempotent: true });
         await updateLocalFilePath(db, docId, destFile.uri);
         return destFile.uri;

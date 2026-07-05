@@ -23,11 +23,13 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { db } = useDatabase();
     const { isOnline, isDeviceOnly } = useNetwork();
     const prevOnlineRef = useRef(false);
+    const lastSyncedPatientRef = useRef<string | null>(null);
 
     useEffect(() => {
         backend.setOnLogout(() => {
             setCurrentPatient(null);
             removeValue('currentPatient');
+            lastSyncedPatientRef.current = null;
             router.replace('/(auth)/Login');
         });
 
@@ -39,9 +41,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setCurrentPatient(patient);
                     if (db) {
                         upsertPatient(db, patient).catch(() => {});
-                        if (isOnline && !isDeviceOnly) {
-                            syncAllForPatient(db, patient.id!).catch(() => {});
-                        }
                     }
                 }
             } catch (error) {
@@ -53,9 +52,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loadCurrentPatient();
     }, [db]);
 
-    // Trigger sync and queue drain when device comes back online
+    // Sync whenever we have an online, ready patient not yet synced this session —
+    // covers app restart, a fresh login/signup mid-session, and reconnecting after being offline.
     useEffect(() => {
-        if (isOnline && !prevOnlineRef.current && !isDeviceOnly && currentPatient?.id && db) {
+        const justCameOnline = isOnline && !prevOnlineRef.current;
+        const isNewPatientThisSession = !!currentPatient?.id && lastSyncedPatientRef.current !== currentPatient.id;
+
+        if (isOnline && !isDeviceOnly && currentPatient?.id && db && (justCameOnline || isNewPatientThisSession)) {
+            lastSyncedPatientRef.current = currentPatient.id;
             drainMutationQueue(db, currentPatient.id).catch(() => {});
             syncAllForPatient(db, currentPatient.id).catch(() => {});
         }

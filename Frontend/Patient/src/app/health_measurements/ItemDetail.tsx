@@ -11,6 +11,8 @@ import { GhostElement } from 'src/components/GhostElement';
 import { useNetwork } from 'src/context/NetworkContext';
 import { useDatabase } from 'src/context/DatabaseContext';
 import { getDocumentById } from 'src/services/Database/documents.repository';
+import { useCurrentPatient } from 'src/context/PatientContext';
+import { useOfflineMutation } from 'src/hooks/useOfflineMutation';
 
 export default function HealthMeasurementDetailScreen() {
     const { data, data2, primaryColor, secondaryColor, guestMode = "false" } = useLocalSearchParams<{ data: string, data2?: string, primaryColor: string, secondaryColor: string, guestMode: string }>();
@@ -18,6 +20,8 @@ export default function HealthMeasurementDetailScreen() {
     const { theme } = useTheme();
     const { isOnline } = useNetwork();
     const { db } = useDatabase();
+    const { currentPatient } = useCurrentPatient();
+    const { deleteMeasurement } = useOfflineMutation(currentPatient?.id);
 
     const [secureUrl, setSecureUrl] = useState<string | null>(null);
     const [secureUrlLoading, setSecureUrlLoading] = useState(true);
@@ -94,9 +98,9 @@ export default function HealthMeasurementDetailScreen() {
     }
 
     const handleDelete = async () => {
-        await backend.deleteHealthMeasurement(measurement!.id);
+        await deleteMeasurement(measurement!.id!);
         if (secondaryMeasurement) {
-            await backend.deleteHealthMeasurement(secondaryMeasurement.id);
+            await deleteMeasurement(secondaryMeasurement.id!);
         }
         router.back();
     }

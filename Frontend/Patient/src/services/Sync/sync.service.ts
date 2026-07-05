@@ -11,9 +11,8 @@ export async function syncAllForPatient(
     db: SQLite.SQLiteDatabase,
     patientId: string
 ): Promise<void> {
-    await syncUnitsAndRanges(db);
     await syncDocuments(db, patientId);   // documents before measurements (measurement.document_id FK)
-    await syncMeasurements(db, patientId);
+    await syncMeasurements(db, patientId); // syncs units/ranges first (measurement.unit_id FK)
     await syncShares(db, patientId);
 }
 
@@ -21,6 +20,9 @@ export async function syncMeasurements(
     db: SQLite.SQLiteDatabase,
     patientId: string
 ): Promise<void> {
+    // Units and reference ranges are a priority — measurements FK-reference them and
+    // they should always be available offline, so pull them before the measurements themselves.
+    await syncUnitsAndRanges(db);
     try {
         const measurements = await backend.getMeasurementsByPatient(patientId);
         if (measurements?.length) {
@@ -63,11 +65,7 @@ export async function syncDocuments(
     patientId: string
 ): Promise<void> {
     try {
-        const response = await fetch(`${backend['baseUrl']}/record/?patient_id=${patientId}`, {
-            headers: { 'Authorization': `Bearer ${backend['jwtToken']}` },
-        });
-        if (!response.ok) return;
-        const docs = await response.json();
+        const docs = await backend.getMedicalDocumentsByPatient(patientId);
         if (docs?.length) {
             await upsertDocuments(db, docs, patientId);
             await ensureLocalDocumentImages(db, docs);

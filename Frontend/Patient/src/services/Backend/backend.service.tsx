@@ -308,6 +308,14 @@ class Backend {
         return await response.json();
     }
 
+    async getMedicalDocumentsByPatient(patientId: string) {
+        const response = await this.request(`/record/?patient_id=${patientId}`, allowedMethods.GET);
+        if (!response.ok) {
+            throw new Error(`Error in fetching medical documents ${response.status} ${response.statusText}: ${await response.text()}`);
+        }
+        return await response.json();
+    }
+
     async getDocumentUrlfromMeasurementId(Id: string) {
         const response = await this.request(`/record/document-url?id=${Id}`, allowedMethods.GET);
         if (!response.ok) {

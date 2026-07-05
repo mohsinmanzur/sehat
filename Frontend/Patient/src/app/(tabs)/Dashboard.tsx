@@ -10,26 +10,20 @@ import { UpdatedMeasurementCard } from '../../components/dashboard/UpdatedMeasur
 import { iconMap } from '../../constants/general';
 import { SkeletonCard } from '../../components/dashboard/SkeletonCard';
 import { useMeasurements } from '../../hooks/useMeasurements';
-import { useDeviceOnlySetting } from '../../hooks/useDeviceOnlySetting';
-import { OfflineBanner } from '../../components/common/OfflineBanner';
-import { DeviceOnlyBanner } from '../../components/common/DeviceOnlyBanner';
-import { useNetwork } from '../../context/NetworkContext';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
   const { currentPatient } = useCurrentPatient();
-  const { isOnline } = useNetwork();
   const insets = useSafeAreaInsets();
   const patientName = currentPatient?.name?.split(' ')[0] || 'Arjun';
 
   const { measurements, isLoading, isSyncing, refresh } = useMeasurements(currentPatient?.id);
-  const { isDeviceOnly } = useDeviceOnlySetting(currentPatient?.id);
 
   const [refreshing, setRefreshing] = React.useState(false);
 
   const units = [...new Set(measurements.map((m: HealthMeasurement) => m.measurement_unit?.measurement_group).filter(Boolean))].reverse() as string[];
 
-  const getLatest = (keyword: string, unit_name?: string) => {
+  const getLatestMeasurementsForUnit = (keyword: string, unit_name?: string) => {
     return measurements
       .filter(m => {
         const groupMatch = m.measurement_unit?.measurement_group?.match(keyword);
@@ -46,9 +40,6 @@ const DashboardScreen: React.FC = () => {
     await refresh();
     setRefreshing(false);
   };
-
-  // Show "connect once" empty state only when SQLite is empty, offline, and not device-only
-  const showConnectPrompt = !isLoading && measurements.length === 0 && !isOnline && !isDeviceOnly;
 
   return (
     <ThemedView safe style={{ backgroundColor: theme.backgroundDark, paddingTop: insets.top }} >
@@ -75,7 +66,7 @@ const DashboardScreen: React.FC = () => {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
-            data={showConnectPrompt ? [] : units}
+            data={units}
             keyExtractor={(item, index) => index.toString()}
             numColumns={2}
             columnWrapperStyle={styles.cardWrapper}
@@ -89,7 +80,6 @@ const DashboardScreen: React.FC = () => {
               />
             }
             ListEmptyComponent={
-              showConnectPrompt ? (
                 <View style={styles.emptyContainer}>
                   <View style={[styles.emptyBox, { backgroundColor: theme.card }]}>
                     <Text style={[styles.emptyTitle, { color: theme.text }]}>No offline data found</Text>
@@ -98,11 +88,10 @@ const DashboardScreen: React.FC = () => {
                     </Text>
                   </View>
                 </View>
-              ) : null
             }
             renderItem={({ item: unit, index }) => {
-              const latest = unit === 'Blood Pressure' ? getLatest(unit, 'Systolic') : getLatest(unit);
-              const secondaryLatest = unit === 'Blood Pressure' ? getLatest(unit, 'Diastolic') : undefined;
+              const latest = unit === 'Blood Pressure' ? getLatestMeasurementsForUnit(unit, 'Systolic') : getLatestMeasurementsForUnit(unit);
+              const secondaryLatest = unit === 'Blood Pressure' ? getLatestMeasurementsForUnit(unit, 'Diastolic') : undefined;
               const iconName = iconMap[unit] || 'activity';
 
               const primaryColor = theme.items[index % theme.items.length].primary;
