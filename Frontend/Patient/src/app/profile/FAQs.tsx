@@ -10,14 +10,8 @@ import {
     ScrollView,
     TouchableOpacity,
     LayoutAnimation,
-    Platform,
-    UIManager,
 } from "react-native";
 import { ThemedText, ThemedView } from "src/components";
-
-if (Platform.OS === "android") {
-    UIManager.setLayoutAnimationEnabledExperimental?.(true);
-}
 
 const faqs = [
     {
