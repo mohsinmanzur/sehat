@@ -27,6 +27,7 @@ const ProfileScreen: React.FC = () => {
     const styles = styleSheet(theme);
 
     const handleDeviceOnlyToggle = (value: boolean) => {
+        /*
         if (value) {
             Alert.alert(
                 'Enable Device-Only Mode',
@@ -46,6 +47,8 @@ const ProfileScreen: React.FC = () => {
                 ]
             );
         }
+        */
+       setIsDeviceOnly(value);
     };
 
     const handleLogout = async () => {
