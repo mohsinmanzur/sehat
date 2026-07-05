@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { Paths, Directory } from 'expo-file-system';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -110,6 +111,26 @@ export async function openAndInitDatabase(): Promise<SQLite.SQLiteDatabase> {
     `);
 
     return db;
+}
+
+export async function clearAllData(db: SQLite.SQLiteDatabase): Promise<void> {
+    // Delete order respects FK constraints:
+    // pending_mutations has no FKs; deleting patients cascades to
+    // health_measurements, medical_documents, access_grants;
+    // deleting measurement_units cascades to reference_ranges.
+    await db.execAsync(`
+        DELETE FROM pending_mutations;
+        DELETE FROM patients;
+        DELETE FROM measurement_units;
+    `);
+
+    // Remove locally cached document images
+    try {
+        const docsDir = new Directory(Paths.document, 'medical_docs');
+        if (docsDir.exists) docsDir.delete();
+    } catch {
+        // non-critical — files will be re-downloaded on next login
+    }
 }
 
 export function serializeJson(value: unknown): string | null {

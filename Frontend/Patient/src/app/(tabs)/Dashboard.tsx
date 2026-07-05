@@ -1,25 +1,26 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, View, RefreshControl, FlatList, Text } from 'react-native';
 import { useCurrentPatient } from '../../context/PatientContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Header } from '../../components/dashboard';
-import { ThemedView } from '../../components';
+import { Spacer, ThemedText, ThemedView } from '../../components';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HealthMeasurement } from '../../types/types';
 import { UpdatedMeasurementCard } from '../../components/dashboard/UpdatedMeasurementCard';
 import { iconMap } from '../../constants/general';
 import { SkeletonCard } from '../../components/dashboard/SkeletonCard';
 import { useMeasurements } from '../../hooks/useMeasurements';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
   const { currentPatient } = useCurrentPatient();
   const insets = useSafeAreaInsets();
   const patientName = currentPatient?.name?.split(' ')[0] || 'Arjun';
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const { measurements, isLoading, isSyncing, refresh } = useMeasurements(currentPatient?.id);
-
-  const [refreshing, setRefreshing] = React.useState(false);
 
   const units = [...new Set(measurements.map((m: HealthMeasurement) => m.measurement_unit?.measurement_group).filter(Boolean))].reverse() as string[];
 
@@ -34,6 +35,18 @@ const DashboardScreen: React.FC = () => {
       })
       .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())[0];
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      (async () => {
+        setRefreshing(true);
+        await refresh();
+        if (active) setRefreshing(false);
+      })();
+      return () => { active = false; };
+    }, [refresh])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -80,14 +93,16 @@ const DashboardScreen: React.FC = () => {
               />
             }
             ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <View style={[styles.emptyBox, { backgroundColor: theme.card }]}>
-                    <Text style={[styles.emptyTitle, { color: theme.text }]}>No offline data found</Text>
-                    <Text style={[styles.emptySubtitle, { color: theme.textGray }]}>
-                      Connect to the internet to sync your measurements.
-                    </Text>
-                  </View>
-                </View>
+              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                  <Spacer height={180} />
+                  <FontAwesome5 name={'plus'} color={theme.textGray} size={24} />
+                  <ThemedText type={'h3'} style={{ textAlign: 'center', paddingTop: 15 }}>
+                      {"Add New Measurements!"}
+                  </ThemedText>
+                  <ThemedText style={{ fontSize: 14, color: theme.textGray, paddingHorizontal: 30, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+                      {'Start by adding new measurements here.'}
+                  </ThemedText>
+              </View>
             }
             renderItem={({ item: unit, index }) => {
               const latest = unit === 'Blood Pressure' ? getLatestMeasurementsForUnit(unit, 'Systolic') : getLatestMeasurementsForUnit(unit);

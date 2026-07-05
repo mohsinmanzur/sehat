@@ -25,6 +25,8 @@ export const WeightChart: React.FC<WeightChartProps> = ({ measurements, secondar
     const chronological = [...measurements].reverse();
     const chronologicalSecondary = [...secondaryMeasurements].reverse();
 
+    if (chronological.length === 0) return null;
+
     if (chronological.length < 2) {
         chronological[1] = chronological[0];
         chronologicalSecondary[1] = chronologicalSecondary[0];

@@ -1,5 +1,5 @@
 import { useTheme } from '@context/ThemeContext';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Animated, RefreshControl } from 'react-native';
 import { ThemedText, ThemedView } from 'src/components';
@@ -33,7 +33,7 @@ export default function DetailedViewScreen() {
         }
     }, [data]);
 
-    const { measurements: allPatientMeasurements, isLoading, isSyncing, refresh } = useMeasurements(currentPatient?.id);
+    const { measurements: allPatientMeasurements, isLoading, isSyncing, refresh, reloadFromCache } = useMeasurements(currentPatient?.id);
     const { ranges: primaryRanges } = useReferenceRanges(measurement?.measurement_unit?.id);
 
     const [refreshing, setRefreshing] = useState(false);
@@ -82,6 +82,22 @@ export default function DetailedViewScreen() {
         await refresh();
         setRefreshing(false);
     }, [refresh]);
+
+    // Reload from SQLite each time the screen comes into focus (e.g. returning from ItemDetail after a delete)
+    useFocusEffect(
+        useCallback(() => {
+            reloadFromCache().catch(() => {});
+        }, [reloadFromCache])
+    );
+
+    // Navigate back when the last measurement in this group has been deleted
+    const hadMeasurementsRef = useRef(false);
+    useEffect(() => {
+        if (allMeasurements.length > 0) hadMeasurementsRef.current = true;
+        if (!isLoading && hadMeasurementsRef.current && allMeasurements.length === 0) {
+            router.back();
+        }
+    }, [isLoading, allMeasurements]);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(24)).current;

@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { useDatabase } from './DatabaseContext';
 import { useNetwork } from './NetworkContext';
 import { upsertPatient } from '../services/Database/patient.repository';
+import { clearAllData } from '../services/Database/database.service';
 import { syncAllForPatient } from '../services/Sync/sync.service';
 import { drainMutationQueue } from '../services/Sync/mutation.service';
 
@@ -25,12 +26,23 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const prevOnlineRef = useRef(false);
     const lastSyncedPatientRef = useRef<string | null>(null);
 
+    // Keep patient row in SQLite current whenever the patient object changes (covers OTP login)
+    useEffect(() => {
+        if (currentPatient && db) {
+            upsertPatient(db, currentPatient).catch(() => {});
+        }
+    }, [currentPatient, db]);
+
     useEffect(() => {
         backend.setOnLogout(() => {
             setCurrentPatient(null);
             removeValue('currentPatient');
             lastSyncedPatientRef.current = null;
-            router.replace('/(auth)/Login');
+            const clearAndNavigate = async () => {
+                if (db) await clearAllData(db).catch(() => {});
+                router.replace('/(auth)/Login');
+            };
+            clearAndNavigate();
         });
 
         const loadCurrentPatient = async () => {
@@ -39,9 +51,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const patient = await getObject<Patient | null>('currentPatient');
                 if (patient) {
                     setCurrentPatient(patient);
-                    if (db) {
-                        upsertPatient(db, patient).catch(() => {});
-                    }
                 }
             } catch (error) {
                 console.error('Failed to load patient from storage:', error);

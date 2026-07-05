@@ -11,8 +11,9 @@ export async function syncAllForPatient(
     db: SQLite.SQLiteDatabase,
     patientId: string
 ): Promise<void> {
-    await syncDocuments(db, patientId);   // documents before measurements (measurement.document_id FK)
-    await syncMeasurements(db, patientId); // syncs units/ranges first (measurement.unit_id FK)
+    await syncPatientProfile(db, patientId); // patient row must exist before FK-dependent writes
+    await syncDocuments(db, patientId);      // documents before measurements (measurement.document_id FK)
+    await syncMeasurements(db, patientId);   // syncs units/ranges first (measurement.unit_id FK)
     await syncShares(db, patientId);
 }
 

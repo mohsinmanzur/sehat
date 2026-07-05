@@ -21,7 +21,7 @@ import { useEffect } from 'react';
 export default function CustomTabBar({ state, descriptors, navigation }: any) {
 
   const { theme } = useTheme();
-  const { isOnline } = useNetwork();
+  const { isOnline, isDeviceOnly } = useNetwork();
   const insets = useSafeAreaInsets();
   const styles = stylesFunc(theme);
 
@@ -73,7 +73,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
     };
   });
 
-  const isShareDisabled = isSharesTab && !isOnline;
+  const isShareDisabled = isSharesTab && (!isOnline || isDeviceOnly);
 
   const handleFabPress = () => {
     if (isSharesTab) {

@@ -64,5 +64,5 @@ export function useMeasurements(patientId: string | undefined) {
         }
     }, [isOnline, isDeviceOnly, syncAndReload, loadFromDb]);
 
-    return { measurements, isLoading, isSyncing, isOffline: !isOnline, refresh };
+    return { measurements, isLoading, isSyncing, isOffline: !isOnline, refresh, reloadFromCache: loadFromDb };
 }
