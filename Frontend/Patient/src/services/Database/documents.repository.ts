@@ -104,6 +104,24 @@ export async function reconcileLocalDocument(
     }
 }
 
+export async function deleteDocumentIfOrphaned(
+    db: SQLite.SQLiteDatabase,
+    documentId: string
+): Promise<string | null> {
+    const referenced = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM health_measurements WHERE document_id = ?',
+        [documentId]
+    );
+    if ((referenced?.count ?? 0) > 0) return null;
+
+    const doc = await db.getFirstAsync<{ local_file_path: string | null }>(
+        'SELECT local_file_path FROM medical_documents WHERE id = ?',
+        [documentId]
+    );
+    await db.runAsync('DELETE FROM medical_documents WHERE id = ?', [documentId]);
+    return doc?.local_file_path ?? null;
+}
+
 function rowToDocument(row: Record<string, unknown>): MedicalDocument & { local_file_path?: string } {
     return {
         id: row.id as string,

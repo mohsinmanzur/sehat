@@ -69,3 +69,12 @@ export async function saveLocalImageCopy(sourceUri: string, localId: string): Pr
     sourceFile.copy(destFile);
     return destFile.uri;
 }
+
+export function deleteLocalImageFile(localFilePath: string): void {
+    try {
+        const file = new File(localFilePath);
+        if (file.exists) file.delete();
+    } catch {
+        // ignore — best-effort cleanup
+    }
+}

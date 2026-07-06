@@ -61,6 +61,17 @@ export async function removeMutationByLocalId(
     );
 }
 
+export async function removeMutationsByServerId(
+    db: SQLite.SQLiteDatabase,
+    serverId: string,
+    entityType: MutationEntityType
+): Promise<void> {
+    await db.runAsync(
+        'DELETE FROM pending_mutations WHERE server_id = ? AND entity_type = ?',
+        [serverId, entityType]
+    );
+}
+
 export async function incrementRetry(
     db: SQLite.SQLiteDatabase,
     id: string,

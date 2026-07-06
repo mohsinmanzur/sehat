@@ -137,6 +137,16 @@ export async function deleteMeasurementLocal(
     await db.runAsync('DELETE FROM health_measurements WHERE id = ?', [id]);
 }
 
+export async function getSyncedMeasurementIds(
+    db: SQLite.SQLiteDatabase,
+    patientId: string
+): Promise<{ id: string; document_id: string | null }[]> {
+    return db.getAllAsync<{ id: string; document_id: string | null }>(
+        'SELECT id, document_id FROM health_measurements WHERE patient_id = ? AND is_local = 0',
+        [patientId]
+    );
+}
+
 export async function isLocalMeasurement(
     db: SQLite.SQLiteDatabase,
     id: string

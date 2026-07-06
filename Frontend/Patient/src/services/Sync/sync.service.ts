@@ -1,11 +1,17 @@
 import * as SQLite from 'expo-sqlite';
+import type { HealthMeasurement } from '../../types/types';
 import backend from '../Backend/backend.service';
-import { upsertMeasurements } from '../Database/measurements.repository';
+import {
+    upsertMeasurements,
+    getSyncedMeasurementIds,
+    deleteMeasurementLocal,
+} from '../Database/measurements.repository';
 import { upsertMeasurementUnits, upsertReferenceRanges } from '../Database/units.repository';
 import { upsertAccessGrants } from '../Database/shares.repository';
-import { upsertDocuments } from '../Database/documents.repository';
+import { upsertDocuments, deleteDocumentIfOrphaned } from '../Database/documents.repository';
 import { upsertPatient } from '../Database/patient.repository';
-import { ensureLocalDocumentImages } from './image.service';
+import { removeMutationsByServerId } from '../Database/mutations.repository';
+import { ensureLocalDocumentImages, deleteLocalImageFile } from './image.service';
 
 export async function syncAllForPatient(
     db: SQLite.SQLiteDatabase,
@@ -29,8 +35,32 @@ export async function syncMeasurements(
         if (measurements?.length) {
             await upsertMeasurements(db, measurements);
         }
+        await pruneDeletedMeasurements(db, patientId, measurements ?? []);
     } catch {
         // silently fail — offline data already in SQLite
+    }
+}
+
+// Reconciles measurements deleted directly on the server (outside the app's own
+// delete flow) that would otherwise never be removed by the upsert-only pull sync above.
+async function pruneDeletedMeasurements(
+    db: SQLite.SQLiteDatabase,
+    patientId: string,
+    serverMeasurements: HealthMeasurement[]
+): Promise<void> {
+    const serverIds = new Set(serverMeasurements.map(m => m.id));
+    const localRows = await getSyncedMeasurementIds(db, patientId);
+
+    for (const row of localRows) {
+        if (serverIds.has(row.id)) continue;
+
+        await deleteMeasurementLocal(db, row.id);
+        await removeMutationsByServerId(db, row.id, 'health_measurement');
+
+        if (row.document_id) {
+            const orphanedPath = await deleteDocumentIfOrphaned(db, row.document_id);
+            if (orphanedPath) deleteLocalImageFile(orphanedPath);
+        }
     }
 }
 
