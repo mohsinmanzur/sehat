@@ -10,3 +10,4 @@ All diagrams are also available.
 ### Instructions
 
 1. Maintain and reference Obsidian vault for changes.
+2. Never add Claude as a co-contributor to the project.

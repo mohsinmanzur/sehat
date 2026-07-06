@@ -10,6 +10,10 @@ Sehat (aka "SehatScan") bridges patients and doctors through digitized medical r
 
 ## Map of Content
 
+### Summary
+- [[Project Summary]] — one-page rollup of every note in this vault
+- [[Patient Mobile App]] — one-page rollup of everything specific to the Patient React Native app
+
 ### Architecture
 - [[Overview]] — tech stack, repo layout, deployment
 
