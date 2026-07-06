@@ -3,7 +3,7 @@
     --primary: #2A5CFF;
     --primary-soft: #DDE1FF;
     --primary-dark: #2047c7;
-    --bg: #ebecff;
+    --bg: #ffffff;
     --bg-strong: #EDF0F7;
     --card: #ffffff;
     --surface: #F3F3F4;
@@ -16,6 +16,16 @@
     --shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.12);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Letters.app-style black pill CTAs */
+    --black: #14151A;
+    --black-hover: #000000;
+    --radius-card: 28px;
+
+    /* Hero "sky" gradient band */
+    --sky-1: #3E63A8;
+    --sky-2: #6D8FCE;
+    --sky-3: #B8CBEA;
 
     /* Patient App Specific Colors for Measurement Cards */
     --widget-bp: #BA1A1A;

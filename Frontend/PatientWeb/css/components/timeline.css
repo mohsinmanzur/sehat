@@ -1,13 +1,4 @@
-/* How it Works / Operations Flow Section */
-.flow-section-header {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto 60px auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
+/* How Sehat Works - numbered step timeline */
 .timeline {
     position: relative;
     max-width: 800px;
@@ -33,18 +24,25 @@
     width: 50%;
 }
 
-/* Dot on the timeline */
+/* Numbered dot on the timeline */
 .timeline-item::after {
-    content: '';
+    content: attr(data-step);
     position: absolute;
-    width: 16px;
-    height: 16px;
-    right: -8px;
-    background-color: var(--card);
-    border: 3px solid var(--primary);
-    top: 15px;
+    width: 30px;
+    height: 30px;
+    right: -15px;
+    background-color: var(--primary);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 18px;
     border-radius: 50%;
     z-index: 1;
+    box-shadow: 0 0 0 4px var(--bg);
     transition: var(--transition);
 }
 
@@ -57,14 +55,14 @@
 }
 
 .right::after {
-    left: -8px;
+    left: -15px;
 }
 
 .timeline-content {
     padding: 24px;
     background-color: var(--card);
     position: relative;
-    border-radius: 16px;
+    border-radius: 18px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     transition: var(--transition);
@@ -72,18 +70,6 @@
 
 .timeline-content:hover {
     border-color: var(--primary);
-}
-
-.timeline-step {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--primary);
-    background-color: var(--primary-soft);
-    padding: 3px 8px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    text-transform: uppercase;
 }
 
 .timeline-content h3 {
@@ -104,11 +90,11 @@
     .timeline-item {
         width: 100%;
         padding-left: 70px;
-        padding-right: 25px;
+        padding-right: 10px;
     }
 
     .timeline-item::after {
-        left: 23px;
+        left: 16px;
         right: auto;
     }
 

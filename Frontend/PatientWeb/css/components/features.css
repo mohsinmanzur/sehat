@@ -1,21 +1,139 @@
-/* Features Grid Section */
+/* Section headers used throughout the page */
+.flow-section-header {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto 50px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.flow-section-header h2 {
+    font-size: clamp(26px, 4vw, 38px);
+    letter-spacing: -0.02em;
+}
+
+.flow-section-header p {
+    color: var(--text-gray);
+    font-size: 16px;
+}
+
+.section-badge {
+    background-color: var(--primary-soft);
+    color: var(--primary);
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Soft tinted band - fades in/out of white instead of cutting hard at the section edge */
+.section-tint {
+    background: linear-gradient(180deg,
+            #ffffff 0%,
+            var(--surface-soft) 140px,
+            var(--surface-soft) calc(100% - 140px),
+            #ffffff 100%);
+}
+
+/* Flagship twin-card layout (Scan / Share) - same white-based fade as .section-tint,
+   so it lines up with the hero's gradient, which now ends on solid white. */
+.flagship-section {
+    background: linear-gradient(180deg,
+            #ffffff 0%,
+            var(--surface-soft) 140px,
+            var(--surface-soft) calc(100% - 140px),
+            #ffffff 100%);
+}
+
+.flagship-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 860px) {
+    .flagship-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.flagship-card {
+    background-color: var(--card);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    padding: 40px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: var(--transition);
+}
+
+.flagship-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.flagship-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background-color: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.flagship-card h3 {
+    font-size: 22px;
+}
+
+.flagship-card p {
+    color: var(--text-gray);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.flagship-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--primary);
+    margin-top: auto;
+    padding-top: 8px;
+}
+
+.flagship-link i {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.flagship-link:hover i {
+    transform: translateX(3px);
+}
+
+/* Standard 3-up feature grid */
 .features-section {
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background-color: var(--surface-soft);
     position: relative;
 }
 
 .features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    margin-top: 50px;
+    gap: 24px;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 900px) {
     .features-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
     }
 }
 
@@ -29,11 +147,11 @@
     background-color: var(--card);
     border: 1px solid var(--border);
     border-radius: 24px;
-    padding: 38px;
+    padding: 32px;
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     transition: var(--transition);
 }
 
@@ -44,19 +162,19 @@
 }
 
 .feature-icon-wrapper {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
     background-color: var(--primary-soft);
     color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 20px;
 }
 
 .feature-card h3 {
-    font-size: 20px;
+    font-size: 19px;
 }
 
 .feature-card p {

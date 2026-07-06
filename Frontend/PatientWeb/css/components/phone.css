@@ -136,7 +136,7 @@
 }
 
 .phone-user-name {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 16px;
     font-weight: 800;
 }
@@ -208,7 +208,7 @@
 }
 
 .phone-widget-val {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 18px;
     font-weight: 800;
 }
@@ -256,7 +256,7 @@
 }
 
 .phone-insight-title {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 700;
 }
@@ -269,7 +269,7 @@
 
 /* Screen 2: AI OCR Scanner Styles */
 .phone-scan-title {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 16px;
     font-weight: 800;
     margin-top: 10px;
@@ -382,7 +382,7 @@
 
 /* Screen 3: Consent Sharing Styles */
 .phone-share-title {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 16px;
     font-weight: 800;
     margin-top: 10px;
@@ -427,7 +427,7 @@
 }
 
 .phone-doctor-name {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 700;
 }
@@ -540,7 +540,7 @@
 }
 
 .phone-success-title {
-    font-family: 'Lexend', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 800;
 }

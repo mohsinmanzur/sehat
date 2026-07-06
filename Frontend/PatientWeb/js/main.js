@@ -1,8 +1,26 @@
 import { initClock } from './components/clock.js';
 import { initScanner } from './components/scanner.js';
 import { initConsentSlider } from './components/slider.js';
+import { initStars } from './components/stars.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Toggle a solid background on the fixed header only once the page has
+    // scrolled past the blue hero band - otherwise the blurred white bar
+    // shows up as a hard-edged strip floating over the blue gradient.
+    const header = document.getElementById('main-header');
+    const heroEl = document.querySelector('.hero');
+    if (header) {
+        const toggleHeaderBg = () => {
+            const threshold = heroEl ? heroEl.offsetHeight - header.offsetHeight : 40;
+            header.classList.toggle('scrolled', window.scrollY > threshold);
+        };
+        toggleHeaderBg();
+        window.addEventListener('scroll', toggleHeaderBg, { passive: true });
+        window.addEventListener('resize', toggleHeaderBg, { passive: true });
+    }
+
+    initStars('hero-stars');
+
     const mockupContainer = document.getElementById('phone-mockup-container');
     if (mockupContainer) {
         fetch('phone.html')
