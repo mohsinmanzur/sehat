@@ -55,18 +55,6 @@
     padding: 0 20px;
 }
 
-.hero-badge {
-    background-color: rgba(255, 255, 255, 0.16);
-    color: #ffffff;
-    padding: 8px 16px;
-    border-radius: 99px;
-    font-weight: 800;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-}
-
 .hero h1 {
     font-size: clamp(34px, 6vw, 62px);
     line-height: 1.08;
@@ -97,8 +85,9 @@
 
 .hero-cta-caption {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.95);
     font-weight: 600;
+    text-shadow: 0 1px 8px rgba(15, 23, 42, 0.35);
 }
 
 /* Phone mockup sits inside the gradient band, spilling onto the white section below */

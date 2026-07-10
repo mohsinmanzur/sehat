@@ -50,22 +50,6 @@ header.scrolled .logo img {
     filter: none;
 }
 
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-}
-
-.nav-links a {
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--text-gray);
-}
-
-.nav-links a:hover {
-    color: var(--primary);
-}
-
 .nav-actions {
     display: flex;
     align-items: center;
@@ -97,9 +81,25 @@ header.scrolled .logo img {
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
 }
 
+/* White-then-Cobalt halo reads clearly whether the pill sits on the white
+   page background or the blue hero/CTA gradient. */
+.btn-pill:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--primary);
+}
+
 .btn-pill.small {
     padding: 9px 18px;
     font-size: 13px;
+}
+
+/* Coarse pointers (touch) get a taller hit area than fine pointers (mouse) need,
+   since the small pill is the primary header CTA on mobile. */
+@media (pointer: coarse) {
+    .btn-pill.small {
+        padding: 13px 20px;
+        font-size: 14px;
+    }
 }
 
 .btn-pill.large {
@@ -120,55 +120,3 @@ header.scrolled .logo img {
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
 }
 
-/* Play Store badge (used for the final CTA banner) */
-.play-store-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background-color: #0F172A;
-    color: #ffffff;
-    padding: 10px 24px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: var(--transition);
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    text-align: left;
-}
-
-.play-store-btn:hover {
-    background-color: #000000;
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-.play-store-icon {
-    font-size: 24px;
-    background: linear-gradient(135deg, #00C6FF 0%, #0072FF 50%, #FF007F 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.play-store-text {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.play-store-text .get-it-on {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.65);
-    font-weight: 600;
-    line-height: 1;
-    margin-bottom: 2px;
-}
-
-.play-store-text .store-name {
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1;
-}

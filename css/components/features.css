@@ -21,7 +21,7 @@
 
 .section-badge {
     background-color: var(--primary-soft);
-    color: var(--primary);
+    color: var(--primary-dark);
     padding: 8px 16px;
     border-radius: 99px;
     font-weight: 800;
@@ -118,6 +118,11 @@
 
 .flagship-link:hover i {
     transform: translateX(3px);
+}
+
+.flagship-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
 }
 
 /* Standard 3-up feature grid */

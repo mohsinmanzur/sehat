@@ -1,15 +1,13 @@
 /* Animations */
+/* translateY (compositor-only) instead of animating `top` (layout-triggering) -
+   travel distance matches 5%/90% of the scan area's fixed 180px height. */
 @keyframes laserMove {
-    0% {
-        top: 5%;
+    0%, 100% {
+        transform: translateY(9px);
     }
 
     50% {
-        top: 90%;
-    }
-
-    100% {
-        top: 5%;
+        transform: translateY(162px);
     }
 }
 
@@ -35,11 +33,19 @@
         transform: scale(0);
     }
 
-    90% {
-        transform: scale(1.1);
-    }
-
     100% {
         transform: scale(1);
+    }
+}
+
+/* Respect reduced-motion: collapse every animation/transition (starfield twinkle,
+   phone-glow breathe, scanner laser, consent-success reveal, card hover lifts, etc.)
+   to effectively instant rather than disabling motion piecemeal per component. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

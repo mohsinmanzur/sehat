@@ -10,13 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const header = document.getElementById('main-header');
     const heroEl = document.querySelector('.hero');
     if (header) {
-        const toggleHeaderBg = () => {
-            const threshold = heroEl ? heroEl.offsetHeight - header.offsetHeight : 40;
-            header.classList.toggle('scrolled', window.scrollY > threshold);
+        // Cache the scroll threshold outside the scroll handler - offsetHeight is a
+        // layout read, and the header/hero heights only change on resize, not on
+        // every scroll tick. Keeps the hot scroll path down to a plain comparison.
+        let scrolledThreshold = 40;
+        const updateThreshold = () => {
+            scrolledThreshold = heroEl ? heroEl.offsetHeight - header.offsetHeight : 40;
         };
+        const toggleHeaderBg = () => {
+            header.classList.toggle('scrolled', window.scrollY > scrolledThreshold);
+        };
+        updateThreshold();
         toggleHeaderBg();
         window.addEventListener('scroll', toggleHeaderBg, { passive: true });
-        window.addEventListener('resize', toggleHeaderBg, { passive: true });
+        window.addEventListener('resize', () => {
+            updateThreshold();
+            toggleHeaderBg();
+        }, { passive: true });
     }
 
     initStars('hero-stars');
@@ -65,10 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Shift slider (3 screens total, each taking up 33.333% of width)
             slider.style.transform = `translateX(-${index * 33.333}%)`;
 
-            // Update active tab styles
-            if (phoneNavDash) phoneNavDash.classList.toggle('active', index === 0);
-            if (phoneNavScan) phoneNavScan.classList.toggle('active', index === 1);
-            if (phoneNavShare) phoneNavShare.classList.toggle('active', index === 2);
+            // Update active tab styles and ARIA selected state
+            [[phoneNavDash, 0], [phoneNavScan, 1], [phoneNavShare, 2]].forEach(([tab, tabIndex]) => {
+                if (!tab) return;
+                tab.classList.toggle('active', index === tabIndex);
+                tab.setAttribute('aria-selected', String(index === tabIndex));
+            });
 
             // Manage scanning loop on screen activation/deactivation
             if (index === 1) {

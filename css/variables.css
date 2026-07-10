@@ -40,4 +40,8 @@
     /* Success overlay states */
     --success: #4CAF50;
     --success-light: rgba(76, 175, 80, 0.1);
+
+    /* Phone-mockup device chassis (frame, status bar, scan area) */
+    --navy-device: #0F172A;
+    --navy-device-border: #1E293B;
 }

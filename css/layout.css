@@ -27,6 +27,11 @@ h6 {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     color: var(--text);
+    text-wrap: balance;
+}
+
+p {
+    text-wrap: pretty;
 }
 
 a {

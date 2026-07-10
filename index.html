@@ -18,14 +18,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Public+Sans:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=Public+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome for Icons (solid subset only - every icon on this page is fa-solid) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
 
-    <!-- Modular Stylesheet import -->
-    <link rel="stylesheet" href="./css/styles.css">
+    <!-- Modular Stylesheet - individual links instead of @import so the browser
+         preload scanner can fetch all of them in parallel from the HTML. -->
+    <link rel="stylesheet" href="./css/variables.css">
+    <link rel="stylesheet" href="./css/layout.css">
+    <link rel="stylesheet" href="./css/animations.css">
+    <link rel="stylesheet" href="./css/components/header.css">
+    <link rel="stylesheet" href="./css/components/hero.css">
+    <link rel="stylesheet" href="./css/components/phone.css">
+    <link rel="stylesheet" href="./css/components/features.css">
+    <link rel="stylesheet" href="./css/components/timeline.css">
+    <link rel="stylesheet" href="./css/components/security.css">
+    <link rel="stylesheet" href="./css/components/cta.css">
+    <link rel="stylesheet" href="./css/components/footer.css">
 </head>
 
 <body>
@@ -34,7 +46,7 @@
     <header id="main-header">
         <div class="container nav-container">
             <a href="#" class="logo" id="brand-logo">
-                <img src="/assets/logo-colored.png" alt="Sehat">
+                <img src="/assets/logo-colored.png" alt="Sehat" width="1024" height="576">
             </a>
             <div class="nav-actions">
                 <a class="btn-pill btn-pill-light small" id="playstore-header"
@@ -108,8 +120,8 @@
                 <div class="flagship-card">
                     <div class="flagship-icon"><i class="fa-solid fa-shield-halved"></i></div>
                     <h3>Share On Your Terms</h3>
-                    <p>Your records stay locked by default. Grant a doctor time-bound access with a 6-digit code or
-                        QR, and revoke it whenever you want.</p>
+                    <p>Your records stay locked by default. Grant a doctor time-bound access with a secure code, and
+                        revoke it whenever you want.</p>
                     <a class="flagship-link" href="#privacy">About Sharing <i
                             class="fa-solid fa-arrow-right"></i></a>
                 </div>
@@ -121,7 +133,6 @@
     <section class="section-padding" id="how-it-works">
         <div class="container">
             <div class="flow-section-header">
-                <span class="section-badge">Workflow</span>
                 <h2>From paper to pocket in four steps</h2>
                 <p>Sehat bridges the gap between your physical documents and your doctor's screen with simple
                     steps.</p>
@@ -167,9 +178,8 @@
     <section class="features-section section-padding section-tint">
         <div class="container">
             <div class="flow-section-header">
-                <span class="section-badge">Built In</span>
                 <h2>Designed around how you actually use it</h2>
-                <p>Standard tracking controls and privacy guarantees to empower your health journey.</p>
+                <p>Three defaults that make tracking sustainable and keep your data exactly where you want it.</p>
             </div>
 
             <div class="features-grid">
@@ -216,23 +226,41 @@
             <div class="security-grid">
                 <div class="security-item">
                     <div class="security-item-icon"><i class="fa-solid fa-lock"></i></div>
-                    <h3>Locked by default</h3>
+                    <h3>Locked by Default</h3>
                     <p>Every record is private the moment it's scanned — invisible to anyone else until you actively
                         grant access.</p>
                 </div>
 
                 <div class="security-item">
                     <div class="security-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                    <h3>Time-bound access</h3>
+                    <h3>Time-Bound Access</h3>
                     <p>Every share you approve carries an expiry. Access ends automatically, or the moment you tap
                         Revoke.</p>
                 </div>
 
                 <div class="security-item">
                     <div class="security-item-icon"><i class="fa-solid fa-mobile-screen"></i></div>
-                    <h3>Your device, your data</h3>
+                    <h3>Your Device, Your Data</h3>
                     <p>Switch on Device-Only Mode and Sehat stops syncing entirely — your records never leave your
                         phone.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Closing Download CTA -->
+    <section class="section-padding" id="download">
+        <div class="container">
+            <div class="bottom-cta">
+                <h2>Stop losing lab reports to a shoebox.</h2>
+                <p>Scan your first report today. It stays private by default: you decide if and when a doctor ever
+                    sees it.</p>
+                <div class="bottom-cta-download">
+                    <a class="btn-pill large" id="bottom-cta-download-btn"
+                        href="https://github.com/mohsinmanzur/sehat/releases/download/v1.0.0/Sehatv1.0.0_Prerelease.apk"
+                        download>
+                        Download for Free
+                    </a>
                 </div>
             </div>
         </div>
@@ -241,7 +269,7 @@
     <!-- Footer -->
     <footer>
         <div class="container footer-simple">
-            <img src="/assets/logo-colored.png" alt="Sehat Logo">
+            <img src="/assets/logo-colored.png" alt="Sehat Logo" width="1024" height="576" loading="lazy">
             <span class="footer-credit">Created by Mohsin Manzoor.</span>
             <span class="footer-copyright">&copy; 2026 Sehat</span>
         </div>

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-10T01:00:00.000Z",
+  "title": "Design System: Sehat",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "primary", "displayName": "Ink", "canonical": "#14151A", "tonalRamp": ["#000000", "#0A0A0D", "#14151A", "#2B2C33", "#45464F", "#63646E", "#85868F", "#B7B8BF"] },
+      "ink-hover": { "role": "primary", "displayName": "Ink Hover", "canonical": "#000000" },
+      "cobalt": { "role": "primary", "displayName": "Cobalt", "canonical": "#2A5CFF", "tonalRamp": ["#050B1F", "#0C1C4D", "#15307D", "#2045B3", "#2A5CFF", "#5F80FF", "#93A8FF", "#C8D3FF"] },
+      "cobalt-soft": { "role": "primary", "displayName": "Cobalt Soft", "canonical": "#DDE1FF" },
+      "cobalt-deep": { "role": "primary", "displayName": "Cobalt Deep", "canonical": "#2047C7" },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#FFFFFF" },
+      "mist": { "role": "neutral", "displayName": "Mist", "canonical": "#EDF0F7" },
+      "fog": { "role": "neutral", "displayName": "Fog", "canonical": "#F3F3F4" },
+      "charcoal": { "role": "neutral", "displayName": "Charcoal", "canonical": "#1A1C1C", "tonalRamp": ["#000000", "#0D0E0E", "#1A1C1C", "#333535", "#4D4F4F", "#6B6D6D", "#8C8E8E", "#C4C5C5"] },
+      "slate": { "role": "neutral", "displayName": "Slate", "canonical": "#434656" },
+      "steel": { "role": "neutral", "displayName": "Steel", "canonical": "#747688" },
+      "pale-steel": { "role": "neutral", "displayName": "Pale Steel", "canonical": "#C0C1C8" },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "rgba(26, 28, 28, 0.08)" },
+      "morning-sky-deep": { "role": "tertiary", "displayName": "Morning Sky Deep", "canonical": "#3E63A8" },
+      "morning-sky-mid": { "role": "tertiary", "displayName": "Morning Sky Mid", "canonical": "#6D8FCE" },
+      "morning-sky-pale": { "role": "tertiary", "displayName": "Morning Sky Pale", "canonical": "#B8CBEA" },
+      "clinical-red": { "role": "tertiary", "displayName": "Clinical Red", "canonical": "#BA1A1A", "tonalRamp": ["#2E0606", "#5C0D0D", "#8A1313", "#BA1A1A", "#D14040", "#DE6B6B", "#EC9797", "#F8CACA"] },
+      "clinical-red-soft": { "role": "tertiary", "displayName": "Clinical Red Soft", "canonical": "#FFF4F3" },
+      "pulse-teal": { "role": "tertiary", "displayName": "Pulse Teal", "canonical": "#13ACC4", "tonalRamp": ["#04282E", "#08505C", "#0C7A8B", "#13ACC4", "#3FC0D3", "#71D3E1", "#A4E5EE", "#D6F5FA"] },
+      "pulse-teal-soft": { "role": "tertiary", "displayName": "Pulse Teal Soft", "canonical": "#F3FDFF" },
+      "amber-glucose": { "role": "tertiary", "displayName": "Amber Glucose", "canonical": "#D98324", "tonalRamp": ["#382107", "#6B420E", "#9F6316", "#D98324", "#E29F52", "#EABB80", "#F1D7AD", "#F9EFDC"] },
+      "amber-glucose-soft": { "role": "tertiary", "displayName": "Amber Glucose Soft", "canonical": "#FFFAF3" },
+      "deep-plum": { "role": "tertiary", "displayName": "Deep Plum", "canonical": "#770058", "tonalRamp": ["#1D0016", "#3A002C", "#560042", "#770058", "#94327E", "#B266A3", "#D099C4", "#EDCCE3"] },
+      "deep-plum-soft": { "role": "tertiary", "displayName": "Deep Plum Soft", "canonical": "#FFF3FE" },
+      "success-green": { "role": "tertiary", "displayName": "Success Green", "canonical": "#4CAF50", "tonalRamp": ["#0F2B10", "#1E5620", "#308230", "#4CAF50", "#71C075", "#96D199", "#BAE1BC", "#DEF0DF"] },
+      "success-green-soft": { "role": "tertiary", "displayName": "Success Green Soft", "canonical": "rgba(76, 175, 80, 0.1)" },
+      "navy-device": { "role": "neutral", "displayName": "Navy Device", "canonical": "#0F172A" },
+      "navy-device-border": { "role": "neutral", "displayName": "Navy Device Border", "canonical": "#1E293B" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero h1 only, once per page, always on the Morning Sky gradient." },
+      "headline": { "displayName": "Headline", "purpose": "Section h2s." },
+      "title": { "displayName": "Title", "purpose": "Card and timeline-step h3s." },
+      "body": { "displayName": "Body", "purpose": "Supporting paragraph copy." },
+      "label": { "displayName": "Label", "purpose": "Uppercase text inside pill badges only." }
+    },
+    "shadows": [
+      { "name": "ambient", "value": "0 18px 45px rgba(0,0,0,0.06)", "purpose": "Default resting state for cards and the bottom CTA band." },
+      { "name": "lifted", "value": "0 28px 80px rgba(0,0,0,0.12)", "purpose": "Hover state for cards, paired with a small upward translate." },
+      { "name": "micro-ambient", "value": "0 4px 10px rgba(0,0,0,0.02)", "purpose": "Compact widgets inside the phone mockup." },
+      { "name": "cta-glow-ink", "value": "0 10px 22px rgba(0,0,0,0.18)", "purpose": "Hover glow on the Ink primary pill button." },
+      { "name": "cta-glow-light", "value": "0 6px 18px rgba(15,23,42,0.16)", "purpose": "Hover glow on the light secondary pill button." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default transition easing (--transition) used across hovers and state changes." },
+      { "name": "ease-spring", "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)", "purpose": "Consent-success overlay entrance and the scan-result pop-check animation." },
+      { "name": "ease-slider", "value": "cubic-bezier(0.85, 0, 0.15, 1)", "purpose": "Phone-mockup screen-to-screen slide transition." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "400px" },
+      { "name": "md", "value": "560px" },
+      { "name": "lg", "value": "768px" },
+      { "name": "xl", "value": "860px" },
+      { "name": "2xl", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink pill CTA — the site's highest-contrast call to action (header + hero download buttons).",
+      "html": "<button class=\"ds-btn-primary\">Download for Free</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background-color: #14151A; color: #ffffff; padding: 12px 26px; border-radius: 999px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap; border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background-color: #000000; transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White pill CTA used over the blue hero gradient where the Ink pill would lose contrast.",
+      "html": "<button class=\"ds-btn-secondary\">Download App</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background-color: #ffffff; color: #1A1C1C; padding: 12px 26px; border-radius: 999px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap; border: none; cursor: pointer; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-secondary:hover { background-color: #f2f4f8; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2); }"
+    },
+    {
+      "name": "Badge Pill",
+      "kind": "chip",
+      "refersTo": "badge-pill",
+      "description": "Section tag — Cobalt Soft background, Cobalt uppercase label text, used once per section.",
+      "html": "<span class=\"ds-badge-pill\">Core Capabilities</span>",
+      "css": ".ds-badge-pill { display: inline-block; background-color: #DDE1FF; color: #2A5CFF; padding: 8px 16px; border-radius: 999px; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Feature Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Paper card with hairline border, ambient shadow at rest, lifted shadow + upward translate on hover.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M12 2 2 7l10 5 10-5-10-5Z\"/><path d=\"M2 17l10 5 10-5M2 12l10 5 10-5\"/></svg></div><h3 class=\"ds-card-title\">Insightful Trends</h3><p class=\"ds-card-body\">Track Blood Pressure, Sugar, and Heart Rate on dashboard charts that show what's changed since your last reading.</p></div>",
+      "css": ".ds-card { background-color: #ffffff; border: 1px solid rgba(26, 28, 28, 0.08); border-radius: 24px; padding: 32px; box-shadow: 0 18px 45px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-width: 320px; } .ds-card:hover { transform: translateY(-5px); box-shadow: 0 28px 80px rgba(0,0,0,0.12); border-color: #DDE1FF; } .ds-card-icon { width: 50px; height: 50px; border-radius: 15px; background-color: #DDE1FF; color: #2A5CFF; display: flex; align-items: center; justify-content: center; } .ds-card-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 19px; color: #1A1C1C; margin: 0; } .ds-card-body { color: #434656; font-size: 15px; line-height: 1.6; margin: 0; }"
+    },
+    {
+      "name": "Health Metric Widget",
+      "kind": "custom",
+      "refersTo": "card-compact",
+      "description": "Signature component: a compact clinical-colored data card used in the interactive phone mockup, one per vital sign.",
+      "html": "<div class=\"ds-widget\" style=\"background-color:#FFF4F3;border-color:rgba(186,26,26,0.15);\"><div class=\"ds-widget-header\"><div class=\"ds-widget-icon\" style=\"background-color:#BA1A1A;\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"currentColor\" style=\"color:#fff;\"><path d=\"M12 21s-6.7-4.35-9.3-8.1C.8 9.9 1.9 6 5.2 5c2-.6 3.9.3 4.8 1.9C10.9 5.3 12.8 4.4 14.8 5c3.3 1 4.4 4.9 2.5 7.9C19.7 16.65 12 21 12 21Z\"/></svg></div></div><div class=\"ds-widget-val-row\"><span class=\"ds-widget-val\">120/80</span><span class=\"ds-widget-unit\">mmHg</span></div><span class=\"ds-widget-name\">Blood Pressure</span></div>",
+      "css": ".ds-widget { border-radius: 12px; border: 1px solid; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 150px; } .ds-widget:hover { transform: scale(1.02); } .ds-widget-header { display: flex; justify-content: flex-end; } .ds-widget-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; } .ds-widget-val-row { display: flex; align-items: baseline; } .ds-widget-val { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 800; color: #1A1C1C; } .ds-widget-unit { font-size: 10px; color: #747688; margin-left: 2px; } .ds-widget-name { font-size: 10px; font-weight: 700; color: #434656; }"
+    },
+    {
+      "name": "Consent Slider",
+      "kind": "custom",
+      "description": "Signature component: the slide-to-grant-access control that dramatizes the time-bound, revocable consent principle.",
+      "html": "<div class=\"ds-consent-slider\"><span class=\"ds-consent-slider-text\">Slide to Grant Access</span><div class=\"ds-consent-slider-handle\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3\"><path d=\"M9 6l6 6-6 6\"/></svg></div></div>",
+      "css": ".ds-consent-slider { position: relative; height: 48px; width: 260px; background-color: #EDF0F7; border-radius: 24px; border: 1px solid rgba(26,28,28,0.08); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); } .ds-consent-slider-text { font-size: 11px; font-weight: 700; color: #434656; } .ds-consent-slider-handle { position: absolute; left: 3px; width: 42px; height: 42px; border-radius: 50%; background-color: #2A5CFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(42,92,255,0.4); transition: transform 0.1s ease; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Instrument",
+    "overview": "Sehat presents medical data the way a well-made clinical instrument presents a reading: exact, unhurried, and never showing off. The page makes one loud gesture — a deep morning-sky gradient hero band that frames the product like glass over an exhibit — and then goes quiet. Everything after that is white space, hairline borders, soft ambient shadows, and a single blue accent used with discipline. Precision is the persuasion; there is no stock photography, no stethoscope iconography, no teal-and-white \"corporate healthcare\" palette standing in for trust. Trust here is earned by showing the mechanism — a real scan, a real consent slider, a real revoke button — not by decorating around it. The system explicitly rejects the generic health-app playbook: no clip-art doctors, no gradient-text hero claims, no tiny uppercase eyebrows stacked above every section. Where the page needs a label, it uses a single pill badge per section, sparingly, in the one accent color the whole system is built around.",
+    "keyCharacteristics": [
+      "One accent (cobalt #2A5CFF) carries all interactive and informational emphasis; everything else is ink, paper, or hairline gray.",
+      "Health-metric widgets are the one place color multiplies — each vital sign gets its own clinical hue, because distinguishing data at a glance is functional, not decorative.",
+      "Depth is ambient at rest, and only ever deepens as a direct response to hover — nothing floats unprovoked.",
+      "Pill shapes recur deliberately (buttons, badges, the consent slider) as the system's one consistent shape signature."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Cobalt is the only color permitted to carry meaning or call for action outside the health-widget system. If a new element needs emphasis, reach for Cobalt before reaching for a new hue.", "section": "colors" },
+      { "name": "The Clinical Palette Rule", "body": "The four vital-sign colors exist only inside measurement widgets. They never leak into navigation, buttons, or marketing copy — the moment a \"health color\" appears outside a data context, it stops meaning data and starts meaning decoration.", "section": "colors" },
+      { "name": "The Single Eyebrow Rule", "body": "Uppercase tracked labels appear only inside a pill badge shape, never as bare text above a heading. The pill shape alone isn't the full exception, though — repeating it on every section is still the banned cadence. It now bookends the page (first section and the closing security section only); the two sections between run on heading + copy alone.", "section": "typography" },
+      { "name": "The Earned Depth Rule", "body": "No element ships with Lifted shadow as its resting state. Elevation increases only in direct response to hover or an active interaction — a page that looks the same whether or not you're touching it.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Cobalt (#2A5CFF) as the only cross-page accent color; every other hue on the page is either a neutral or scoped to a health-metric widget.",
+      "Do use the full pill shape (999px) for every button, badge, and slider — it's the system's one recurring shape signature.",
+      "Do let cards rest at Ambient shadow and only reach Lifted shadow on hover, paired with a small upward translate.",
+      "Do give each vital-sign widget its own clinical hue (Clinical Red, Pulse Teal, Amber Glucose, Deep Plum) so real data stays legible at a glance.",
+      "Do show the mechanism (a real scan animation, a real consent slider, a real revoke button) as the proof of the pitch — that is the trust-building device, not copy."
+    ],
+    "donts": [
+      "Don't use stock-photo doctors, stethoscopes, or a teal-and-white \"corporate healthcare\" palette anywhere on the site.",
+      "Don't introduce gradient text, side-stripe borders, tiny uppercase eyebrows floating above headings (outside the pill-badge exception), or numbered 01/02/03 section scaffolding.",
+      "Don't let a health-widget color appear outside an actual measurement context.",
+      "Don't ship a card, button, or badge with a resting shadow heavier than Ambient.",
+      "Don't add a second accent color \"for variety.\" If a section feels flat, reach for typography weight, spacing, or the existing Cobalt before introducing a new hue."
+    ]
+  }
+}

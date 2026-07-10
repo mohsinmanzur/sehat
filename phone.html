@@ -213,7 +213,9 @@
 
                     <div class="phone-slider-container" id="consent-slider-container">
                         <span class="phone-slider-text" id="slider-text">Slide to Grant Access</span>
-                        <div class="phone-slider-handle" id="slider-handle">
+                        <div class="phone-slider-handle" id="slider-handle" tabindex="0" role="slider"
+                            aria-label="Slide to grant access" aria-valuemin="0" aria-valuemax="100"
+                            aria-valuenow="0" aria-valuetext="Not granted">
                             <i class="fa-solid fa-chevron-right"></i>
                         </div>
                     </div>
@@ -239,19 +241,19 @@
     </div>
 
     <!-- Bottom Nav Mockup inside Mobile Phone -->
-    <div class="phone-nav-bar">
-        <div class="phone-nav-item active" id="phone-nav-dash-btn">
+    <div class="phone-nav-bar" role="tablist" aria-label="Phone preview screens">
+        <button type="button" class="phone-nav-item active" id="phone-nav-dash-btn" role="tab" aria-selected="true">
             <i class="fa-solid fa-chart-simple"></i>
             <span>Dashboard</span>
-        </div>
-        <div class="phone-nav-item" id="phone-nav-scan-btn">
+        </button>
+        <button type="button" class="phone-nav-item" id="phone-nav-scan-btn" role="tab" aria-selected="false">
             <i class="fa-solid fa-camera"></i>
             <span>Scanner</span>
-        </div>
-        <div class="phone-nav-item" id="phone-nav-share-btn">
+        </button>
+        <button type="button" class="phone-nav-item" id="phone-nav-share-btn" role="tab" aria-selected="false">
             <i class="fa-solid fa-shield-heart"></i>
             <span>Shares</span>
-        </div>
+        </button>
     </div>
 
 </div>

@@ -25,6 +25,15 @@ export function initConsentSlider() {
         maxSlide = sliderContainer.clientWidth - sliderHandle.clientWidth - 6; // Padding adjustments
     }
 
+    function setHandlePosition(translateX) {
+        currentTranslate = translateX;
+        sliderHandle.style.transform = `translateX(${translateX}px)`;
+        sliderText.style.opacity = maxSlide > 0 ? 1 - (translateX / maxSlide) : 1;
+        const percent = maxSlide > 0 ? Math.round((translateX / maxSlide) * 100) : 0;
+        sliderHandle.setAttribute('aria-valuenow', String(percent));
+        sliderHandle.setAttribute('aria-valuetext', percent >= 100 ? 'Granted' : 'Not granted');
+    }
+
     function startDrag(e) {
         isDragging = true;
         startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
@@ -43,12 +52,7 @@ export function initConsentSlider() {
         if (deltaX < 0) deltaX = 0;
         if (deltaX > maxSlide) deltaX = maxSlide;
 
-        currentTranslate = deltaX;
-        sliderHandle.style.transform = `translateX(${deltaX}px)`;
-
-        // Fade out text as we slide
-        const opacity = 1 - (deltaX / maxSlide);
-        sliderText.style.opacity = opacity;
+        setHandlePosition(deltaX);
     }
 
     function endDrag() {
@@ -60,17 +64,33 @@ export function initConsentSlider() {
 
         // If dragged more than 80% of the way, complete the action
         if (currentTranslate >= maxSlide * 0.8) {
-            currentTranslate = maxSlide;
-            sliderHandle.style.transform = `translateX(${maxSlide}px)`;
-            sliderText.style.opacity = 0;
+            setHandlePosition(maxSlide);
 
             // Show success screen
             setTimeout(triggerConsentSuccess, 200);
         } else {
             // Snap back
-            currentTranslate = 0;
-            sliderHandle.style.transform = 'translateX(0)';
-            sliderText.style.opacity = 1;
+            setHandlePosition(0);
+        }
+    }
+
+    function handleKeydown(e) {
+        const step = Math.max(maxSlide * 0.1, 1);
+
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            sliderHandle.style.transition = 'transform 0.15s ease';
+            setHandlePosition(Math.min(currentTranslate + step, maxSlide));
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            sliderHandle.style.transition = 'transform 0.15s ease';
+            setHandlePosition(Math.max(currentTranslate - step, 0));
+        } else if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            sliderHandle.style.transition = 'transform 0.3s ease';
+            sliderText.style.transition = 'opacity 0.3s ease';
+            setHandlePosition(maxSlide);
+            setTimeout(triggerConsentSuccess, 200);
         }
     }
 
@@ -110,15 +130,14 @@ export function initConsentSlider() {
         successOverlay.classList.remove('active');
 
         sliderHandle.style.transition = 'none';
-        sliderHandle.style.transform = 'translateX(0)';
-        sliderText.style.opacity = 1;
-        currentTranslate = 0;
+        setHandlePosition(0);
     }
 
-    // Set up dragging and clicking
+    // Set up dragging, clicking, and keyboard control
     calculateMaxSlide();
     sliderHandle.addEventListener('mousedown', startDrag);
     sliderHandle.addEventListener('touchstart', startDrag, { passive: true });
+    sliderHandle.addEventListener('keydown', handleKeydown);
 
     window.addEventListener('mousemove', drag);
     window.addEventListener('touchmove', drag, { passive: false });
@@ -131,8 +150,7 @@ export function initConsentSlider() {
         if (e.target !== sliderHandle && !isDragging) {
             sliderHandle.style.transition = 'transform 0.4s ease';
             sliderText.style.transition = 'opacity 0.4s ease';
-            sliderHandle.style.transform = `translateX(${maxSlide}px)`;
-            sliderText.style.opacity = 0;
+            setHandlePosition(maxSlide);
             setTimeout(triggerConsentSuccess, 300);
         }
     });
