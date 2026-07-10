@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sehat - Medical Convenience & Report Digitization</title>
+    <title>Sehat - Medical Convenience</title>
     <meta name="description"
         content="Sehat bridges the gap between patients and doctors with consent-based report digitization, easy data extraction from physical reports, and meaningful health visualizations.">
     <meta name="keywords"
@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="./css/components/hero.css">
     <link rel="stylesheet" href="./css/components/phone.css">
     <link rel="stylesheet" href="./css/components/features.css">
+    <link rel="stylesheet" href="./css/components/exhibit.css">
     <link rel="stylesheet" href="./css/components/timeline.css">
     <link rel="stylesheet" href="./css/components/security.css">
     <link rel="stylesheet" href="./css/components/cta.css">
@@ -62,10 +63,9 @@
     <section class="hero">
         <div class="hero-stars" id="hero-stars"></div>
         <div class="container hero-inner">
-            <h1>Your medical records,<br><span>not paperwork.</span></h1>
+            <h1>Your medical records,<br><span>organized.</span></h1>
             <p class="hero-description">
-                Sehat turns a photo of any paper lab report into a structured, private health record —
-                then lets you share it with any doctor, only when you say so.
+                Easily organize your history of Blood Pressure, Heart Rate, Weight, and Sugar reports.
             </p>
 
             <div class="hero-cta-row">
@@ -74,7 +74,6 @@
                     download>
                     Download for Free
                 </a>
-                <span class="hero-cta-caption">Free for patients &middot; Available on Android</span>
             </div>
 
             <!-- Interactive Mobile Mockup -->
@@ -101,29 +100,44 @@
     <section class="flagship-section section-padding" id="features">
         <div class="container">
             <div class="flow-section-header">
-                <span class="section-badge">Core Capabilities</span>
                 <h2>One app for your whole medical history</h2>
                 <p>Sehat replaces the shoebox of old lab reports with a structured, searchable record you actually
                     control.</p>
             </div>
 
-            <div class="flagship-grid">
-                <div class="flagship-card">
-                    <div class="flagship-icon"><i class="fa-solid fa-camera-retro"></i></div>
-                    <h3>Scan &amp; Digitize</h3>
-                    <p>Snap a photo of any lab report. Sehat's OCR model extracts values like Hemoglobin or Fasting
-                        Glucose and structures them automatically — no manual typing.</p>
-                    <a class="flagship-link" href="#how-it-works">About Scanning <i
-                            class="fa-solid fa-arrow-right"></i></a>
+            <div class="exhibit-grid">
+                <div class="exhibit-tray">
+                    <div class="exhibit-reading">
+                        <div class="exhibit-reading-header">
+                            <span>Blood Pressure</span>
+                            <span>Last 30 days</span>
+                        </div>
+                        <div class="exhibit-graph-wrap">
+                            <span class="exhibit-graph-label exhibit-graph-label-start">142/91</span>
+                            <span class="exhibit-graph-label exhibit-graph-label-end">118/76</span>
+                            <svg class="exhibit-graph" viewBox="0 0 300 120" preserveAspectRatio="none"
+                                aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="exhibitGraphFill" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="var(--widget-bp)" stop-opacity="0.16" />
+                                        <stop offset="100%" stop-color="var(--widget-bp)" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0,30 C70,26 110,40 150,52 S260,85 300,92 L300,120 L0,120 Z"
+                                    fill="url(#exhibitGraphFill)" />
+                                <path d="M0,30 C70,26 110,40 150,52 S260,85 300,92" fill="none"
+                                    stroke="var(--widget-bp)" stroke-width="3" stroke-linecap="round" />
+                                <circle cx="4" cy="30" r="4" fill="var(--widget-bp)" />
+                                <circle cx="296" cy="92" r="5" fill="var(--widget-bp)" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flagship-card">
-                    <div class="flagship-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                    <h3>Share On Your Terms</h3>
-                    <p>Your records stay locked by default. Grant a doctor time-bound access with a secure code, and
-                        revoke it whenever you want.</p>
-                    <a class="flagship-link" href="#privacy">About Sharing <i
-                            class="fa-solid fa-arrow-right"></i></a>
+                <div class="exhibit-statement">
+                    <h3>Nothing leaves your phone until you say so.</h3>
+                    <p>Every reading becomes a trend like this one, tracked automatically and shared with a doctor
+                        only when you choose to, on a code that expires.</p>
                 </div>
             </div>
         </div>
