@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { useCurrentPatient, UserProvider } from '@context/PatientContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -59,7 +58,6 @@ function RootLayoutNav() {
 
   return (
     <>
-      <StatusBar style={theme.backgroundDark === '#121215' ? 'light' : 'dark'} backgroundColor={theme.backgroundDark} translucent={false} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.backgroundDark } }} >
         <Stack.Screen name="(auth)" options={{ animation: 'none' }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />

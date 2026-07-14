@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import backend from '../../services/Backend/backend.service';
-import { Divider, Spacer, ThemedButton, ThemedText, ThemedTextInput, ThemedView } from '../../components';
+import { Divider, Spacer, ThemedButton, ThemedLogo, ThemedText, ThemedTextInput, ThemedView } from '../../components';
 import { Ionicons } from '@expo/vector-icons';
 import { errorShakeAnimation } from '../../animations/animations';
 import { phoneRegex, emailRegex } from '../../constants/regex';
@@ -10,13 +10,15 @@ import { useRouter } from 'expo-router';
 
 const LoginScreen: React.FC = () => {
     const router = useRouter();
-    const { theme } = useTheme();
+    const { theme, mode } = useTheme();
 
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showError, setShowError] = useState(false);
 
     const shakeAnimation = useRef(new Animated.Value(0)).current;
+
+    const colorMode = mode === 'system' ? useColorScheme() : mode;
 
     const handlePress = async () => {
         if (!emailRegex.test(email.trim()) && !phoneRegex.test(email.trim())) {
@@ -40,7 +42,7 @@ const LoginScreen: React.FC = () => {
     };
 
     return (
-        <ThemedView style={{ flex: 1 }} keyboardAvoid>
+        <ThemedView style={{ flex: 1, backgroundColor: theme.backgroundDark }} keyboardAvoid>
             <ScrollView
                 style={{ flex: 1, width: '100%' }}
                 contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}
@@ -48,13 +50,15 @@ const LoginScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <Spacer height={100} />
-                <Text style={{ padding: 20, paddingBottom: 0, alignItems: 'center', textAlign: 'center' }}>
-                    <ThemedText type={'title'} style={{ letterSpacing: -1 }}>👋 to </ThemedText>
-                    <ThemedText type={'title'} style={{ color: theme.primary, letterSpacing: -1 }}>Sehat{'\u00A0'}Scan</ThemedText>
-                </Text>
 
-                <ThemedText type={'default'} style={[styles.tagline, { color: theme.textLight }]}>
-                    Medical documents management and AI-powered health insights, all in one app.
+                <ThemedLogo style={{ height: 90, resizeMode: "contain" }} />
+
+                <ThemedText style={{ fontSize: 13, color: theme.text, fontFamily: 'Lexend_300Light', marginTop: 15 }}>
+                    SAVE
+                    <ThemedText style={{ fontSize: 15, color: theme.primary }}>  •  </ThemedText>
+                    UPLOAD
+                    <ThemedText style={{ fontSize: 15, color: theme.primary }}>  •  </ThemedText>
+                    SHARE
                 </ThemedText>
 
                 <Spacer height={50} />
@@ -115,22 +119,6 @@ const LoginScreen: React.FC = () => {
                         <ThemedText style={{ color: theme.textGray, padding: 7, fontFamily: 'PublicSans_600SemiBold' }}>Continue with Google</ThemedText>
                     </ThemedButton>
                 </View>
-
-                <Text style={{ textAlign: 'center', padding: 40, paddingTop: 50 }}>
-                    <ThemedText type={'default'} style={{ color: theme.textGray, fontSize: 12, paddingTop: 15 }}>
-                        By continuing, you agree to our{' '}
-                    </ThemedText>
-                    <ThemedText type={'default'} style={{ color: theme.primary, fontSize: 12 }}>
-                        Terms{'\u00A0'}of{'\u00A0'}Service
-                    </ThemedText>
-                    <ThemedText type={'default'} style={{ color: theme.textGray, fontSize: 12 }}>
-                        {' '}and{' '}
-                    </ThemedText>
-                    <ThemedText type={'default'} style={{ color: theme.primary, fontSize: 12 }}>
-                        Privacy{'\u00A0'}Policy
-                    </ThemedText>
-                    .
-                </Text>
             </ScrollView>
         </ThemedView>
     )

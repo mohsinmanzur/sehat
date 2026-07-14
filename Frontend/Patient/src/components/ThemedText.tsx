@@ -1,6 +1,6 @@
-import { Text, useColorScheme, TextProps, StyleSheet } from 'react-native'
+import { Text, TextProps, StyleSheet } from 'react-native'
 import React from 'react'
-import { Colors } from '../constants/colors';
+import { useTheme } from 'src/context/ThemeContext';
 
 export interface FormatProps extends TextProps
 {
@@ -9,8 +9,7 @@ export interface FormatProps extends TextProps
 
 export const ThemedText = ({ type = 'default', style, ...props }: FormatProps) => {
 
-  const colorScheme = useColorScheme() ?? 'dark';
-  const theme = Colors[colorScheme];
+  const { theme } = useTheme();
 
   const styles = StyleSheet.create({
     default: {

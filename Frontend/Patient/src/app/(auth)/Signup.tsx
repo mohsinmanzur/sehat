@@ -20,7 +20,7 @@ const SignupScreen: React.FC = () => {
     const params = useLocalSearchParams<{ patientEmail: string }>();
     const patientEmail = params.patientEmail;
     const router = useRouter();
-    const { theme } = useTheme();
+    const { theme, setMode } = useTheme();
 
     const { setCurrentPatient } = useCurrentPatient();
 
@@ -59,6 +59,7 @@ const SignupScreen: React.FC = () => {
 
             const patient = await backend.getPatientById(patientTokens.id);
 
+            setMode('dark');
             setCurrentPatient(patient);
             await storeObject('currentPatient', patient);
 
@@ -83,12 +84,10 @@ const SignupScreen: React.FC = () => {
         <ThemedView style={{ flex: 1, backgroundColor: theme.backgroundLight }} keyboardAvoid safe>
             <ScrollView
                 style={{ flex: 1, width: '100%' }}
-                contentContainerStyle={{ paddingHorizontal: 20 }}
+                contentContainerStyle={{ paddingHorizontal: 30, paddingVertical: 20 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-                <Spacer height={40} />
-
                 <ThemedText type={'title'}>Let's start your health{'\u00A0'}journey.</ThemedText>
                 <ThemedText type={'subtitle'} style={[styles.tagline, { color: theme.textGray }]}>We'll keep your data private and clinical.</ThemedText>
 
@@ -165,6 +164,7 @@ const SignupScreen: React.FC = () => {
                     maximumDate={new Date()}
                     locale={'en-GB'}
                     dividerColor={dobError ? theme.danger : theme.text}
+                    theme={'light'}
                 />
 
                 <ThemedText type={'h2'} style={{ marginTop: 20 }}>🩸 Blood Group</ThemedText>

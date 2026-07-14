@@ -1,6 +1,6 @@
-import { Pressable, PressableProps, StyleSheet, ActivityIndicator, useColorScheme } from 'react-native'
+import { Pressable, PressableProps, StyleSheet, ActivityIndicator } from 'react-native'
 import React from 'react'
-import { Colors } from '../constants/colors'
+import { useTheme } from 'src/context/ThemeContext';
 
 interface ThemedButtonProps extends PressableProps
 {
@@ -9,8 +9,7 @@ interface ThemedButtonProps extends PressableProps
 
 export const ThemedButton = ({ isLoading = false, style, children, ...props }: ThemedButtonProps) => {
 
-  const colorScheme = useColorScheme() ?? 'dark';
-  const theme = Colors[colorScheme];
+  const { theme } = useTheme();
 
   return (
     <Pressable

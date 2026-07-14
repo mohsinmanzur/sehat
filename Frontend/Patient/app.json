@@ -7,11 +7,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/Splash.png",
+      "image": "./assets/logo-white.png",
       "resizeMode": "contain",
       "backgroundColor": "#2A5CFF",
       "dark": {
-        "image": "./assets/Splash.png",
+        "image": "./assets/logo-white.png",
         "resizeMode": "contain",
         "backgroundColor": "#0D0D0E"
       }

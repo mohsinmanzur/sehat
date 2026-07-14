@@ -1,7 +1,7 @@
-import { useColorScheme, View, KeyboardAvoidingView, Platform, ScrollView, ScrollViewProps } from 'react-native'
+import { View, KeyboardAvoidingView, Platform, ScrollView, ScrollViewProps } from 'react-native'
 import React from 'react'
-import { Colors } from '../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from 'src/context/ThemeContext';
 
 export interface SafeViewProps extends ScrollViewProps {
   safe?: boolean;
@@ -10,8 +10,8 @@ export interface SafeViewProps extends ScrollViewProps {
 }
 
 export const ThemedView = ({ safe = false, keyboardAvoid = false, scroll = false, style, ...props }: SafeViewProps) => {
-  const colorScheme = useColorScheme() ?? 'dark';
-  const theme = Colors[colorScheme];
+
+  const { theme } = useTheme();
 
   const insets = useSafeAreaInsets();
 
