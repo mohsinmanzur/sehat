@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sehat",
     "scheme": "com.mohsinmanzoor.sehatscan",
-    "slug": "sehatscan",
+    "slug": "sehat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -26,11 +26,21 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#2A5CFF"
       },
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "extra": {
       "eas": {
-        "projectId": "08842b17-c0b6-4540-846d-8e5f6e537fa3"
+        "projectId": "6e2d986c-d327-4df0-97c8-433795a5fa21"
+      },
+      "router": {
+        "root": "./src/app"
       }
     },
     "plugins": [
@@ -47,6 +57,15 @@
         }
       ],
       "expo-sqlite"
-    ]
+    ],
+    "owner": "mohsin_manzoor",
+    "updates": {
+      "url": "https://u.expo.dev/6e2d986c-d327-4df0-97c8-433795a5fa21"
+    },
+    "ios": {
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
+    }
   }
 }
