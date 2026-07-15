@@ -94,14 +94,14 @@ const DashboardScreen: React.FC = () => {
             }
             ListEmptyComponent={
               <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                  <Spacer height={180} />
-                  <FontAwesome5 name={'plus'} color={theme.textGray} size={24} />
-                  <ThemedText type={'h3'} style={{ textAlign: 'center', paddingTop: 15 }}>
-                      {"Add New Measurements!"}
-                  </ThemedText>
-                  <ThemedText style={{ fontSize: 14, color: theme.textGray, paddingHorizontal: 30, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
-                      {'Start by adding new measurements here.'}
-                  </ThemedText>
+                <Spacer height={180} />
+                <FontAwesome5 name={'plus'} color={theme.textGray} size={24} />
+                <ThemedText type={'h3'} style={{ textAlign: 'center', paddingTop: 15 }}>
+                  {"Add New Measurements!"}
+                </ThemedText>
+                <ThemedText style={{ fontSize: 14, color: theme.textGray, paddingHorizontal: 30, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+                  {'Start by adding new measurements here.'}
+                </ThemedText>
               </View>
             }
             renderItem={({ item: unit, index }) => {

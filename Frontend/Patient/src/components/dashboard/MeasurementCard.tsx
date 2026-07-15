@@ -2,12 +2,20 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'src/context/ThemeContext';
-import Animated, { SharedTransition, withTiming } from 'react-native-reanimated';
+import Animated, { SharedTransition, withSpring } from 'react-native-reanimated';
 import { InsightCard } from './InsightCard';
 
-const fastTransition = SharedTransition.springify().duration(250);
+const fastTransition = SharedTransition.custom((values) => {
+  'worklet';
+  return {
+    width: withSpring(values.targetWidth),
+    height: withSpring(values.targetHeight),
+    originX: withSpring(values.targetOriginX),
+    originY: withSpring(values.targetOriginY),
+  };
+});
 
-const AnimatedIcon = Animated.createAnimatedComponent(FontAwesome5);
+
 
 interface MeasurementCardProps {
   id: string;
@@ -34,18 +42,18 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({ id, title, val
 
       <View style={styles.cardContent}>
         {/* Leading Icon Box */}
-        <View
+        <Animated.View
           style={[styles.iconBox, { backgroundColor: lightThemeColor }]}
+          sharedTransitionTag={`icon-glyph-${id}`}
+          sharedTransitionStyle={fastTransition}
           collapsable={false}
         >
-          <AnimatedIcon
-            sharedTransitionTag={`icon-glyph-${id}`}
-            sharedTransitionStyle={fastTransition}
+          <FontAwesome5
             name={iconName}
             size={22}
             color={themeColor}
           />
-        </View>
+        </Animated.View>
 
         {/* Title and Badge Columns */}
         <View style={styles.textColumn}>
