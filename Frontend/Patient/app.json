@@ -61,12 +61,13 @@
     ],
     "owner": "mohsin_manzoor",
     "updates": {
-      "url": "https://u.expo.dev/6e2d986c-d327-4df0-97c8-433795a5fa21"
+      "url": "https://u.expo.dev/6e2d986c-d327-4df0-97c8-433795a5fa21",
+      "requestHeaders": {
+        "expo-channel-name": "preview"
+      }
     },
     "ios": {
-      "runtimeVersion": {
-        "policy": "appVersion"
-      }
+      "runtimeVersion": "1.0.0"
     }
   }
 }

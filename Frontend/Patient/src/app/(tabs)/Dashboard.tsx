@@ -95,7 +95,7 @@ const DashboardScreen: React.FC = () => {
             ListEmptyComponent={
               <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                 <Spacer height={180} />
-                <FontAwesome5 name={'plus'} color={theme.textGray} size={24} />
+                <FontAwesome5 name={'plus'} color={theme.primary} size={30} />
                 <ThemedText type={'h3'} style={{ textAlign: 'center', paddingTop: 15 }}>
                   {"Add New Measurements!"}
                 </ThemedText>

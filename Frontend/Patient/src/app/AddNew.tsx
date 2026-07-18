@@ -294,32 +294,8 @@ export default function AddNewMeasurement() {
 
                     <ThemedText style={s.unitText} type={'subtitle'}>{selectedUnit?.symbol}</ThemedText>
                 </View>
-
+                {/*
                 <View style={s.optionsRow}>
-                    <ScalePressable
-                        style={[s.optionPill, selectedSpecialConditions.includes('Fasting') && s.optionPillActive]}
-                        onPress={() => {
-                            if (selectedSpecialConditions.includes('Fasting')) {
-                                setSelectedSpecialConditions(selectedSpecialConditions.filter((condition) => condition !== 'Fasting'));
-                            } else {
-                                setSelectedSpecialConditions([...selectedSpecialConditions, 'Fasting']);
-                            }
-                        }}
-                    >
-                        <Text style={[s.optionPillText, selectedSpecialConditions.includes('Fasting') && s.optionPillTextActive]}>Fasting</Text>
-                    </ScalePressable>
-                    <ScalePressable
-                        style={[s.optionPill, selectedSpecialConditions.includes('Post-meal') && s.optionPillActive]}
-                        onPress={() => {
-                            if (selectedSpecialConditions.includes('Post-meal')) {
-                                setSelectedSpecialConditions(selectedSpecialConditions.filter((condition) => condition !== 'Post-meal'));
-                            } else {
-                                setSelectedSpecialConditions([...selectedSpecialConditions, 'Post-meal']);
-                            }
-                        }}
-                    >
-                        <Text style={[s.optionPillText, selectedSpecialConditions.includes('Post-meal') && s.optionPillTextActive]}>Post-meal</Text>
-                    </ScalePressable>
                     <ScalePressable
                         style={[s.optionPill, selectedSpecialConditions.includes('Morning') && s.optionPillActive]}
                         onPress={() => {
@@ -332,7 +308,7 @@ export default function AddNewMeasurement() {
                     >
                         <Text style={[s.optionPillText, selectedSpecialConditions.includes('Morning') && s.optionPillTextActive]}>Morning</Text>
                     </ScalePressable>
-                </View>
+                </View>*/}
 
                 {/* ── Date & Time ── */}
                 <View style={s.row}>
