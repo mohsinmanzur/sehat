@@ -5,14 +5,13 @@
     position: relative;
     margin: 14px;
     padding-top: 150px;
-    padding-bottom: 0;
+    padding-bottom: 60px;
     background: linear-gradient(180deg,
             var(--sky-1) 0%,
             var(--sky-2) 40%,
             var(--sky-3) 75%,
             #ffffff 100%);
     border-radius: 32px;
-    overflow: hidden;
 }
 
 /* Star field container - sits behind the hero copy, above the gradient */
@@ -34,10 +33,13 @@
 }
 
 @keyframes twinkle {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.15;
         transform: scale(0.7);
     }
+
     50% {
         opacity: 1;
         transform: scale(1.2);
@@ -90,23 +92,12 @@
     text-shadow: 0 1px 8px rgba(15, 23, 42, 0.35);
 }
 
-/* Phone mockup sits inside the gradient band, spilling onto the white section below */
-.hero-mockup-wrapper {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    width: 100%;
-    margin-top: 32px;
-    padding-bottom: 0;
-}
-
 .hero-mockup-scale {
     /* Anchor shrinking at the top so the phone stays flush under the CTA
        caption; the removed height comes off the bottom instead of leaving
        a dead gap above the phone. */
     transform-origin: top center;
+    margin-top: 32px;
 }
 
 @media (max-width: 560px) {
